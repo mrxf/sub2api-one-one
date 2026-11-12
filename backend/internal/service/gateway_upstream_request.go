@@ -212,6 +212,7 @@ func (s *GatewayService) buildUpstreamRequest(ctx context.Context, c *gin.Contex
 	if tokenType == "oauth" && mimicClaudeCode {
 		applyClaudeCodeMimicHeaders(req, reqStream, mimicUserAgent)
 	}
+	s.applyOAuthAcceptLanguageSanitization(ctx, account, tokenType, req)
 
 	// 写入最终 anthropic-beta header
 	// 注：透传分支白名单可能写入了客户端 anthropic-beta，无条件 Del 一次再按 finalBeta
@@ -509,6 +510,27 @@ func applyClaudeOAuthHeaderDefaults(req *http.Request) {
 			setHeaderRaw(req.Header, resolveWireCasing(key), value)
 		}
 	}
+}
+
+// shouldSanitizeAcceptLanguage reports whether outbound accept-language headers
+// on Anthropic OAuth/SetupToken requests should be normalized to "*".
+// Scoped to Anthropic OAuth/SetupToken accounts only; API-Key accounts bypass this step.
+func (s *GatewayService) shouldSanitizeAcceptLanguage(ctx context.Context, account *Account) bool {
+	if account == nil || !account.IsAnthropicOAuthOrSetupToken() {
+		return false
+	}
+	if s == nil || s.settingService == nil {
+		return true
+	}
+	return s.settingService.IsAcceptLanguageSanitizationEnabled(ctx)
+}
+
+func (s *GatewayService) applyOAuthAcceptLanguageSanitization(ctx context.Context, account *Account, tokenType string, req *http.Request) {
+	if req == nil || tokenType != "oauth" || !s.shouldSanitizeAcceptLanguage(ctx, account) {
+		return
+	}
+	deleteHeaderAllForms(req.Header, "accept-language")
+	setHeaderRaw(req.Header, "accept-language", "*")
 }
 
 func mergeAnthropicBeta(required []string, incoming string) string {

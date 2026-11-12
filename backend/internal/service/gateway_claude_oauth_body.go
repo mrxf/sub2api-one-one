@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/pkg/anthropicfp"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/claude"
@@ -1271,6 +1272,39 @@ func (s *GatewayService) shouldInjectAnthropicCacheTTL1h(ctx context.Context, ac
 	return s.settingService.IsAnthropicCacheTTL1hInjectionEnabled(ctx)
 }
 
+var gatewayDatelineNowFunc = time.Now
+
+// ValidateClientDatelineTimezone validates an admin-configured IANA timezone for
+// client dateline alignment. Empty string disables date override (preserving
+// the client's original date). "Local" is explicitly rejected because
+// time.Local depends on the server's process timezone.
+func ValidateClientDatelineTimezone(raw string) error {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil
+	}
+	if strings.EqualFold(trimmed, "local") {
+		return infraerrors.BadRequest("INVALID_CLIENT_DATELINE_TIMEZONE", "client_dateline_timezone must be an explicit IANA timezone (e.g. America/Los_Angeles or UTC)")
+	}
+	if _, err := time.LoadLocation(trimmed); err != nil {
+		return infraerrors.BadRequest("INVALID_CLIENT_DATELINE_TIMEZONE", fmt.Sprintf("invalid client_dateline_timezone %q: %v", trimmed, err))
+	}
+	return nil
+}
+
+// NormalizeClientDatelineTimezone trims raw and returns a valid explicit IANA
+// timezone name, or "" when raw is empty or invalid.
+func NormalizeClientDatelineTimezone(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" || strings.EqualFold(trimmed, "local") {
+		return ""
+	}
+	if _, err := time.LoadLocation(trimmed); err != nil {
+		return ""
+	}
+	return trimmed
+}
+
 // shouldNormalizeClientDateline reports whether the request body's client
 // dateline should be normalized before forwarding to Anthropic. The switch is
 // scoped to Anthropic OAuth/SetupToken accounts only; API-Key accounts and
@@ -1282,6 +1316,21 @@ func (s *GatewayService) shouldNormalizeClientDateline(ctx context.Context, acco
 	return s.settingService.IsClientDatelineNormalizationEnabled(ctx)
 }
 
+func (s *GatewayService) resolveClientDatelineOverrideDate(ctx context.Context) string {
+	if s == nil || s.settingService == nil {
+		return ""
+	}
+	tz := strings.TrimSpace(s.settingService.GetClientDatelineTimezone(ctx))
+	if tz == "" || strings.EqualFold(tz, "local") {
+		return ""
+	}
+	loc, err := time.LoadLocation(tz)
+	if err != nil || loc == nil {
+		return ""
+	}
+	return gatewayDatelineNowFunc().In(loc).Format("2006-01-02")
+}
+
 // normalizeClientDatelineIfEnabled applies dateline normalization to body when
 // the switch is on and the account qualifies. Returns (nextBody, true) only
 // when the body actually changed; otherwise returns (nil, false) so callers
@@ -1290,7 +1339,8 @@ func (s *GatewayService) normalizeClientDatelineIfEnabled(ctx context.Context, a
 	if !s.shouldNormalizeClientDateline(ctx, account) {
 		return nil, false
 	}
-	next, _, changed := anthropicfp.NormalizeDateline(body)
+	overrideDate := s.resolveClientDatelineOverrideDate(ctx)
+	next, _, changed := anthropicfp.NormalizeDatelineWithDate(body, overrideDate)
 	if !changed {
 		return nil, false
 	}

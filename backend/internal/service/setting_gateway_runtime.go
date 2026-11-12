@@ -64,6 +64,8 @@ type cachedGatewayForwardingSettings struct {
 	anthropicCacheTTL1hInjection     bool
 	rewriteMessageCacheControl       bool
 	clientDatelineNormalization      bool
+	clientDatelineTimezone           string
+	acceptLanguageSanitization       bool
 	expiresAt                        int64 // unix nano
 }
 
@@ -859,7 +861,8 @@ func (s *SettingService) IsBackendModeEnabled(ctx context.Context) bool {
 type gatewayForwardingSettingsResult struct {
 	openAITTFTMode                                                                        string
 	fp, mp, cch, claudeOAuthSystemPromptInjection, cacheTTL1h, rewriteMessageCacheControl bool
-	clientDatelineNormalization                                                           bool
+	clientDatelineNormalization, acceptLanguageSanitization                               bool
+	clientDatelineTimezone                                                                string
 	claudeOAuthSystemPrompt, claudeOAuthSystemPromptBlocks                                string
 }
 
@@ -877,6 +880,8 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 				cacheTTL1h:                       cached.anthropicCacheTTL1hInjection,
 				rewriteMessageCacheControl:       cached.rewriteMessageCacheControl,
 				clientDatelineNormalization:      cached.clientDatelineNormalization,
+				clientDatelineTimezone:           cached.clientDatelineTimezone,
+				acceptLanguageSanitization:       cached.acceptLanguageSanitization,
 			}
 		}
 	}
@@ -894,6 +899,8 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 					cacheTTL1h:                       cached.anthropicCacheTTL1hInjection,
 					rewriteMessageCacheControl:       cached.rewriteMessageCacheControl,
 					clientDatelineNormalization:      cached.clientDatelineNormalization,
+					clientDatelineTimezone:           cached.clientDatelineTimezone,
+					acceptLanguageSanitization:       cached.acceptLanguageSanitization,
 				}, nil
 			}
 		}
@@ -910,6 +917,8 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 			SettingKeyEnableAnthropicCacheTTL1hInjection,
 			SettingKeyRewriteMessageCacheControl,
 			SettingKeyEnableClientDatelineNormalization,
+			SettingKeyClientDatelineTimezone,
+			SettingKeyEnableAcceptLanguageSanitization,
 		})
 		if err != nil {
 			slog.Warn("failed to get gateway forwarding settings", "error", err)
@@ -922,9 +931,18 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 				anthropicCacheTTL1hInjection:     false,
 				rewriteMessageCacheControl:       s.defaultRewriteMessageCacheControl(),
 				clientDatelineNormalization:      true,
+				clientDatelineTimezone:           "",
+				acceptLanguageSanitization:       true,
 				expiresAt:                        time.Now().Add(gatewayForwardingErrorTTL).UnixNano(),
 			})
-			return gatewayForwardingSettingsResult{openAITTFTMode: OpenAITTFTModeSemantic, fp: true, claudeOAuthSystemPromptInjection: true, rewriteMessageCacheControl: s.defaultRewriteMessageCacheControl(), clientDatelineNormalization: true}, nil
+			return gatewayForwardingSettingsResult{
+				openAITTFTMode:                   OpenAITTFTModeSemantic,
+				fp:                               true,
+				claudeOAuthSystemPromptInjection: true,
+				rewriteMessageCacheControl:       s.defaultRewriteMessageCacheControl(),
+				clientDatelineNormalization:      true,
+				acceptLanguageSanitization:       true,
+			}, nil
 		}
 		ttftMode := normalizeOpenAITTFTMode(values[SettingKeyOpenAITTFTMode])
 		fp := true
@@ -948,6 +966,11 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 		if v, ok := values[SettingKeyEnableClientDatelineNormalization]; ok && v != "" {
 			clientDatelineNormalization = v == "true"
 		}
+		clientDatelineTimezone := NormalizeClientDatelineTimezone(values[SettingKeyClientDatelineTimezone])
+		acceptLanguageSanitization := true
+		if v, ok := values[SettingKeyEnableAcceptLanguageSanitization]; ok && v != "" {
+			acceptLanguageSanitization = v == "true"
+		}
 		gatewayForwardingCache.Store(&cachedGatewayForwardingSettings{
 			openAITTFTMode:                   ttftMode,
 			fingerprintUnification:           fp,
@@ -959,6 +982,8 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 			anthropicCacheTTL1hInjection:     cacheTTL1h,
 			rewriteMessageCacheControl:       rewriteMessageCacheControl,
 			clientDatelineNormalization:      clientDatelineNormalization,
+			clientDatelineTimezone:           clientDatelineTimezone,
+			acceptLanguageSanitization:       acceptLanguageSanitization,
 			expiresAt:                        time.Now().Add(gatewayForwardingCacheTTL).UnixNano(),
 		})
 		return gatewayForwardingSettingsResult{
@@ -972,12 +997,14 @@ func (s *SettingService) getGatewayForwardingSettingsCached(ctx context.Context)
 			cacheTTL1h:                       cacheTTL1h,
 			rewriteMessageCacheControl:       rewriteMessageCacheControl,
 			clientDatelineNormalization:      clientDatelineNormalization,
+			clientDatelineTimezone:           clientDatelineTimezone,
+			acceptLanguageSanitization:       acceptLanguageSanitization,
 		}, nil
 	})
 	if r, ok := val.(gatewayForwardingSettingsResult); ok {
 		return r
 	}
-	return gatewayForwardingSettingsResult{fp: true, claudeOAuthSystemPromptInjection: true, clientDatelineNormalization: true}
+	return gatewayForwardingSettingsResult{fp: true, claudeOAuthSystemPromptInjection: true, clientDatelineNormalization: true, acceptLanguageSanitization: true}
 }
 
 // GetOpenAITTFTMode 返回 Responses first_token_ms 的统计口径。
@@ -1007,6 +1034,18 @@ func (s *SettingService) IsRewriteMessageCacheControlEnabled(ctx context.Context
 // 的客户端 dateline 归一化。默认开启。
 func (s *SettingService) IsClientDatelineNormalizationEnabled(ctx context.Context) bool {
 	return s.getGatewayForwardingSettingsCached(ctx).clientDatelineNormalization
+}
+
+// GetClientDatelineTimezone 返回客户端 dateline 归一化使用的目标 IANA 时区。
+// 空字符串表示不改写日期（仅执行字符/分隔符规范化）。
+func (s *SettingService) GetClientDatelineTimezone(ctx context.Context) string {
+	return s.getGatewayForwardingSettingsCached(ctx).clientDatelineTimezone
+}
+
+// IsAcceptLanguageSanitizationEnabled 检查是否对 Anthropic OAuth/SetupToken 出站请求
+// 将 accept-language 统一脱敏为 "*"。默认开启。
+func (s *SettingService) IsAcceptLanguageSanitizationEnabled(ctx context.Context) bool {
+	return s.getGatewayForwardingSettingsCached(ctx).acceptLanguageSanitization
 }
 
 // GetClaudeOAuthSystemPromptInjectionSettings returns the Claude OAuth mimic

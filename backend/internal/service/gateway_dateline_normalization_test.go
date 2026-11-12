@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/anthropicfp"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 )
 
 // TestGatewayClientDatelineNormalization_Scope covers the account/switch matrix
@@ -120,4 +122,60 @@ func TestGatewayClientDatelineNormalization_LeavesUserProseUntouched(t *testing.
 	require.False(t, changed)
 	require.Empty(t, hits)
 	require.Equal(t, body, out)
+}
+
+func TestGatewayClientDatelineNormalization_TimezoneOverride(t *testing.T) {
+	// Fix clock to 2026-11-13 02:30:00 UTC:
+	// - Asia/Shanghai (UTC+8)      -> 2026-11-13
+	// - America/Los_Angeles (UTC-8)-> 2026-11-12
+	prevNow := gatewayDatelineNowFunc
+	t.Cleanup(func() { gatewayDatelineNowFunc = prevNow })
+	gatewayDatelineNowFunc = func() time.Time {
+		return time.Date(2026, 11, 13, 2, 30, 0, 0, time.UTC)
+	}
+
+	repo := &gatewayTTLSettingRepo{data: map[string]string{
+		SettingKeyEnableClientDatelineNormalization: "true",
+		SettingKeyClientDatelineTimezone:            "America/Los_Angeles",
+	}}
+	gatewayForwardingCache.Store(&cachedGatewayForwardingSettings{})
+	svc := &GatewayService{
+		settingService: NewSettingService(repo, &config.Config{}),
+	}
+	ctx := context.Background()
+
+	// Canonical ASCII dateline from an Asia/Shanghai client (2026-11-13) gets aligned to US Pacific (2026-11-12),
+	// while user prose outside <system-reminder> is untouched.
+	body := []byte(`{"system":"Today's date is 2026-11-13.","messages":[{"role":"user","content":"<system-reminder>\n# currentDate\nToday's date is 2026-11-13.\n</system-reminder>\nNote: Today's date is 2026-11-13."}]}`)
+	next, ok := svc.normalizeClientDatelineIfEnabled(ctx, &Account{Platform: PlatformAnthropic, Type: AccountTypeOAuth}, body)
+	require.True(t, ok)
+	require.Equal(t, "Today's date is 2026-11-12.", gjson.GetBytes(next, "system").String())
+	msgContent := gjson.GetBytes(next, "messages.0.content").String()
+	require.Contains(t, msgContent, "<system-reminder>\n# currentDate\nToday's date is 2026-11-12.\n</system-reminder>")
+	require.Contains(t, msgContent, "Note: Today's date is 2026-11-13.")
+
+	// API-Key account remains untouched even when timezone is configured.
+	nextAPIKey, okAPIKey := svc.normalizeClientDatelineIfEnabled(ctx, &Account{Platform: PlatformAnthropic, Type: AccountTypeAPIKey}, body)
+	require.False(t, okAPIKey)
+	require.Nil(t, nextAPIKey)
+
+	// Empty timezone preserves original client date when already ASCII canonical.
+	repo.data[SettingKeyClientDatelineTimezone] = ""
+	gatewayForwardingCache.Store(&cachedGatewayForwardingSettings{})
+	nextEmptyTZ, okEmptyTZ := svc.normalizeClientDatelineIfEnabled(ctx, &Account{Platform: PlatformAnthropic, Type: AccountTypeOAuth}, body)
+	require.False(t, okEmptyTZ)
+	require.Nil(t, nextEmptyTZ)
+}
+
+func TestValidateClientDatelineTimezone(t *testing.T) {
+	require.NoError(t, ValidateClientDatelineTimezone(""))
+	require.NoError(t, ValidateClientDatelineTimezone("  "))
+	require.NoError(t, ValidateClientDatelineTimezone("America/Los_Angeles"))
+	require.NoError(t, ValidateClientDatelineTimezone("UTC"))
+	require.Error(t, ValidateClientDatelineTimezone("Local"))
+	require.Error(t, ValidateClientDatelineTimezone("local"))
+	require.Error(t, ValidateClientDatelineTimezone("Mars/Olympus_Mons"))
+	require.Equal(t, "America/Los_Angeles", NormalizeClientDatelineTimezone(" America/Los_Angeles "))
+	require.Equal(t, "", NormalizeClientDatelineTimezone("Local"))
+	require.Equal(t, "", NormalizeClientDatelineTimezone("Invalid/Zone"))
 }

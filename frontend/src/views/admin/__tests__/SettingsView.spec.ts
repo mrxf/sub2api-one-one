@@ -476,6 +476,8 @@ const baseSettingsResponse = {
   enable_anthropic_cache_ttl_1h_injection: false,
   rewrite_message_cache_control: false,
   enable_client_dateline_normalization: true,
+  client_dateline_timezone: "",
+  enable_accept_language_sanitization: true,
   antigravity_user_agent_version: "",
   openai_codex_user_agent: "",
   payment_enabled: true,
@@ -2128,3 +2130,49 @@ describe("admin SettingsView platform quota matrix", () => {
     expect(quotas["anthropic"]?.["daily"]).toBe(null);
   });
 });
+
+describe("admin SettingsView gateway sanitization controls", () => {
+  it("loads, toggles, and submits client_dateline_timezone and enable_accept_language_sanitization", async () => {
+    getSettings.mockResolvedValueOnce({
+      ...baseSettingsResponse,
+      enable_client_dateline_normalization: true,
+      client_dateline_timezone: "",
+      enable_accept_language_sanitization: true,
+    });
+
+    const wrapper = mountView();
+    await flushPromises();
+    await openGatewayTab(wrapper);
+
+    const tzInput = wrapper.find('[data-testid="client-dateline-timezone-input"]');
+    const acceptLangToggle = wrapper.find(
+      '[data-testid="enable-accept-language-sanitization-toggle"]',
+    );
+    const datelineToggle = wrapper.find(
+      '[data-testid="enable-client-dateline-normalization-toggle"]',
+    );
+
+    expect(tzInput.exists()).toBe(true);
+    expect((tzInput.element as HTMLInputElement).disabled).toBe(false);
+    expect(acceptLangToggle.exists()).toBe(true);
+    expect((acceptLangToggle.element as HTMLInputElement).checked).toBe(true);
+
+    await tzInput.setValue("  America/Los_Angeles  ");
+    await acceptLangToggle.setValue(false);
+
+    // Turning off dateline normalization disables the timezone input
+    await datelineToggle.setValue(false);
+    expect((tzInput.element as HTMLInputElement).disabled).toBe(true);
+
+    // Turn back on and submit
+    await datelineToggle.setValue(true);
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    const payload = updateSettings.mock.calls.at(-1)![0] as Record<string, unknown>;
+    expect(payload["enable_client_dateline_normalization"]).toBe(true);
+    expect(payload["client_dateline_timezone"]).toBe("America/Los_Angeles");
+    expect(payload["enable_accept_language_sanitization"]).toBe(false);
+  });
+});
+

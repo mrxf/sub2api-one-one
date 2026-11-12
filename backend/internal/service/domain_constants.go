@@ -690,6 +690,14 @@ const (
 	// 在检测到非官方 base URL 时注入的 3 bit 隐写指纹。仅适用于 Anthropic OAuth/SetupToken
 	// 账号；API Key 账号不受影响。
 	SettingKeyEnableClientDatelineNormalization = "enable_client_dateline_normalization"
+	// SettingKeyClientDatelineTimezone 可选的客户端 dateline 时区对齐（默认空字符串，保留客户端原始日期）。
+	// 配置为合法 IANA 时区（如 America/Los_Angeles、UTC）且启用 SettingKeyEnableClientDatelineNormalization 时，
+	// 会将 system prompt / <system-reminder> 块中 "Today's date is YYYY-MM-DD." 的日期同步改写为目标时区当前日期。
+	SettingKeyClientDatelineTimezone = "client_dateline_timezone"
+	// SettingKeyEnableAcceptLanguageSanitization 是否对 Anthropic OAuth/SetupToken 出站请求做
+	// accept-language 脱敏（默认 true），统一改写为 "*"（对齐原生 Node.js/undici Claude Code CLI 线格式，
+	// 防止透传 zh-CN 等地区语言头或同一 OAuth 账号下多用户语言头跳变）。API Key 账号不受影响。
+	SettingKeyEnableAcceptLanguageSanitization = "enable_accept_language_sanitization"
 	// SettingKeyRewriteMessageCacheControl 是否改写 messages[*].content[*].cache_control（默认 false）
 	SettingKeyRewriteMessageCacheControl = "rewrite_message_cache_control"
 	// SettingKeyAntigravityUserAgentVersion Antigravity 上游 User-Agent 版本号（空值使用环境变量/默认值）

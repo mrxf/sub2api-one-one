@@ -30,6 +30,7 @@ import (
 var (
 	datelineRegexHyphen = regexp.MustCompile(`Today(['’ʼʹ])s date is (\d{4})-(\d{2})-(\d{2})\.`)
 	datelineRegexSlash  = regexp.MustCompile(`Today(['’ʼʹ])s date is (\d{4})/(\d{2})/(\d{2})\.`)
+	overrideDateRegex   = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 )
 
 // systemReminderRegex matches a <system-reminder> block. The dateline lives in
@@ -44,12 +45,8 @@ type DatelineHit struct {
 	ApostropheVariant string
 	// DateSeparator is either "-" or "/" as seen before normalization.
 	DateSeparator string
-}
-
-// canonicalize returns the canonical form of a matched dateline sentence.
-// The output always uses ASCII apostrophe and hyphen separators.
-func canonicalize(year, month, day string) string {
-	return fmt.Sprintf("Today's date is %s-%s-%s.", year, month, day)
+	// DateOverridden reports whether the YYYY-MM-DD date itself was replaced by an explicit overrideDate.
+	DateOverridden bool
 }
 
 func apostropheVariant(r rune) string {
@@ -102,6 +99,13 @@ func collectMatches(text string, re *regexp.Regexp, sep string) []datelineMatch 
 // hits observed. When no match is found the original string is returned
 // verbatim (byte-identical), and the returned hit slice is nil.
 func NormalizeText(text string) (string, []DatelineHit) {
+	return NormalizeTextWithDate(text, "")
+}
+
+// NormalizeTextWithDate behaves like NormalizeText, and additionally replaces
+// the matched YYYY-MM-DD date with overrideDate when overrideDate matches
+// YYYY-MM-DD. Passing an empty overrideDate preserves the matched date.
+func NormalizeTextWithDate(text, overrideDate string) (string, []DatelineHit) {
 	if !strings.Contains(text, "date is ") {
 		return text, nil
 	}
@@ -112,6 +116,8 @@ func NormalizeText(text string) (string, []DatelineHit) {
 	}
 	sort.Slice(matches, func(i, j int) bool { return matches[i].start < matches[j].start })
 
+	validOverride := overrideDate != "" && overrideDateRegex.MatchString(overrideDate)
+
 	var b strings.Builder
 	b.Grow(len(text))
 	prev := 0
@@ -119,7 +125,14 @@ func NormalizeText(text string) (string, []DatelineHit) {
 	changed := false
 	for _, m := range matches {
 		full := text[m.start:m.end]
-		canonical := canonicalize(m.year, m.month, m.day)
+		matchedDate := fmt.Sprintf("%s-%s-%s", m.year, m.month, m.day)
+		targetDate := matchedDate
+		dateOverridden := false
+		if validOverride && overrideDate != matchedDate {
+			targetDate = overrideDate
+			dateOverridden = true
+		}
+		canonical := fmt.Sprintf("Today's date is %s.", targetDate)
 		if canonical == full {
 			// Already canonical: no rewrite, no hit.
 			continue
@@ -131,6 +144,7 @@ func NormalizeText(text string) (string, []DatelineHit) {
 		hits = append(hits, DatelineHit{
 			ApostropheVariant: apostropheVariant(m.apoRune),
 			DateSeparator:     m.sep,
+			DateOverridden:    dateOverridden,
 		})
 	}
 	if !changed {
@@ -145,7 +159,7 @@ func NormalizeText(text string) (string, []DatelineHit) {
 // preserved byte-for-byte, so user prose, tool_result content, code blocks,
 // or shell commands that happen to contain an apostrophe or a slash date are
 // never touched.
-func normalizeSystemReminderScopedText(text string) (string, []DatelineHit) {
+func normalizeSystemReminderScopedText(text, overrideDate string) (string, []DatelineHit) {
 	if !strings.Contains(text, "<system-reminder>") {
 		return text, nil
 	}
@@ -161,7 +175,7 @@ func normalizeSystemReminderScopedText(text string) (string, []DatelineHit) {
 	for _, loc := range locs {
 		_, _ = b.WriteString(text[prev:loc[0]])
 		block := text[loc[0]:loc[1]]
-		normalized, blockHits := NormalizeText(block)
+		normalized, blockHits := NormalizeTextWithDate(block, overrideDate)
 		if normalized != block {
 			changed = true
 		}
@@ -192,6 +206,13 @@ func normalizeSystemReminderScopedText(text string) (string, []DatelineHit) {
 // no rewrite is needed it returns the original slice (identity), a nil hit
 // slice, and changed=false.
 func NormalizeDateline(body []byte) ([]byte, []DatelineHit, bool) {
+	return NormalizeDatelineWithDate(body, "")
+}
+
+// NormalizeDatelineWithDate behaves like NormalizeDateline, and additionally
+// replaces the matched YYYY-MM-DD date inside system / <system-reminder>
+// dateline sentences with overrideDate when overrideDate matches YYYY-MM-DD.
+func NormalizeDatelineWithDate(body []byte, overrideDate string) ([]byte, []DatelineHit, bool) {
 	if len(body) == 0 {
 		return body, nil, false
 	}
@@ -203,7 +224,7 @@ func NormalizeDateline(body []byte) ([]byte, []DatelineHit, bool) {
 	if sys.Exists() {
 		switch {
 		case sys.Type == gjson.String:
-			normalized, sysHits := NormalizeText(sys.String())
+			normalized, sysHits := NormalizeTextWithDate(sys.String(), overrideDate)
 			if normalized != sys.String() {
 				if next, err := sjson.SetBytes(out, "system", normalized); err == nil {
 					out = next
@@ -217,7 +238,7 @@ func NormalizeDateline(body []byte) ([]byte, []DatelineHit, bool) {
 				if item.Get("type").String() == "text" {
 					t := item.Get("text")
 					if t.Exists() && t.Type == gjson.String {
-						normalized, textHits := NormalizeText(t.String())
+						normalized, textHits := NormalizeTextWithDate(t.String(), overrideDate)
 						if normalized != t.String() {
 							path := fmt.Sprintf("system.%d.text", idx)
 							if next, err := sjson.SetBytes(out, path, normalized); err == nil {
@@ -245,7 +266,7 @@ func NormalizeDateline(body []byte) ([]byte, []DatelineHit, bool) {
 			}
 			switch {
 			case content.Type == gjson.String:
-				normalized, contentHits := normalizeSystemReminderScopedText(content.String())
+				normalized, contentHits := normalizeSystemReminderScopedText(content.String(), overrideDate)
 				if normalized != content.String() {
 					path := fmt.Sprintf("messages.%d.content", msgIdx)
 					if next, err := sjson.SetBytes(out, path, normalized); err == nil {
@@ -265,7 +286,7 @@ func NormalizeDateline(body []byte) ([]byte, []DatelineHit, bool) {
 					if !t.Exists() || t.Type != gjson.String {
 						return true
 					}
-					normalized, textHits := normalizeSystemReminderScopedText(t.String())
+					normalized, textHits := normalizeSystemReminderScopedText(t.String(), overrideDate)
 					if normalized != t.String() {
 						path := fmt.Sprintf("messages.%d.content.%d.text", msgIdx, contentIdx)
 						if next, err := sjson.SetBytes(out, path, normalized); err == nil {

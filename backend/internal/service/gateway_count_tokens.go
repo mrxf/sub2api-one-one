@@ -112,6 +112,13 @@ func (s *GatewayService) ForwardCountTokens(ctx context.Context, c *gin.Context,
 		}
 	}
 
+	// 客户端 dateline 归一化（及可选时区日期对齐）：与 /v1/messages 主路径保持一致。
+	if next, ok := s.normalizeClientDatelineIfEnabled(ctx, account, body); ok {
+		if err := replaceBody(next); err != nil {
+			return err
+		}
+	}
+
 	// 应用模型映射：
 	// - APIKey 账号：使用账号级别的显式映射（如果配置），否则透传原始模型名
 	// - OAuth/SetupToken 账号：使用 Anthropic 标准映射（短ID → 长ID）
@@ -593,6 +600,7 @@ func (s *GatewayService) buildCountTokensRequest(ctx context.Context, c *gin.Con
 	if tokenType == "oauth" && mimicClaudeCode {
 		applyClaudeCodeMimicHeaders(req, false, ctMimicUserAgent)
 	}
+	s.applyOAuthAcceptLanguageSanitization(ctx, account, tokenType, req)
 
 	// 写入最终 anthropic-beta header（Del 一次避免白名单透传值残留）
 	deleteHeaderAllForms(req.Header, "anthropic-beta")

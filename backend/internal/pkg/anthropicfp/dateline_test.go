@@ -246,3 +246,50 @@ func TestNormalizeDateline_MultipleSystemReminderBlocksInSameText(t *testing.T) 
 		t.Fatalf("slash separator must be gone: %s", string(out))
 	}
 }
+
+func TestNormalizeTextWithDate_OverridesCanonicalASCIIAndFingerprintedDates(t *testing.T) {
+	// Even an already-canonical ASCII sentence must be rewritten when overrideDate differs.
+	in := "Today's date is 2026-11-13."
+	out, hits := NormalizeTextWithDate(in, "2026-11-12")
+	want := "Today's date is 2026-11-12."
+	if out != want {
+		t.Fatalf("want %q, got %q", want, out)
+	}
+	if len(hits) != 1 || hits[0].ApostropheVariant != "ascii" || hits[0].DateSeparator != "-" || !hits[0].DateOverridden {
+		t.Fatalf("unexpected hit: %+v", hits)
+	}
+
+	// Same date as overrideDate on canonical input remains a zero-rewrite no-op.
+	outSame, hitsSame := NormalizeTextWithDate(want, "2026-11-12")
+	if outSame != want || len(hitsSame) != 0 {
+		t.Fatalf("expected identity when date already matches overrideDate, got out=%q hits=%+v", outSame, hitsSame)
+	}
+
+	// Invalid overrideDate falls back to preserving matched date.
+	outInvalid, hitsInvalid := NormalizeTextWithDate("Today’s date is 2026/11/13.", "not-a-date")
+	if outInvalid != "Today's date is 2026-11-13." || len(hitsInvalid) != 1 || hitsInvalid[0].DateOverridden {
+		t.Fatalf("unexpected fallback result: out=%q hits=%+v", outInvalid, hitsInvalid)
+	}
+}
+
+func TestNormalizeDatelineWithDate_ScopedToSystemAndSystemReminder(t *testing.T) {
+	body := []byte(`{` +
+		`"system":[{"type":"text","text":"Header.\nToday's date is 2026-11-13."}],` +
+		`"messages":[` +
+		`{"role":"user","content":[{"type":"text","text":"<system-reminder>\n# currentDate\nToday's date is 2026-11-13.\n</system-reminder>"},{"type":"text","text":"User says: Today's date is 2026-11-13."}]}` +
+		`]}`)
+	out, hits, changed := NormalizeDatelineWithDate(body, "2026-11-12")
+	if !changed {
+		t.Fatalf("expected changed=true")
+	}
+	if len(hits) != 2 {
+		t.Fatalf("expected 2 hits (system + <system-reminder>), got %d: %+v", len(hits), hits)
+	}
+	s := string(out)
+	if strings.Count(s, "Today's date is 2026-11-12.") != 2 {
+		t.Fatalf("expected 2 overridden datelines, got: %s", s)
+	}
+	if !strings.Contains(s, "User says: Today's date is 2026-11-13.") {
+		t.Fatalf("user prose outside <system-reminder> must remain untouched: %s", s)
+	}
+}

@@ -253,6 +253,8 @@ type UpdateSettingsRequest struct {
 	EnableAnthropicCacheTTL1hInjection     *bool   `json:"enable_anthropic_cache_ttl_1h_injection"`
 	RewriteMessageCacheControl             *bool   `json:"rewrite_message_cache_control"`
 	EnableClientDatelineNormalization      *bool   `json:"enable_client_dateline_normalization"`
+	ClientDatelineTimezone                 *string `json:"client_dateline_timezone"`
+	EnableAcceptLanguageSanitization       *bool   `json:"enable_accept_language_sanitization"`
 	AntigravityUserAgentVersion            *string `json:"antigravity_user_agent_version"`
 	OpenAICodexUserAgent                   *string `json:"openai_codex_user_agent"`
 	OpenAICodexClientVersion               *string `json:"openai_codex_client_version"`
@@ -1765,6 +1767,18 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			return previousSettings.EnableClientDatelineNormalization
 		}(),
+		ClientDatelineTimezone: func() string {
+			if req.ClientDatelineTimezone != nil {
+				return *req.ClientDatelineTimezone
+			}
+			return previousSettings.ClientDatelineTimezone
+		}(),
+		EnableAcceptLanguageSanitization: func() bool {
+			if req.EnableAcceptLanguageSanitization != nil {
+				return *req.EnableAcceptLanguageSanitization
+			}
+			return previousSettings.EnableAcceptLanguageSanitization
+		}(),
 		AntigravityUserAgentVersion: func() string {
 			if req.AntigravityUserAgentVersion != nil {
 				return *req.AntigravityUserAgentVersion
@@ -2352,6 +2366,8 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		EnableAnthropicCacheTTL1hInjection:                     updatedSettings.EnableAnthropicCacheTTL1hInjection,
 		RewriteMessageCacheControl:                             updatedSettings.RewriteMessageCacheControl,
 		EnableClientDatelineNormalization:                      updatedSettings.EnableClientDatelineNormalization,
+		ClientDatelineTimezone:                                 updatedSettings.ClientDatelineTimezone,
+		EnableAcceptLanguageSanitization:                       updatedSettings.EnableAcceptLanguageSanitization,
 		AntigravityUserAgentVersion:                            updatedSettings.AntigravityUserAgentVersion,
 		OpenAICodexUserAgent:                                   updatedSettings.OpenAICodexUserAgent,
 		OpenAICodexClientVersion:                               updatedSettings.OpenAICodexClientVersion,
