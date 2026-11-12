@@ -9,6 +9,7 @@ import (
 const (
 	BillingTypeBalance      int8 = 0 // 钱包余额
 	BillingTypeSubscription int8 = 1 // 订阅套餐
+	BillingTypeDedicated    int8 = 2 // 独享买断账号（不扣钱包余额）
 )
 
 type RequestType int16

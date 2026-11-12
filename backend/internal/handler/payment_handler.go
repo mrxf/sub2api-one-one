@@ -234,14 +234,15 @@ func (h *PaymentHandler) GetLimits(c *gin.Context) {
 
 // CreateOrderRequest is the request body for creating a payment order.
 type CreateOrderRequest struct {
-	Amount            float64 `json:"amount"`
-	PaymentType       string  `json:"payment_type" binding:"required"`
-	OpenID            string  `json:"openid"`
-	WechatResumeToken string  `json:"wechat_resume_token"`
-	ReturnURL         string  `json:"return_url"`
-	PaymentSource     string  `json:"payment_source"`
-	OrderType         string  `json:"order_type"`
-	PlanID            int64   `json:"plan_id"`
+	Amount             float64 `json:"amount"`
+	PaymentType        string  `json:"payment_type" binding:"required"`
+	OpenID             string  `json:"openid"`
+	WechatResumeToken  string  `json:"wechat_resume_token"`
+	ReturnURL          string  `json:"return_url"`
+	PaymentSource      string  `json:"payment_source"`
+	OrderType          string  `json:"order_type"`
+	PlanID             int64   `json:"plan_id"`
+	DedicatedAccountID int64   `json:"dedicated_account_id"`
 	// IsMobile lets the frontend declare its mobile status directly. When
 	// nil we fall back to User-Agent heuristics (which miss iPadOS / some
 	// embedded browsers that strip the "Mobile" keyword).
@@ -278,20 +279,21 @@ func (h *PaymentHandler) CreateOrder(c *gin.Context) {
 		mobile = *req.IsMobile
 	}
 	result, err := h.paymentService.CreateOrder(c.Request.Context(), service.CreateOrderRequest{
-		UserID:          subject.UserID,
-		Amount:          req.Amount,
-		PaymentType:     req.PaymentType,
-		OpenID:          req.OpenID,
-		ClientIP:        c.ClientIP(),
-		IsMobile:        mobile,
-		IsWeChatBrowser: isWeChatBrowser(c),
-		SrcHost:         c.Request.Host,
-		SrcURL:          c.Request.Referer(),
-		ReturnURL:       req.ReturnURL,
-		PaymentSource:   req.PaymentSource,
-		OrderType:       req.OrderType,
-		PlanID:          req.PlanID,
-		Locale:          c.GetHeader("Accept-Language"),
+		UserID:             subject.UserID,
+		Amount:             req.Amount,
+		PaymentType:        req.PaymentType,
+		OpenID:             req.OpenID,
+		ClientIP:           c.ClientIP(),
+		IsMobile:           mobile,
+		IsWeChatBrowser:    isWeChatBrowser(c),
+		SrcHost:            c.Request.Host,
+		SrcURL:             c.Request.Referer(),
+		ReturnURL:          req.ReturnURL,
+		PaymentSource:      req.PaymentSource,
+		OrderType:          req.OrderType,
+		PlanID:             req.PlanID,
+		DedicatedAccountID: req.DedicatedAccountID,
+		Locale:             c.GetHeader("Accept-Language"),
 	})
 	if err != nil {
 		response.ErrorFrom(c, err)
@@ -503,6 +505,7 @@ type PublicOrderResult struct {
 	RefundRequestedBy   *string    `json:"refund_requested_by,omitempty"`
 	RefundRequestReason *string    `json:"refund_request_reason,omitempty"`
 	PlanID              *int64     `json:"plan_id,omitempty"`
+	DedicatedAccountID  *int64     `json:"dedicated_account_id,omitempty"`
 }
 
 // PublicOrderVerifyResult is returned by the legacy anonymous out_trade_no
@@ -539,6 +542,7 @@ func buildPublicOrderResult(order *dbent.PaymentOrder) PublicOrderResult {
 		RefundRequestedBy:   order.RefundRequestedBy,
 		RefundRequestReason: order.RefundRequestReason,
 		PlanID:              order.PlanID,
+		DedicatedAccountID:  order.DedicatedAccountID,
 	}
 }
 
@@ -649,6 +653,7 @@ type PaymentOrderResult struct {
 	RefundRequestedBy   *string    `json:"refund_requested_by,omitempty"`
 	RefundRequestReason *string    `json:"refund_request_reason,omitempty"`
 	PlanID              *int64     `json:"plan_id,omitempty"`
+	DedicatedAccountID  *int64     `json:"dedicated_account_id,omitempty"`
 	ProviderInstanceID  *string    `json:"provider_instance_id,omitempty"`
 }
 
@@ -688,6 +693,7 @@ func sanitizePaymentOrderForResponse(order *dbent.PaymentOrder) *PaymentOrderRes
 		RefundRequestedBy:   order.RefundRequestedBy,
 		RefundRequestReason: order.RefundRequestReason,
 		PlanID:              order.PlanID,
+		DedicatedAccountID:  order.DedicatedAccountID,
 		ProviderInstanceID:  order.ProviderInstanceID,
 	}
 }

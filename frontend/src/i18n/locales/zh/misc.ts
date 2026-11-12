@@ -399,12 +399,19 @@ export default {
       cancel: '取消订单',
       userId: '用户 ID',
       orderType: '订单类型',
+      orderTypes: {
+        balance: '余额充值',
+        subscription: '订阅套餐',
+        dedicated_account: '独享账号买断'
+      },
       actions: '操作',
       requestRefund: '申请退款',
     },
     result: {
       success: '支付成功',
       subscriptionSuccess: '订阅成功',
+      dedicatedSuccess: '独享账号买断成功',
+      goToDedicatedAccounts: '查看我的独享账号与专属密钥',
       processing: '支付处理中',
       processingHint: '支付结果仍在确认中，页面会自动刷新。',
       failed: '支付失败',
@@ -540,6 +547,7 @@ export default {
       orders: '订单',
       balanceOrder: '余额充值',
       subscriptionOrder: '订阅',
+      dedicated_accountOrder: '独享账号买断',
       paidAt: '支付时间',
       completedAt: '完成时间',
       expiresAt: '过期时间',

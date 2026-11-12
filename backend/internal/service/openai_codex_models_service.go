@@ -243,6 +243,7 @@ func loadCodexGroupCatalogAccounts(ctx context.Context, repo AccountRepository, 
 	if err != nil {
 		return nil, nil, err
 	}
+	visible = FilterAccountsForRequestContext(ctx, visible)
 	catalog = visible
 	groupAccounts, listErr := repo.ListModelAvailabilityCandidates(
 		ctx,
@@ -264,7 +265,7 @@ func loadCodexGroupCatalogAccounts(ctx context.Context, repo AccountRepository, 
 	if listErr != nil {
 		return visible, catalog, nil
 	}
-	return visible, groupAccounts, nil
+	return visible, FilterAccountsForRequestContext(ctx, groupAccounts), nil
 }
 
 func openAIConfiguredCodexModelIDs(accounts []Account) []string {

@@ -971,10 +971,19 @@ func (s *BatchImagePublicService) listCandidateAccounts(ctx context.Context, gro
 	if s.AccountRepo == nil {
 		return nil, ErrBatchImageNoAccountAvailable
 	}
+	var (
+		accounts []Account
+		err      error
+	)
 	if groupID != nil && *groupID > 0 {
-		return s.AccountRepo.ListSchedulableByGroupIDAndPlatform(ctx, *groupID, platform)
+		accounts, err = s.AccountRepo.ListSchedulableByGroupIDAndPlatform(ctx, *groupID, platform)
+	} else {
+		accounts, err = s.AccountRepo.ListSchedulableByPlatform(ctx, platform)
 	}
-	return s.AccountRepo.ListSchedulableByPlatform(ctx, platform)
+	if err != nil {
+		return nil, err
+	}
+	return FilterAccountsForRequestContext(ctx, accounts), nil
 }
 
 func (s *BatchImagePublicService) ensureGroupAllowsBatchImage(ctx context.Context, groupID *int64) error {

@@ -250,6 +250,7 @@ func (s *GroupCapacityService) getGroupCapacity(ctx context.Context, groupID int
 	if err != nil {
 		return GroupCapacitySummary{}, err
 	}
+	accounts = FilterAccountsForRequestContext(context.Background(), accounts)
 	if len(accounts) == 0 {
 		return GroupCapacitySummary{}, nil
 	}

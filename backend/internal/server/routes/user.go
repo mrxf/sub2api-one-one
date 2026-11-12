@@ -142,6 +142,19 @@ func RegisterUserRoutes(
 			subscriptions.GET("/summary", h.Subscription.GetSummary)
 		}
 
+		// 用户独享买断账号（只读看板 + 上架商城 + 官方重置卡）
+		if h.DedicatedAccount != nil {
+			dedicated := authenticated.Group("/dedicated-accounts")
+			{
+				dedicated.GET("", h.DedicatedAccount.ListMyAccounts)
+				dedicated.GET("/market", h.DedicatedAccount.ListMarket)
+				dedicated.POST("/market/:id/buy-with-balance", h.DedicatedAccount.BuyWithBalance)
+				dedicated.POST("/usage", panelRateLimiter.Heavy(), h.DedicatedAccount.GetMyAccountsUsage)
+				dedicated.GET("/:id/reset-credits", h.DedicatedAccount.GetResetCredits)
+				dedicated.POST("/:id/reset-credits/redeem", h.DedicatedAccount.RedeemResetCredit)
+			}
+		}
+
 		// 渠道监控（用户只读）
 		monitors := authenticated.Group("/channel-monitors")
 		{

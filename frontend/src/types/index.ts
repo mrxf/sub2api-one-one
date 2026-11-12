@@ -775,6 +775,9 @@ export interface ApiKey {
   reset_5h_at: string | null
   reset_1d_at: string | null
   reset_7d_at: string | null
+  dedicated_account_id?: number | null
+  dedicated_account_alias?: string
+  dedicated_pool_mode?: boolean
 }
 
 export interface CreateApiKeyRequest {
@@ -788,6 +791,8 @@ export interface CreateApiKeyRequest {
   rate_limit_5h?: number
   rate_limit_1d?: number
   rate_limit_7d?: number
+  dedicated_account_id?: number | null
+  dedicated_pool_mode?: boolean
 }
 
 export interface UpdateApiKeyRequest {
@@ -803,6 +808,9 @@ export interface UpdateApiKeyRequest {
   rate_limit_1d?: number
   rate_limit_7d?: number
   reset_rate_limit_usage?: boolean
+  dedicated_account_id?: number | null
+  clear_dedicated_account?: boolean
+  dedicated_pool_mode?: boolean
 }
 
 export interface CreateGroupRequest {
@@ -1406,6 +1414,20 @@ export interface Account {
   parent_subscription_expires_at?: string
   parent_chatgpt_account_id?: string
 
+  // 独享账号归属与买断商城配置
+  owner_user_id?: number | null
+  owner_user_email?: string
+  display_alias?: string | null
+  sale_status?: AccountSaleStatus
+  sale_price?: number
+  daily_price_decay?: number
+  min_sale_price?: number
+  current_sale_price?: number
+  listed_at?: string | null
+  sold_at?: string | null
+  sale_description?: string | null
+  locked_until?: string | null
+
   grok_model_diagnostics?: GrokModelDiagnostics
 }
 
@@ -1600,6 +1622,106 @@ export interface OpenAIResponsesState {
   openai_responses_supported?: boolean
 }
 
+export type AccountSaleStatus = 'none' | 'listed' | 'locked' | 'sold'
+
+export interface DedicatedWindowProgress {
+  used_percent: number
+  remaining_percent: number
+  resets_at?: string | null
+  remaining_seconds: number
+  requests?: number
+  tokens?: number
+}
+
+export interface DedicatedQuotaSnapshot {
+  source?: string
+  updated_at?: string | null
+  five_hour?: DedicatedWindowProgress | null
+  seven_day?: DedicatedWindowProgress | null
+  seven_day_sonnet?: DedicatedWindowProgress | null
+  status_message?: string
+}
+
+export interface DedicatedResetCreditStatus {
+  supported: boolean
+  eligible: boolean
+  available_count: number
+  redeemable: boolean
+  cooldown_until?: string | null
+  next_expires_at?: string | null
+  fetched_at?: string | null
+}
+
+export interface DedicatedResetCreditRedeemResult {
+  success: boolean
+  message: string
+  reset_credits?: DedicatedResetCreditStatus | null
+  quota_snapshot?: DedicatedQuotaSnapshot | null
+}
+
+export interface DedicatedBoundAPIKeySummary {
+  id: number
+  name: string
+  key: string
+  status: string
+  group_id?: number | null
+  dedicated_pool_mode: boolean
+}
+
+export interface UserDedicatedAccountView {
+  id: number
+  display_name: string
+  platform: AccountPlatform | string
+  type: AccountType | string
+  health_status: 'healthy' | 'rate_limited' | 'expired' | 'paused' | string
+  status_label: string
+  concurrency: number
+  group_id?: number | null
+  group_name?: string
+  sold_at?: string | null
+  expires_at?: string | null
+  remaining_days?: number | null
+  rate_limit_reset_at?: string | null
+  last_used_at?: string | null
+  quota?: DedicatedQuotaSnapshot | null
+  reset_credits: DedicatedResetCreditStatus
+  bound_api_keys: DedicatedBoundAPIKeySummary[]
+}
+
+export interface DedicatedMarketItem {
+  id: number
+  display_name: string
+  platform: AccountPlatform | string
+  type: AccountType | string
+  sale_status: AccountSaleStatus
+  locked_until?: string | null
+  concurrency: number
+  group_name?: string
+  expires_at?: string | null
+  remaining_days?: number | null
+  listed_at?: string | null
+  elapsed_days: number
+  base_price_cny: number
+  daily_price_decay_cny: number
+  min_sale_price_cny: number
+  current_price_cny: number
+  current_price_balance: number
+  balance_currency_multiplier: number
+  next_price_decay_at?: string | null
+  description?: string
+  quota_preview?: DedicatedQuotaSnapshot | null
+}
+
+export interface DedicatedPurchaseResult {
+  account: UserDedicatedAccountView
+  api_key_id: number
+  api_key: string
+  api_key_name: string
+  price_cny: number
+  balance_deducted: number
+  remaining_balance?: number
+}
+
 export interface CreateAccountRequest {
   name: string
   notes?: string | null
@@ -1617,6 +1739,13 @@ export interface CreateAccountRequest {
   auto_pause_on_expired?: boolean
   upstream_billing_probe_enabled?: boolean
   confirm_mixed_channel_risk?: boolean
+  owner_user_id?: number | null
+  display_alias?: string | null
+  sale_status?: AccountSaleStatus
+  sale_price?: number
+  daily_price_decay?: number
+  min_sale_price?: number
+  sale_description?: string | null
 }
 
 export interface UpdateAccountRequest {
@@ -1638,6 +1767,14 @@ export interface UpdateAccountRequest {
   upstream_billing_probe_enabled?: boolean
   upstream_billing_rate_sync_enabled?: boolean
   confirm_mixed_channel_risk?: boolean
+  owner_user_id?: number | null
+  clear_owner_user_id?: boolean
+  display_alias?: string | null
+  sale_status?: AccountSaleStatus
+  sale_price?: number
+  daily_price_decay?: number
+  min_sale_price?: number
+  sale_description?: string | null
 }
 
 export type GrokMediaEligibilityMode = 'auto' | 'enabled' | 'disabled'

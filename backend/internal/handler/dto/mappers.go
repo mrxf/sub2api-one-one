@@ -107,8 +107,11 @@ func APIKeyFromService(k *service.APIKey) *APIKey {
 		Window5hStart:      k.Window5hStart,
 		Window1dStart:      k.Window1dStart,
 		Window7dStart:      k.Window7dStart,
-		User:               UserFromServiceShallow(k.User),
-		Group:              GroupFromServiceShallow(k.Group),
+		DedicatedAccountID:    k.DedicatedAccountID,
+		DedicatedAccountAlias: k.DedicatedAccountAlias,
+		DedicatedPoolMode:     k.DedicatedPoolMode,
+		User:                  UserFromServiceShallow(k.User),
+		Group:                 GroupFromServiceShallow(k.Group),
 	}
 	if k.Window5hStart != nil && !service.IsWindowExpired(k.Window5hStart, service.RateLimitWindow5h) {
 		t := k.Window5hStart.Add(service.RateLimitWindow5h)
@@ -284,6 +287,20 @@ func AccountFromServiceShallow(a *service.Account) *Account {
 		GroupIDs:                a.GroupIDs,
 		ParentAccountID:         a.ParentAccountID,
 		QuotaDimension:          a.QuotaDimension,
+		OwnerUserID:             a.OwnerUserID,
+		DisplayAlias:            a.DisplayAlias,
+		SaleStatus:              service.NormalizeAccountSaleStatus(a.SaleStatus),
+		SalePrice:               a.SalePrice,
+		DailyPriceDecay:         a.DailyPriceDecay,
+		MinSalePrice:            a.MinSalePrice,
+		CurrentSalePrice:        a.CurrentSalePrice(time.Now()),
+		ListedAt:                a.ListedAt,
+		SoldAt:                  a.SoldAt,
+		SaleDescription:         a.SaleDescription,
+		LockedUntil:             a.LockedUntil,
+	}
+	if a.OwnerUserEmail != nil {
+		out.OwnerUserEmail = *a.OwnerUserEmail
 	}
 
 	// 提取 5h 窗口费用控制和会话数量控制配置（仅 Anthropic OAuth/SetupToken 账号有效）
@@ -494,7 +511,12 @@ func AccountListItemFromAccount(a *Account) *AccountListItem {
 		QuotaNotifyTotalThreshold: a.QuotaNotifyTotalThreshold, ParentAccountID: a.ParentAccountID,
 		QuotaDimension: a.QuotaDimension, ParentEmail: a.ParentEmail, ParentPlanType: a.ParentPlanType,
 		ParentPrivacyMode: a.ParentPrivacyMode, ParentSubscriptionExpiresAt: a.ParentSubscriptionExpiresAt,
-		ParentChatGPTAccountID: a.ParentChatGPTAccountID, Proxy: a.Proxy, GroupIDs: a.GroupIDs,
+		ParentChatGPTAccountID: a.ParentChatGPTAccountID,
+		OwnerUserID: a.OwnerUserID, OwnerUserEmail: a.OwnerUserEmail, DisplayAlias: a.DisplayAlias,
+		SaleStatus: a.SaleStatus, SalePrice: a.SalePrice, DailyPriceDecay: a.DailyPriceDecay,
+		MinSalePrice: a.MinSalePrice, CurrentSalePrice: a.CurrentSalePrice,
+		ListedAt: a.ListedAt, SoldAt: a.SoldAt, SaleDescription: a.SaleDescription, LockedUntil: a.LockedUntil,
+		Proxy: a.Proxy, GroupIDs: a.GroupIDs,
 	}
 }
 

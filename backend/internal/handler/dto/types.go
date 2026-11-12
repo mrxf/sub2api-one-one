@@ -86,6 +86,11 @@ type APIKey struct {
 	Reset1dAt     *time.Time `json:"reset_1d_at,omitempty"`
 	Reset7dAt     *time.Time `json:"reset_7d_at,omitempty"`
 
+	// 独享账号路由绑定配置
+	DedicatedAccountID    *int64 `json:"dedicated_account_id"`
+	DedicatedAccountAlias string `json:"dedicated_account_alias,omitempty"`
+	DedicatedPoolMode     bool   `json:"dedicated_pool_mode"`
+
 	User  *User  `json:"user,omitempty"`
 	Group *Group `json:"group,omitempty"`
 }
@@ -323,6 +328,20 @@ type Account struct {
 	ParentSubscriptionExpiresAt string `json:"parent_subscription_expires_at,omitempty"`
 	ParentChatGPTAccountID      string `json:"parent_chatgpt_account_id,omitempty"`
 
+	// 独享账号与上架买断配置（仅管理端 DTO 暴露）
+	OwnerUserID      *int64     `json:"owner_user_id"`
+	OwnerUserEmail   string     `json:"owner_user_email,omitempty"`
+	DisplayAlias     *string    `json:"display_alias"`
+	SaleStatus       string     `json:"sale_status"`
+	SalePrice        float64    `json:"sale_price"`
+	DailyPriceDecay  float64    `json:"daily_price_decay"`
+	MinSalePrice     float64    `json:"min_sale_price"`
+	CurrentSalePrice float64    `json:"current_sale_price"`
+	ListedAt         *time.Time `json:"listed_at,omitempty"`
+	SoldAt           *time.Time `json:"sold_at,omitempty"`
+	SaleDescription  *string    `json:"sale_description"`
+	LockedUntil      *time.Time `json:"locked_until,omitempty"`
+
 	Proxy         *Proxy         `json:"proxy,omitempty"`
 	AccountGroups []AccountGroup `json:"account_groups,omitempty"`
 
@@ -425,6 +444,19 @@ type AccountListItem struct {
 	ParentPrivacyMode           string `json:"parent_privacy_mode,omitempty"`
 	ParentSubscriptionExpiresAt string `json:"parent_subscription_expires_at,omitempty"`
 	ParentChatGPTAccountID      string `json:"parent_chatgpt_account_id,omitempty"`
+
+	OwnerUserID      *int64     `json:"owner_user_id"`
+	OwnerUserEmail   string     `json:"owner_user_email,omitempty"`
+	DisplayAlias     *string    `json:"display_alias"`
+	SaleStatus       string     `json:"sale_status"`
+	SalePrice        float64    `json:"sale_price"`
+	DailyPriceDecay  float64    `json:"daily_price_decay"`
+	MinSalePrice     float64    `json:"min_sale_price"`
+	CurrentSalePrice float64    `json:"current_sale_price"`
+	ListedAt         *time.Time `json:"listed_at,omitempty"`
+	SoldAt           *time.Time `json:"sold_at,omitempty"`
+	SaleDescription  *string    `json:"sale_description"`
+	LockedUntil      *time.Time `json:"locked_until,omitempty"`
 
 	Proxy    *Proxy  `json:"proxy,omitempty"`
 	GroupIDs []int64 `json:"group_ids,omitempty"`

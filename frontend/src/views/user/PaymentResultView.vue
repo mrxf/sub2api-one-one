@@ -59,7 +59,7 @@
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.bonusAmount') }}</span>
               <span class="font-medium text-amber-600 dark:text-amber-400">+${{ orderBonusAmount(order).toFixed(2) }}</span>
             </div>
-            <div v-if="hasAmountFields(order) && (order.amount !== order.pay_amount || orderBonusAmount(order) > 0)" class="flex justify-between">
+            <div v-if="hasAmountFields(order) && order.order_type !== 'dedicated_account' && (order.amount !== order.pay_amount || orderBonusAmount(order) > 0)" class="flex justify-between">
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.creditedAmount') }}</span>
               <span class="font-medium text-gray-900 dark:text-white">{{ order.order_type === 'balance' ? '$' + order.amount.toFixed(2) : formatGatewayAmount(order.amount) }}</span>
             </div>
@@ -91,7 +91,11 @@
           </div>
         </div>
         <!-- Actions -->
-        <div class="flex gap-3">
+        <div v-if="isDedicatedOrder" class="flex gap-3">
+          <button class="btn btn-secondary flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</button>
+          <button class="btn btn-primary flex-1" @click="router.push('/dedicated-accounts')">{{ t('payment.result.goToDedicatedAccounts') }}</button>
+        </div>
+        <div v-else class="flex gap-3">
           <button class="btn btn-secondary flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
           <button class="btn btn-primary flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</button>
         </div>
@@ -181,8 +185,15 @@ const isPending = computed(() => {
   return isPendingStatus(order.value?.status)
 })
 
+const isDedicatedOrder = computed(() => {
+  return !!order.value && 'order_type' in order.value && order.value.order_type === 'dedicated_account'
+})
+
 const statusTitle = computed(() => {
   if (isSuccess.value) {
+    if (isDedicatedOrder.value) {
+      return t('payment.result.dedicatedSuccess')
+    }
     return t('payment.result.success')
   }
   if (isPending.value) {

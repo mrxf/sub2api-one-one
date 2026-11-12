@@ -115,6 +115,15 @@ func (APIKey) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("Start time of the current 7d rate limit window"),
+
+		// ========== Dedicated account binding ==========
+		field.Int64("dedicated_account_id").
+			Optional().
+			Nillable().
+			Comment("Pinned dedicated account ID (default 1-to-1 binding to prevent cross-account bans)"),
+		field.Bool("dedicated_pool_mode").
+			Default(false).
+			Comment("When true, allows routing across all dedicated accounts owned by user_id in this group"),
 	}
 }
 
@@ -144,5 +153,6 @@ func (APIKey) Indexes() []ent.Index {
 		// Index for quota queries
 		index.Fields("quota", "quota_used"),
 		index.Fields("expires_at"),
+		index.Fields("dedicated_account_id"),
 	}
 }

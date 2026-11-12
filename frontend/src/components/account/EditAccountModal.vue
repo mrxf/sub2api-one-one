@@ -3333,6 +3333,13 @@
         data-tour="account-form-groups"
       />
 
+      <!-- Dedicated Ownership & Marketplace Sale Configuration (Spark shadows inherit from parent) -->
+      <AccountDedicatedSaleSection
+        v-if="!isSparkShadow"
+        v-model="dedicatedSaleState"
+        :has-groups-selected="form.group_ids.length > 0"
+      />
+
     </form>
 
     <template #footer>
@@ -3427,6 +3434,14 @@ import Icon from '@/components/icons/Icon.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
 import ProxyAdBanner from '@/components/common/ProxyAdBanner.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
+import AccountDedicatedSaleSection from '@/components/account/AccountDedicatedSaleSection.vue'
+import {
+  buildDedicatedSaleUpdatePatch,
+  createDefaultDedicatedSaleFormState,
+  initDedicatedSaleFormFromAccount,
+  validateDedicatedSaleForm,
+  type DedicatedSaleFormState
+} from '@/components/account/dedicatedSaleForm'
 import ModelWhitelistSelector from '@/components/account/ModelWhitelistSelector.vue'
 import GrokModelDiagnosticsPanel from '@/components/account/GrokModelDiagnosticsPanel.vue'
 import QuotaLimitCard from '@/components/account/QuotaLimitCard.vue'
@@ -4514,6 +4529,8 @@ const form = reactive({
   expires_at: null as number | null
 })
 
+const dedicatedSaleState = ref<DedicatedSaleFormState>(createDefaultDedicatedSaleFormState())
+
 const handleUpstreamBillingRateSyncChange = (enabled: boolean) => {
   upstreamBillingRateSyncEnabled.value = enabled
   if (enabled) {
@@ -4622,6 +4639,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     : 'active'
   form.group_ids = newAccount.group_ids || []
   form.expires_at = newAccount.expires_at ?? null
+  dedicatedSaleState.value = initDedicatedSaleFormFromAccount(newAccount)
 
   // Load intercept warmup requests setting (applies to all account types)
   const credentials = newAccount.credentials as Record<string, unknown> | undefined
@@ -5656,8 +5674,18 @@ const handleSubmit = async () => {
 			return
 		}
 	}
+  if (!isSparkShadow.value) {
+    const dedicatedError = validateDedicatedSaleForm(dedicatedSaleState.value, t)
+    if (dedicatedError) {
+      appStore.showError(dedicatedError)
+      return
+    }
+  }
 
   const updatePayload: Record<string, unknown> = { ...form }
+  if (!isSparkShadow.value) {
+    Object.assign(updatePayload, buildDedicatedSaleUpdatePatch(dedicatedSaleState.value))
+  }
   try {
     // 后端期望 proxy_id: 0 表示清除代理，而不是 null
     if (updatePayload.proxy_id === null) {

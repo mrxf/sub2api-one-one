@@ -564,6 +564,225 @@ func (_u *AccountUpdate) SetNillableQuotaDimension(v *account.QuotaDimension) *A
 	return _u
 }
 
+// SetOwnerUserID sets the "owner_user_id" field.
+func (_u *AccountUpdate) SetOwnerUserID(v int64) *AccountUpdate {
+	_u.mutation.ResetOwnerUserID()
+	_u.mutation.SetOwnerUserID(v)
+	return _u
+}
+
+// SetNillableOwnerUserID sets the "owner_user_id" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableOwnerUserID(v *int64) *AccountUpdate {
+	if v != nil {
+		_u.SetOwnerUserID(*v)
+	}
+	return _u
+}
+
+// AddOwnerUserID adds value to the "owner_user_id" field.
+func (_u *AccountUpdate) AddOwnerUserID(v int64) *AccountUpdate {
+	_u.mutation.AddOwnerUserID(v)
+	return _u
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (_u *AccountUpdate) ClearOwnerUserID() *AccountUpdate {
+	_u.mutation.ClearOwnerUserID()
+	return _u
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (_u *AccountUpdate) SetDisplayAlias(v string) *AccountUpdate {
+	_u.mutation.SetDisplayAlias(v)
+	return _u
+}
+
+// SetNillableDisplayAlias sets the "display_alias" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableDisplayAlias(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetDisplayAlias(*v)
+	}
+	return _u
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (_u *AccountUpdate) SetSaleStatus(v string) *AccountUpdate {
+	_u.mutation.SetSaleStatus(v)
+	return _u
+}
+
+// SetNillableSaleStatus sets the "sale_status" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableSaleStatus(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetSaleStatus(*v)
+	}
+	return _u
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (_u *AccountUpdate) SetSalePrice(v float64) *AccountUpdate {
+	_u.mutation.ResetSalePrice()
+	_u.mutation.SetSalePrice(v)
+	return _u
+}
+
+// SetNillableSalePrice sets the "sale_price" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableSalePrice(v *float64) *AccountUpdate {
+	if v != nil {
+		_u.SetSalePrice(*v)
+	}
+	return _u
+}
+
+// AddSalePrice adds value to the "sale_price" field.
+func (_u *AccountUpdate) AddSalePrice(v float64) *AccountUpdate {
+	_u.mutation.AddSalePrice(v)
+	return _u
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (_u *AccountUpdate) SetDailyPriceDecay(v float64) *AccountUpdate {
+	_u.mutation.ResetDailyPriceDecay()
+	_u.mutation.SetDailyPriceDecay(v)
+	return _u
+}
+
+// SetNillableDailyPriceDecay sets the "daily_price_decay" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableDailyPriceDecay(v *float64) *AccountUpdate {
+	if v != nil {
+		_u.SetDailyPriceDecay(*v)
+	}
+	return _u
+}
+
+// AddDailyPriceDecay adds value to the "daily_price_decay" field.
+func (_u *AccountUpdate) AddDailyPriceDecay(v float64) *AccountUpdate {
+	_u.mutation.AddDailyPriceDecay(v)
+	return _u
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (_u *AccountUpdate) SetMinSalePrice(v float64) *AccountUpdate {
+	_u.mutation.ResetMinSalePrice()
+	_u.mutation.SetMinSalePrice(v)
+	return _u
+}
+
+// SetNillableMinSalePrice sets the "min_sale_price" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableMinSalePrice(v *float64) *AccountUpdate {
+	if v != nil {
+		_u.SetMinSalePrice(*v)
+	}
+	return _u
+}
+
+// AddMinSalePrice adds value to the "min_sale_price" field.
+func (_u *AccountUpdate) AddMinSalePrice(v float64) *AccountUpdate {
+	_u.mutation.AddMinSalePrice(v)
+	return _u
+}
+
+// SetListedAt sets the "listed_at" field.
+func (_u *AccountUpdate) SetListedAt(v time.Time) *AccountUpdate {
+	_u.mutation.SetListedAt(v)
+	return _u
+}
+
+// SetNillableListedAt sets the "listed_at" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableListedAt(v *time.Time) *AccountUpdate {
+	if v != nil {
+		_u.SetListedAt(*v)
+	}
+	return _u
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (_u *AccountUpdate) ClearListedAt() *AccountUpdate {
+	_u.mutation.ClearListedAt()
+	return _u
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (_u *AccountUpdate) SetSoldAt(v time.Time) *AccountUpdate {
+	_u.mutation.SetSoldAt(v)
+	return _u
+}
+
+// SetNillableSoldAt sets the "sold_at" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableSoldAt(v *time.Time) *AccountUpdate {
+	if v != nil {
+		_u.SetSoldAt(*v)
+	}
+	return _u
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (_u *AccountUpdate) ClearSoldAt() *AccountUpdate {
+	_u.mutation.ClearSoldAt()
+	return _u
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (_u *AccountUpdate) SetSaleDescription(v string) *AccountUpdate {
+	_u.mutation.SetSaleDescription(v)
+	return _u
+}
+
+// SetNillableSaleDescription sets the "sale_description" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableSaleDescription(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetSaleDescription(*v)
+	}
+	return _u
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (_u *AccountUpdate) SetLockedByOrderID(v int64) *AccountUpdate {
+	_u.mutation.ResetLockedByOrderID()
+	_u.mutation.SetLockedByOrderID(v)
+	return _u
+}
+
+// SetNillableLockedByOrderID sets the "locked_by_order_id" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableLockedByOrderID(v *int64) *AccountUpdate {
+	if v != nil {
+		_u.SetLockedByOrderID(*v)
+	}
+	return _u
+}
+
+// AddLockedByOrderID adds value to the "locked_by_order_id" field.
+func (_u *AccountUpdate) AddLockedByOrderID(v int64) *AccountUpdate {
+	_u.mutation.AddLockedByOrderID(v)
+	return _u
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (_u *AccountUpdate) ClearLockedByOrderID() *AccountUpdate {
+	_u.mutation.ClearLockedByOrderID()
+	return _u
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (_u *AccountUpdate) SetLockedUntil(v time.Time) *AccountUpdate {
+	_u.mutation.SetLockedUntil(v)
+	return _u
+}
+
+// SetNillableLockedUntil sets the "locked_until" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableLockedUntil(v *time.Time) *AccountUpdate {
+	if v != nil {
+		_u.SetLockedUntil(*v)
+	}
+	return _u
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (_u *AccountUpdate) ClearLockedUntil() *AccountUpdate {
+	_u.mutation.ClearLockedUntil()
+	return _u
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_u *AccountUpdate) AddGroupIDs(ids ...int64) *AccountUpdate {
 	_u.mutation.AddGroupIDs(ids...)
@@ -787,6 +1006,16 @@ func (_u *AccountUpdate) check() error {
 			return &ValidationError{Name: "quota_dimension", err: fmt.Errorf(`ent: validator failed for field "Account.quota_dimension": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DisplayAlias(); ok {
+		if err := account.DisplayAliasValidator(v); err != nil {
+			return &ValidationError{Name: "display_alias", err: fmt.Errorf(`ent: validator failed for field "Account.display_alias": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SaleStatus(); ok {
+		if err := account.SaleStatusValidator(v); err != nil {
+			return &ValidationError{Name: "sale_status", err: fmt.Errorf(`ent: validator failed for field "Account.sale_status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -945,6 +1174,69 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.QuotaDimension(); ok {
 		_spec.SetField(account.FieldQuotaDimension, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.OwnerUserID(); ok {
+		_spec.SetField(account.FieldOwnerUserID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedOwnerUserID(); ok {
+		_spec.AddField(account.FieldOwnerUserID, field.TypeInt64, value)
+	}
+	if _u.mutation.OwnerUserIDCleared() {
+		_spec.ClearField(account.FieldOwnerUserID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.DisplayAlias(); ok {
+		_spec.SetField(account.FieldDisplayAlias, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SaleStatus(); ok {
+		_spec.SetField(account.FieldSaleStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SalePrice(); ok {
+		_spec.SetField(account.FieldSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedSalePrice(); ok {
+		_spec.AddField(account.FieldSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.DailyPriceDecay(); ok {
+		_spec.SetField(account.FieldDailyPriceDecay, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedDailyPriceDecay(); ok {
+		_spec.AddField(account.FieldDailyPriceDecay, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.MinSalePrice(); ok {
+		_spec.SetField(account.FieldMinSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedMinSalePrice(); ok {
+		_spec.AddField(account.FieldMinSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ListedAt(); ok {
+		_spec.SetField(account.FieldListedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ListedAtCleared() {
+		_spec.ClearField(account.FieldListedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SoldAt(); ok {
+		_spec.SetField(account.FieldSoldAt, field.TypeTime, value)
+	}
+	if _u.mutation.SoldAtCleared() {
+		_spec.ClearField(account.FieldSoldAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SaleDescription(); ok {
+		_spec.SetField(account.FieldSaleDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LockedByOrderID(); ok {
+		_spec.SetField(account.FieldLockedByOrderID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLockedByOrderID(); ok {
+		_spec.AddField(account.FieldLockedByOrderID, field.TypeInt64, value)
+	}
+	if _u.mutation.LockedByOrderIDCleared() {
+		_spec.ClearField(account.FieldLockedByOrderID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.LockedUntil(); ok {
+		_spec.SetField(account.FieldLockedUntil, field.TypeTime, value)
+	}
+	if _u.mutation.LockedUntilCleared() {
+		_spec.ClearField(account.FieldLockedUntil, field.TypeTime)
 	}
 	if _u.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1704,6 +1996,225 @@ func (_u *AccountUpdateOne) SetNillableQuotaDimension(v *account.QuotaDimension)
 	return _u
 }
 
+// SetOwnerUserID sets the "owner_user_id" field.
+func (_u *AccountUpdateOne) SetOwnerUserID(v int64) *AccountUpdateOne {
+	_u.mutation.ResetOwnerUserID()
+	_u.mutation.SetOwnerUserID(v)
+	return _u
+}
+
+// SetNillableOwnerUserID sets the "owner_user_id" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableOwnerUserID(v *int64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetOwnerUserID(*v)
+	}
+	return _u
+}
+
+// AddOwnerUserID adds value to the "owner_user_id" field.
+func (_u *AccountUpdateOne) AddOwnerUserID(v int64) *AccountUpdateOne {
+	_u.mutation.AddOwnerUserID(v)
+	return _u
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (_u *AccountUpdateOne) ClearOwnerUserID() *AccountUpdateOne {
+	_u.mutation.ClearOwnerUserID()
+	return _u
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (_u *AccountUpdateOne) SetDisplayAlias(v string) *AccountUpdateOne {
+	_u.mutation.SetDisplayAlias(v)
+	return _u
+}
+
+// SetNillableDisplayAlias sets the "display_alias" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableDisplayAlias(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetDisplayAlias(*v)
+	}
+	return _u
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (_u *AccountUpdateOne) SetSaleStatus(v string) *AccountUpdateOne {
+	_u.mutation.SetSaleStatus(v)
+	return _u
+}
+
+// SetNillableSaleStatus sets the "sale_status" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableSaleStatus(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetSaleStatus(*v)
+	}
+	return _u
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (_u *AccountUpdateOne) SetSalePrice(v float64) *AccountUpdateOne {
+	_u.mutation.ResetSalePrice()
+	_u.mutation.SetSalePrice(v)
+	return _u
+}
+
+// SetNillableSalePrice sets the "sale_price" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableSalePrice(v *float64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetSalePrice(*v)
+	}
+	return _u
+}
+
+// AddSalePrice adds value to the "sale_price" field.
+func (_u *AccountUpdateOne) AddSalePrice(v float64) *AccountUpdateOne {
+	_u.mutation.AddSalePrice(v)
+	return _u
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (_u *AccountUpdateOne) SetDailyPriceDecay(v float64) *AccountUpdateOne {
+	_u.mutation.ResetDailyPriceDecay()
+	_u.mutation.SetDailyPriceDecay(v)
+	return _u
+}
+
+// SetNillableDailyPriceDecay sets the "daily_price_decay" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableDailyPriceDecay(v *float64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetDailyPriceDecay(*v)
+	}
+	return _u
+}
+
+// AddDailyPriceDecay adds value to the "daily_price_decay" field.
+func (_u *AccountUpdateOne) AddDailyPriceDecay(v float64) *AccountUpdateOne {
+	_u.mutation.AddDailyPriceDecay(v)
+	return _u
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (_u *AccountUpdateOne) SetMinSalePrice(v float64) *AccountUpdateOne {
+	_u.mutation.ResetMinSalePrice()
+	_u.mutation.SetMinSalePrice(v)
+	return _u
+}
+
+// SetNillableMinSalePrice sets the "min_sale_price" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableMinSalePrice(v *float64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetMinSalePrice(*v)
+	}
+	return _u
+}
+
+// AddMinSalePrice adds value to the "min_sale_price" field.
+func (_u *AccountUpdateOne) AddMinSalePrice(v float64) *AccountUpdateOne {
+	_u.mutation.AddMinSalePrice(v)
+	return _u
+}
+
+// SetListedAt sets the "listed_at" field.
+func (_u *AccountUpdateOne) SetListedAt(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetListedAt(v)
+	return _u
+}
+
+// SetNillableListedAt sets the "listed_at" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableListedAt(v *time.Time) *AccountUpdateOne {
+	if v != nil {
+		_u.SetListedAt(*v)
+	}
+	return _u
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (_u *AccountUpdateOne) ClearListedAt() *AccountUpdateOne {
+	_u.mutation.ClearListedAt()
+	return _u
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (_u *AccountUpdateOne) SetSoldAt(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetSoldAt(v)
+	return _u
+}
+
+// SetNillableSoldAt sets the "sold_at" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableSoldAt(v *time.Time) *AccountUpdateOne {
+	if v != nil {
+		_u.SetSoldAt(*v)
+	}
+	return _u
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (_u *AccountUpdateOne) ClearSoldAt() *AccountUpdateOne {
+	_u.mutation.ClearSoldAt()
+	return _u
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (_u *AccountUpdateOne) SetSaleDescription(v string) *AccountUpdateOne {
+	_u.mutation.SetSaleDescription(v)
+	return _u
+}
+
+// SetNillableSaleDescription sets the "sale_description" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableSaleDescription(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetSaleDescription(*v)
+	}
+	return _u
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (_u *AccountUpdateOne) SetLockedByOrderID(v int64) *AccountUpdateOne {
+	_u.mutation.ResetLockedByOrderID()
+	_u.mutation.SetLockedByOrderID(v)
+	return _u
+}
+
+// SetNillableLockedByOrderID sets the "locked_by_order_id" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableLockedByOrderID(v *int64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetLockedByOrderID(*v)
+	}
+	return _u
+}
+
+// AddLockedByOrderID adds value to the "locked_by_order_id" field.
+func (_u *AccountUpdateOne) AddLockedByOrderID(v int64) *AccountUpdateOne {
+	_u.mutation.AddLockedByOrderID(v)
+	return _u
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (_u *AccountUpdateOne) ClearLockedByOrderID() *AccountUpdateOne {
+	_u.mutation.ClearLockedByOrderID()
+	return _u
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (_u *AccountUpdateOne) SetLockedUntil(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetLockedUntil(v)
+	return _u
+}
+
+// SetNillableLockedUntil sets the "locked_until" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableLockedUntil(v *time.Time) *AccountUpdateOne {
+	if v != nil {
+		_u.SetLockedUntil(*v)
+	}
+	return _u
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (_u *AccountUpdateOne) ClearLockedUntil() *AccountUpdateOne {
+	_u.mutation.ClearLockedUntil()
+	return _u
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_u *AccountUpdateOne) AddGroupIDs(ids ...int64) *AccountUpdateOne {
 	_u.mutation.AddGroupIDs(ids...)
@@ -1940,6 +2451,16 @@ func (_u *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "quota_dimension", err: fmt.Errorf(`ent: validator failed for field "Account.quota_dimension": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DisplayAlias(); ok {
+		if err := account.DisplayAliasValidator(v); err != nil {
+			return &ValidationError{Name: "display_alias", err: fmt.Errorf(`ent: validator failed for field "Account.display_alias": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SaleStatus(); ok {
+		if err := account.SaleStatusValidator(v); err != nil {
+			return &ValidationError{Name: "sale_status", err: fmt.Errorf(`ent: validator failed for field "Account.sale_status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2115,6 +2636,69 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	}
 	if value, ok := _u.mutation.QuotaDimension(); ok {
 		_spec.SetField(account.FieldQuotaDimension, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.OwnerUserID(); ok {
+		_spec.SetField(account.FieldOwnerUserID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedOwnerUserID(); ok {
+		_spec.AddField(account.FieldOwnerUserID, field.TypeInt64, value)
+	}
+	if _u.mutation.OwnerUserIDCleared() {
+		_spec.ClearField(account.FieldOwnerUserID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.DisplayAlias(); ok {
+		_spec.SetField(account.FieldDisplayAlias, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SaleStatus(); ok {
+		_spec.SetField(account.FieldSaleStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SalePrice(); ok {
+		_spec.SetField(account.FieldSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedSalePrice(); ok {
+		_spec.AddField(account.FieldSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.DailyPriceDecay(); ok {
+		_spec.SetField(account.FieldDailyPriceDecay, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedDailyPriceDecay(); ok {
+		_spec.AddField(account.FieldDailyPriceDecay, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.MinSalePrice(); ok {
+		_spec.SetField(account.FieldMinSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedMinSalePrice(); ok {
+		_spec.AddField(account.FieldMinSalePrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ListedAt(); ok {
+		_spec.SetField(account.FieldListedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ListedAtCleared() {
+		_spec.ClearField(account.FieldListedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SoldAt(); ok {
+		_spec.SetField(account.FieldSoldAt, field.TypeTime, value)
+	}
+	if _u.mutation.SoldAtCleared() {
+		_spec.ClearField(account.FieldSoldAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SaleDescription(); ok {
+		_spec.SetField(account.FieldSaleDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LockedByOrderID(); ok {
+		_spec.SetField(account.FieldLockedByOrderID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedLockedByOrderID(); ok {
+		_spec.AddField(account.FieldLockedByOrderID, field.TypeInt64, value)
+	}
+	if _u.mutation.LockedByOrderIDCleared() {
+		_spec.ClearField(account.FieldLockedByOrderID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.LockedUntil(); ok {
+		_spec.SetField(account.FieldLockedUntil, field.TypeTime, value)
+	}
+	if _u.mutation.LockedUntilCleared() {
+		_spec.ClearField(account.FieldLockedUntil, field.TypeTime)
 	}
 	if _u.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{

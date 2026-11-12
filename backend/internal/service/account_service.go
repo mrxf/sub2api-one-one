@@ -171,6 +171,15 @@ type AccountBulkUpdate struct {
 	// EnsureCodexFingerprintSeed asks the repository to atomically preserve an
 	// existing valid Codex fingerprint seed or create one for eligible rows.
 	EnsureCodexFingerprintSeed bool
+
+	// 独享与上架批量编辑字段
+	OwnerUserID        *int64
+	ClearOwnerUserID   bool
+	SaleStatus         *string
+	SalePrice          *float64
+	DailyPriceDecay    *float64
+	MinSalePrice       *float64
+	SaleDescription    *string
 }
 
 // CreateAccountRequest 创建账号请求

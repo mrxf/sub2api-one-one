@@ -756,26 +756,29 @@ func (s *BillingCacheService) CheckBillingEligibility(ctx context.Context, user 
 	}
 
 	// 判断计费模式
-	isSubscriptionMode := group != nil && group.IsSubscriptionType() && subscription != nil
+	isDedicatedMode := apiKey != nil && apiKey.IsDedicatedMode()
+	isSubscriptionMode := !isDedicatedMode && group != nil && group.IsSubscriptionType() && subscription != nil
 
-	if isSubscriptionMode {
-		if err := s.checkSubscriptionEligibility(ctx, user.ID, group, subscription); err != nil {
-			return err
+	if !isDedicatedMode {
+		if isSubscriptionMode {
+			if err := s.checkSubscriptionEligibility(ctx, user.ID, group, subscription); err != nil {
+				return err
+			}
+		} else {
+			if err := s.checkBalanceEligibility(ctx, user.ID); err != nil {
+				return err
+			}
 		}
-	} else {
-		if err := s.checkBalanceEligibility(ctx, user.ID); err != nil {
-			return err
+
+		// user × platform quota 仅在 standard（余额）模式生效；订阅与独享买断模式豁免
+		if !isSubscriptionMode {
+			if err := s.checkUserPlatformQuotaEligibility(ctx, user.ID, platform); err != nil {
+				return err
+			}
 		}
 	}
 
-	// user × platform quota 仅在 standard（余额）模式生效；订阅模式豁免
-	if !isSubscriptionMode {
-		if err := s.checkUserPlatformQuotaEligibility(ctx, user.ID, platform); err != nil {
-			return err
-		}
-	}
-
-	// Check API Key rate limits (applies to both billing modes)
+	// Check API Key rate limits (applies to all billing modes if configured on the key)
 	if apiKey != nil && apiKey.HasRateLimits() {
 		if err := s.checkAPIKeyRateLimits(ctx, apiKey); err != nil {
 			return err
@@ -802,6 +805,9 @@ func (s *BillingCacheService) ReserveFixedCharge(ctx context.Context, user *User
 		return nil, nil
 	}
 	if s.cfg != nil && s.cfg.RunMode == config.RunModeSimple {
+		return nil, nil
+	}
+	if apiKey != nil && apiKey.IsDedicatedMode() {
 		return nil, nil
 	}
 	subscriptionBill := group != nil && group.IsSubscriptionType() && subscription != nil

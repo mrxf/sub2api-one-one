@@ -66,6 +66,10 @@ type APIKey struct {
 	Window1dStart *time.Time `json:"window_1d_start,omitempty"`
 	// Start time of the current 7d rate limit window
 	Window7dStart *time.Time `json:"window_7d_start,omitempty"`
+	// Pinned dedicated account ID (default 1-to-1 binding to prevent cross-account bans)
+	DedicatedAccountID *int64 `json:"dedicated_account_id,omitempty"`
+	// When true, allows routing across all dedicated accounts owned by user_id in this group
+	DedicatedPoolMode bool `json:"dedicated_pool_mode,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the APIKeyQuery when eager-loading is set.
 	Edges        APIKeyEdges `json:"edges"`
@@ -123,9 +127,11 @@ func (*APIKey) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case apikey.FieldIPWhitelist, apikey.FieldIPBlacklist:
 			values[i] = new([]byte)
+		case apikey.FieldDedicatedPoolMode:
+			values[i] = new(sql.NullBool)
 		case apikey.FieldQuota, apikey.FieldQuotaUsed, apikey.FieldRateLimit5h, apikey.FieldRateLimit1d, apikey.FieldRateLimit7d, apikey.FieldUsage5h, apikey.FieldUsage1d, apikey.FieldUsage7d:
 			values[i] = new(sql.NullFloat64)
-		case apikey.FieldID, apikey.FieldUserID, apikey.FieldGroupID:
+		case apikey.FieldID, apikey.FieldUserID, apikey.FieldGroupID, apikey.FieldDedicatedAccountID:
 			values[i] = new(sql.NullInt64)
 		case apikey.FieldKey, apikey.FieldName, apikey.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -301,6 +307,19 @@ func (_m *APIKey) assignValues(columns []string, values []any) error {
 				_m.Window7dStart = new(time.Time)
 				*_m.Window7dStart = value.Time
 			}
+		case apikey.FieldDedicatedAccountID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field dedicated_account_id", values[i])
+			} else if value.Valid {
+				_m.DedicatedAccountID = new(int64)
+				*_m.DedicatedAccountID = value.Int64
+			}
+		case apikey.FieldDedicatedPoolMode:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field dedicated_pool_mode", values[i])
+			} else if value.Valid {
+				_m.DedicatedPoolMode = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -434,6 +453,14 @@ func (_m *APIKey) String() string {
 		builder.WriteString("window_7d_start=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	if v := _m.DedicatedAccountID; v != nil {
+		builder.WriteString("dedicated_account_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("dedicated_pool_mode=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DedicatedPoolMode))
 	builder.WriteByte(')')
 	return builder.String()
 }

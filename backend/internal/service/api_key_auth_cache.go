@@ -26,6 +26,10 @@ type APIKeyAuthSnapshot struct {
 	RateLimit5h float64 `json:"rate_limit_5h"`
 	RateLimit1d float64 `json:"rate_limit_1d"`
 	RateLimit7d float64 `json:"rate_limit_7d"`
+
+	// Dedicated account routing configuration
+	DedicatedAccountID *int64 `json:"dedicated_account_id,omitempty"`
+	DedicatedPoolMode  bool   `json:"dedicated_pool_mode,omitempty"`
 }
 
 // APIKeyAuthUserSnapshot 用户快照

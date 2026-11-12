@@ -9,6 +9,7 @@ import (
 // API Key status constants
 const (
 	StatusAPIKeyActive         = "active"
+	StatusAPIKeyInactive       = "inactive"
 	StatusAPIKeyDisabled       = "disabled"
 	StatusAPIKeyQuotaExhausted = "quota_exhausted"
 	StatusAPIKeyExpired        = "expired"
@@ -62,10 +63,23 @@ type APIKey struct {
 	Window5hStart *time.Time // Start of current 5h window
 	Window1dStart *time.Time // Start of current 1d window
 	Window7dStart *time.Time // Start of current 7d window
+
+	// Dedicated account binding fields
+	DedicatedAccountID    *int64 // non-nil = 默认 1 对 1 锁定该独享账号
+	DedicatedAccountAlias string // 展示用（非持久化列）
+	DedicatedPoolMode     bool   // true = 允许在该用户名下同分组/平台的多个独享账号间轮询
 }
 
 func (k *APIKey) IsActive() bool {
 	return k.Status == StatusActive
+}
+
+// IsDedicatedMode 报告该 API Key 是否处于独享账号模式（不扣余额、不溢出公共池）。
+func (k *APIKey) IsDedicatedMode() bool {
+	if k == nil {
+		return false
+	}
+	return (k.DedicatedAccountID != nil && *k.DedicatedAccountID > 0) || k.DedicatedPoolMode
 }
 
 // HasRateLimits returns true if any rate limit window is configured

@@ -137,6 +137,15 @@ type CreateAccountRequest struct {
 	AutoPauseOnExpired      *bool          `json:"auto_pause_on_expired"`
 	ProbeEnabled            *bool          `json:"upstream_billing_probe_enabled"`
 	ConfirmMixedChannelRisk *bool          `json:"confirm_mixed_channel_risk"` // 用户确认混合渠道风险
+
+	// 独享账号与上架买断配置
+	OwnerUserID     *int64   `json:"owner_user_id"`
+	DisplayAlias    *string  `json:"display_alias"`
+	SaleStatus      string   `json:"sale_status"`
+	SalePrice       *float64 `json:"sale_price"`
+	DailyPriceDecay *float64 `json:"daily_price_decay"`
+	MinSalePrice    *float64 `json:"min_sale_price"`
+	SaleDescription *string  `json:"sale_description"`
 }
 
 // UpdateAccountRequest represents update account request
@@ -159,6 +168,16 @@ type UpdateAccountRequest struct {
 	ProbeEnabled            *bool          `json:"upstream_billing_probe_enabled"`
 	RateSyncEnabled         *bool          `json:"upstream_billing_rate_sync_enabled"`
 	ConfirmMixedChannelRisk *bool          `json:"confirm_mixed_channel_risk"` // 用户确认混合渠道风险
+
+	// 独享账号与上架买断配置
+	OwnerUserID      *int64   `json:"owner_user_id"`
+	ClearOwnerUserID bool     `json:"clear_owner_user_id"`
+	DisplayAlias     *string  `json:"display_alias"`
+	SaleStatus       *string  `json:"sale_status"`
+	SalePrice        *float64 `json:"sale_price"`
+	DailyPriceDecay  *float64 `json:"daily_price_decay"`
+	MinSalePrice     *float64 `json:"min_sale_price"`
+	SaleDescription  *string  `json:"sale_description"`
 }
 
 // BulkUpdateAccountsRequest represents the payload for bulk editing accounts
@@ -178,15 +197,25 @@ type BulkUpdateAccountsRequest struct {
 	Extra                   map[string]any            `json:"extra"`
 	ProbeEnabled            *bool                     `json:"upstream_billing_probe_enabled"`
 	ConfirmMixedChannelRisk *bool                     `json:"confirm_mixed_channel_risk"` // 用户确认混合渠道风险
+
+	// 独享与上架批量编辑字段
+	OwnerUserID      *int64   `json:"owner_user_id"`
+	ClearOwnerUserID bool     `json:"clear_owner_user_id"`
+	SaleStatus       *string  `json:"sale_status"`
+	SalePrice        *float64 `json:"sale_price"`
+	DailyPriceDecay  *float64 `json:"daily_price_decay"`
+	MinSalePrice     *float64 `json:"min_sale_price"`
+	SaleDescription  *string  `json:"sale_description"`
 }
 
 type BulkUpdateAccountFilters struct {
-	Platform    string `json:"platform"`
-	Type        string `json:"type"`
-	Status      string `json:"status"`
-	Group       string `json:"group"`
-	Search      string `json:"search"`
-	PrivacyMode string `json:"privacy_mode"`
+	Platform      string `json:"platform"`
+	Type          string `json:"type"`
+	Status        string `json:"status"`
+	Group         string `json:"group"`
+	Search        string `json:"search"`
+	PrivacyMode   string `json:"privacy_mode"`
+	DedicatedMode string `json:"dedicated_mode"`
 }
 
 // CheckMixedChannelRequest represents check mixed channel risk request
@@ -1063,6 +1092,13 @@ func (h *AccountHandler) Create(c *gin.Context) {
 			AutoPauseOnExpired:    req.AutoPauseOnExpired,
 			ProbeEnabled:          req.ProbeEnabled,
 			SkipMixedChannelCheck: skipCheck,
+			OwnerUserID:           req.OwnerUserID,
+			DisplayAlias:          req.DisplayAlias,
+			SaleStatus:            req.SaleStatus,
+			SalePrice:             req.SalePrice,
+			DailyPriceDecay:       req.DailyPriceDecay,
+			MinSalePrice:          req.MinSalePrice,
+			SaleDescription:       req.SaleDescription,
 		})
 		if execErr != nil {
 			return nil, execErr
@@ -1196,6 +1232,14 @@ func (h *AccountHandler) Update(c *gin.Context) {
 		ProbeEnabled:          req.ProbeEnabled,
 		RateSyncEnabled:       req.RateSyncEnabled,
 		SkipMixedChannelCheck: skipCheck,
+		OwnerUserID:           req.OwnerUserID,
+		ClearOwnerUserID:      req.ClearOwnerUserID,
+		DisplayAlias:          req.DisplayAlias,
+		SaleStatus:            req.SaleStatus,
+		SalePrice:             req.SalePrice,
+		DailyPriceDecay:       req.DailyPriceDecay,
+		MinSalePrice:          req.MinSalePrice,
+		SaleDescription:       req.SaleDescription,
 	})
 	if err != nil {
 		// 检查是否为混合渠道错误
@@ -2347,7 +2391,14 @@ func (h *AccountHandler) BulkUpdate(c *gin.Context) {
 		req.GroupIDs != nil ||
 		len(req.Credentials) > 0 ||
 		len(req.Extra) > 0 ||
-		req.ProbeEnabled != nil
+		req.ProbeEnabled != nil ||
+		req.OwnerUserID != nil ||
+		req.ClearOwnerUserID ||
+		req.SaleStatus != nil ||
+		req.SalePrice != nil ||
+		req.DailyPriceDecay != nil ||
+		req.MinSalePrice != nil ||
+		req.SaleDescription != nil
 
 	if !hasUpdates {
 		response.BadRequest(c, "No updates provided")
@@ -2370,6 +2421,13 @@ func (h *AccountHandler) BulkUpdate(c *gin.Context) {
 		Extra:                 req.Extra,
 		ProbeEnabled:          req.ProbeEnabled,
 		SkipMixedChannelCheck: skipCheck,
+		OwnerUserID:           req.OwnerUserID,
+		ClearOwnerUserID:      req.ClearOwnerUserID,
+		SaleStatus:            req.SaleStatus,
+		SalePrice:             req.SalePrice,
+		DailyPriceDecay:       req.DailyPriceDecay,
+		MinSalePrice:          req.MinSalePrice,
+		SaleDescription:       req.SaleDescription,
 	})
 	if err != nil {
 		var mixedErr *service.MixedChannelError
@@ -2398,12 +2456,13 @@ func toServiceBulkUpdateAccountFilters(filters *BulkUpdateAccountFilters) *servi
 		return nil
 	}
 	return &service.BulkUpdateAccountFilters{
-		Platform:    filters.Platform,
-		Type:        filters.Type,
-		Status:      filters.Status,
-		Group:       filters.Group,
-		Search:      filters.Search,
-		PrivacyMode: filters.PrivacyMode,
+		Platform:      filters.Platform,
+		Type:          filters.Type,
+		Status:        filters.Status,
+		Group:         filters.Group,
+		Search:        filters.Search,
+		PrivacyMode:   filters.PrivacyMode,
+		DedicatedMode: filters.DedicatedMode,
 	}
 }
 

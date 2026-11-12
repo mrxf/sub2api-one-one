@@ -81,6 +81,28 @@ type Account struct {
 	ParentAccountID *int64 `json:"parent_account_id,omitempty"`
 	// 'global' (default) or 'spark' (shadow reads codex_bengalfox).
 	QuotaDimension account.QuotaDimension `json:"quota_dimension,omitempty"`
+	// Dedicated owner user ID (NULL = shared public pool).
+	OwnerUserID *int64 `json:"owner_user_id,omitempty"`
+	// Sanitized display title shown to dedicated buyers/owners.
+	DisplayAlias string `json:"display_alias,omitempty"`
+	// Marketplace status: none | listed | locked | sold.
+	SaleStatus string `json:"sale_status,omitempty"`
+	// Base buyout price in CNY.
+	SalePrice float64 `json:"sale_price,omitempty"`
+	// Daily CNY price reduction elapsed since listed_at.
+	DailyPriceDecay float64 `json:"daily_price_decay,omitempty"`
+	// Floor buyout price in CNY.
+	MinSalePrice float64 `json:"min_sale_price,omitempty"`
+	// ListedAt holds the value of the "listed_at" field.
+	ListedAt *time.Time `json:"listed_at,omitempty"`
+	// SoldAt holds the value of the "sold_at" field.
+	SoldAt *time.Time `json:"sold_at,omitempty"`
+	// SaleDescription holds the value of the "sale_description" field.
+	SaleDescription string `json:"sale_description,omitempty"`
+	// LockedByOrderID holds the value of the "locked_by_order_id" field.
+	LockedByOrderID *int64 `json:"locked_by_order_id,omitempty"`
+	// LockedUntil holds the value of the "locked_until" field.
+	LockedUntil *time.Time `json:"locked_until,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
 	Edges        AccountEdges `json:"edges"`
@@ -173,13 +195,13 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case account.FieldAutoPauseOnExpired, account.FieldSchedulable:
 			values[i] = new(sql.NullBool)
-		case account.FieldRateMultiplier:
+		case account.FieldRateMultiplier, account.FieldSalePrice, account.FieldDailyPriceDecay, account.FieldMinSalePrice:
 			values[i] = new(sql.NullFloat64)
-		case account.FieldID, account.FieldProxyID, account.FieldProxyFallbackOriginID, account.FieldConcurrency, account.FieldLoadFactor, account.FieldPriority, account.FieldParentAccountID:
+		case account.FieldID, account.FieldProxyID, account.FieldProxyFallbackOriginID, account.FieldConcurrency, account.FieldLoadFactor, account.FieldPriority, account.FieldParentAccountID, account.FieldOwnerUserID, account.FieldLockedByOrderID:
 			values[i] = new(sql.NullInt64)
-		case account.FieldName, account.FieldNotes, account.FieldPlatform, account.FieldType, account.FieldStatus, account.FieldErrorMessage, account.FieldTempUnschedulableReason, account.FieldSessionWindowStatus, account.FieldQuotaDimension:
+		case account.FieldName, account.FieldNotes, account.FieldPlatform, account.FieldType, account.FieldStatus, account.FieldErrorMessage, account.FieldTempUnschedulableReason, account.FieldSessionWindowStatus, account.FieldQuotaDimension, account.FieldDisplayAlias, account.FieldSaleStatus, account.FieldSaleDescription:
 			values[i] = new(sql.NullString)
-		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt, account.FieldLastUsedAt, account.FieldExpiresAt, account.FieldRateLimitedAt, account.FieldRateLimitResetAt, account.FieldOverloadUntil, account.FieldTempUnschedulableUntil, account.FieldSessionWindowStart, account.FieldSessionWindowEnd:
+		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt, account.FieldLastUsedAt, account.FieldExpiresAt, account.FieldRateLimitedAt, account.FieldRateLimitResetAt, account.FieldOverloadUntil, account.FieldTempUnschedulableUntil, account.FieldSessionWindowStart, account.FieldSessionWindowEnd, account.FieldListedAt, account.FieldSoldAt, account.FieldLockedUntil:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -409,6 +431,77 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.QuotaDimension = account.QuotaDimension(value.String)
 			}
+		case account.FieldOwnerUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field owner_user_id", values[i])
+			} else if value.Valid {
+				_m.OwnerUserID = new(int64)
+				*_m.OwnerUserID = value.Int64
+			}
+		case account.FieldDisplayAlias:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field display_alias", values[i])
+			} else if value.Valid {
+				_m.DisplayAlias = value.String
+			}
+		case account.FieldSaleStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sale_status", values[i])
+			} else if value.Valid {
+				_m.SaleStatus = value.String
+			}
+		case account.FieldSalePrice:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field sale_price", values[i])
+			} else if value.Valid {
+				_m.SalePrice = value.Float64
+			}
+		case account.FieldDailyPriceDecay:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field daily_price_decay", values[i])
+			} else if value.Valid {
+				_m.DailyPriceDecay = value.Float64
+			}
+		case account.FieldMinSalePrice:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field min_sale_price", values[i])
+			} else if value.Valid {
+				_m.MinSalePrice = value.Float64
+			}
+		case account.FieldListedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field listed_at", values[i])
+			} else if value.Valid {
+				_m.ListedAt = new(time.Time)
+				*_m.ListedAt = value.Time
+			}
+		case account.FieldSoldAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field sold_at", values[i])
+			} else if value.Valid {
+				_m.SoldAt = new(time.Time)
+				*_m.SoldAt = value.Time
+			}
+		case account.FieldSaleDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sale_description", values[i])
+			} else if value.Valid {
+				_m.SaleDescription = value.String
+			}
+		case account.FieldLockedByOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field locked_by_order_id", values[i])
+			} else if value.Valid {
+				_m.LockedByOrderID = new(int64)
+				*_m.LockedByOrderID = value.Int64
+			}
+		case account.FieldLockedUntil:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field locked_until", values[i])
+			} else if value.Valid {
+				_m.LockedUntil = new(time.Time)
+				*_m.LockedUntil = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -601,6 +694,49 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("quota_dimension=")
 	builder.WriteString(fmt.Sprintf("%v", _m.QuotaDimension))
+	builder.WriteString(", ")
+	if v := _m.OwnerUserID; v != nil {
+		builder.WriteString("owner_user_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("display_alias=")
+	builder.WriteString(_m.DisplayAlias)
+	builder.WriteString(", ")
+	builder.WriteString("sale_status=")
+	builder.WriteString(_m.SaleStatus)
+	builder.WriteString(", ")
+	builder.WriteString("sale_price=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SalePrice))
+	builder.WriteString(", ")
+	builder.WriteString("daily_price_decay=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DailyPriceDecay))
+	builder.WriteString(", ")
+	builder.WriteString("min_sale_price=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MinSalePrice))
+	builder.WriteString(", ")
+	if v := _m.ListedAt; v != nil {
+		builder.WriteString("listed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.SoldAt; v != nil {
+		builder.WriteString("sold_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("sale_description=")
+	builder.WriteString(_m.SaleDescription)
+	builder.WriteString(", ")
+	if v := _m.LockedByOrderID; v != nil {
+		builder.WriteString("locked_by_order_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.LockedUntil; v != nil {
+		builder.WriteString("locked_until=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

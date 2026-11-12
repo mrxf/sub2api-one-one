@@ -1401,8 +1401,10 @@ func mixedListingModelAllowed(groupPlatform, model string) bool {
 }
 
 func (s *GatewayService) GetAvailableModels(ctx context.Context, groupID *int64, platform string) []string {
+	dedicatedRouting := DedicatedRoutingInfoFromContext(ctx)
+	useSharedCache := !dedicatedRouting.IsDedicatedMode()
 	cacheKey := modelsListCacheKey(groupID, platform)
-	if s.modelsListCache != nil {
+	if useSharedCache && s.modelsListCache != nil {
 		if cached, found := s.modelsListCache.Get(cacheKey); found {
 			if models, ok := cached.([]string); ok {
 				modelsListCacheHitTotal.Add(1)
@@ -1420,6 +1422,7 @@ func (s *GatewayService) GetAvailableModels(ctx context.Context, groupID *int64,
 	} else {
 		accounts, err = s.accountRepo.ListSchedulable(ctx)
 	}
+	accounts = FilterAccountsForRequestContext(ctx, accounts)
 
 	if err != nil || len(accounts) == 0 {
 		return nil
@@ -1473,7 +1476,7 @@ func (s *GatewayService) GetAvailableModels(ctx context.Context, groupID *int64,
 		}
 	}
 	if !hasAnyMapping {
-		if s.modelsListCache != nil {
+		if useSharedCache && s.modelsListCache != nil {
 			s.modelsListCache.Set(cacheKey, []string(nil), s.modelsListCacheTTL)
 			modelsListCacheStoreTotal.Add(1)
 		}
@@ -1497,7 +1500,7 @@ func (s *GatewayService) GetAvailableModels(ctx context.Context, groupID *int64,
 		}
 	}
 
-	if s.modelsListCache != nil {
+	if useSharedCache && s.modelsListCache != nil {
 		s.modelsListCache.Set(cacheKey, cloneStringSlice(models), s.modelsListCacheTTL)
 		modelsListCacheStoreTotal.Add(1)
 	}
@@ -1510,8 +1513,9 @@ func (s *GatewayService) resolveCompositeModelOwnership(ctx context.Context, gro
 		return CompositeModelOwnership{}, nil
 	}
 
+	useSharedCache := !DedicatedRoutingInfoFromContext(ctx).IsDedicatedMode()
 	cacheKey := compositeModelOwnershipCacheKey(groupID, model)
-	if s.modelsListCache != nil {
+	if useSharedCache && s.modelsListCache != nil {
 		if cached, found := s.modelsListCache.Get(cacheKey); found {
 			if ownership, ok := cached.(CompositeModelOwnership); ok {
 				return ownership, nil
@@ -1525,6 +1529,7 @@ func (s *GatewayService) resolveCompositeModelOwnership(ctx context.Context, gro
 	if err != nil {
 		return CompositeModelOwnership{}, err
 	}
+	accounts = FilterAccountsForRequestContext(ctx, accounts)
 
 	platforms := make(map[string]struct{})
 	ownership := CompositeModelOwnership{}
@@ -1545,7 +1550,7 @@ func (s *GatewayService) resolveCompositeModelOwnership(ctx context.Context, gro
 		ownership.Ambiguous = true
 	}
 
-	if s.modelsListCache != nil {
+	if useSharedCache && s.modelsListCache != nil {
 		s.modelsListCache.Set(cacheKey, ownership, s.modelsListCacheTTL)
 	}
 	return ownership, nil
@@ -1592,6 +1597,7 @@ func (s *GatewayService) GetSchedulablePlatforms(ctx context.Context, groupID *i
 	if err != nil {
 		return platforms
 	}
+	accounts = FilterAccountsForRequestContext(ctx, accounts)
 
 	for _, acc := range accounts {
 		platform := strings.TrimSpace(acc.Platform)

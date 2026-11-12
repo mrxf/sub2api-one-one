@@ -171,7 +171,12 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		if abortIfAPIKeyGroupNotAllowed(c, apiKey) {
 			return
 		}
-		ctx := context.WithValue(c.Request.Context(), ctxkey.UserID, apiKey.User.ID)
+		ctx := service.WithDedicatedRoutingContext(
+			c.Request.Context(),
+			apiKey.User.ID,
+			apiKey.DedicatedAccountID,
+			apiKey.DedicatedPoolMode,
+		)
 		c.Request = c.Request.WithContext(ctx)
 		billingInfoRequest := c.Request.URL.Path == "/v1/sub2api/billing"
 		// Async image task polling only reads data that already belongs to the
@@ -201,8 +206,8 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		var subscription *service.UserSubscription
 		isSubscriptionType := apiKey.Group != nil && apiKey.Group.IsSubscriptionType()
 
-		// 倍率自省不需要订阅数据；/v1/usage 仍保留原有订阅读取行为。
-		if isSubscriptionType && subscriptionService != nil && !billingInfoRequest {
+		// 独享买断模式不走订阅套餐与钱包余额校验；倍率自省不需要订阅数据；/v1/usage 仍保留原有订阅读取行为。
+		if !apiKey.IsDedicatedMode() && isSubscriptionType && subscriptionService != nil && !billingInfoRequest {
 			sub, subErr := subscriptionService.GetActiveSubscription(
 				c.Request.Context(),
 				apiKey.User.ID,
@@ -242,35 +247,37 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 				return
 			}
 
-			// 订阅模式：验证订阅限额
-			if subscription != nil {
-				needsMaintenance, validateErr := subscriptionService.ValidateAndCheckLimits(subscription, apiKey.Group)
-				if needsMaintenance {
-					refreshed, maintenanceErr := subscriptionService.EnsureWindowMaintenance(c.Request.Context(), subscription)
-					if maintenanceErr != nil {
-						AbortWithError(c, 500, "SUBSCRIPTION_MAINTENANCE_FAILED", "Failed to maintain subscription usage windows")
+			if !apiKey.IsDedicatedMode() {
+				// 订阅模式：验证订阅限额
+				if subscription != nil {
+					needsMaintenance, validateErr := subscriptionService.ValidateAndCheckLimits(subscription, apiKey.Group)
+					if needsMaintenance {
+						refreshed, maintenanceErr := subscriptionService.EnsureWindowMaintenance(c.Request.Context(), subscription)
+						if maintenanceErr != nil {
+							AbortWithError(c, 500, "SUBSCRIPTION_MAINTENANCE_FAILED", "Failed to maintain subscription usage windows")
+							return
+						}
+						subscription = refreshed
+						_, validateErr = subscriptionService.ValidateAndCheckLimits(subscription, apiKey.Group)
+					}
+					if validateErr != nil {
+						code := "SUBSCRIPTION_INVALID"
+						status := 403
+						if errors.Is(validateErr, service.ErrDailyLimitExceeded) ||
+							errors.Is(validateErr, service.ErrWeeklyLimitExceeded) ||
+							errors.Is(validateErr, service.ErrMonthlyLimitExceeded) {
+							code = "USAGE_LIMIT_EXCEEDED"
+							status = 429
+						}
+						AbortWithError(c, status, code, validateErr.Error())
 						return
 					}
-					subscription = refreshed
-					_, validateErr = subscriptionService.ValidateAndCheckLimits(subscription, apiKey.Group)
-				}
-				if validateErr != nil {
-					code := "SUBSCRIPTION_INVALID"
-					status := 403
-					if errors.Is(validateErr, service.ErrDailyLimitExceeded) ||
-						errors.Is(validateErr, service.ErrWeeklyLimitExceeded) ||
-						errors.Is(validateErr, service.ErrMonthlyLimitExceeded) {
-						code = "USAGE_LIMIT_EXCEEDED"
-						status = 429
+				} else {
+					// 非订阅模式 或 订阅模式但 subscriptionService 未注入：回退到余额检查
+					if apiKeyBalanceBelowAuthThreshold(apiKey.User.Balance, cfg) {
+						AbortWithError(c, 403, "INSUFFICIENT_BALANCE", "Insufficient account balance")
+						return
 					}
-					AbortWithError(c, status, code, validateErr.Error())
-					return
-				}
-			} else {
-				// 非订阅模式 或 订阅模式但 subscriptionService 未注入：回退到余额检查
-				if apiKeyBalanceBelowAuthThreshold(apiKey.User.Balance, cfg) {
-					AbortWithError(c, 403, "INSUFFICIENT_BALANCE", "Insufficient account balance")
-					return
 				}
 			}
 		}
@@ -433,6 +440,9 @@ func abortIfAPIKeyGroupNotAllowed(c *gin.Context, apiKey *service.APIKey) bool {
 
 func validateAPIKeyGroupAllowed(apiKey *service.APIKey) bool {
 	if apiKey == nil || apiKey.GroupID == nil || apiKey.User == nil || apiKey.Group == nil {
+		return true
+	}
+	if apiKey.IsDedicatedMode() {
 		return true
 	}
 	group := apiKey.Group

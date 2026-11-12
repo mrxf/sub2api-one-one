@@ -307,6 +307,34 @@ func (_c *APIKeyCreate) SetNillableWindow7dStart(v *time.Time) *APIKeyCreate {
 	return _c
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_c *APIKeyCreate) SetDedicatedAccountID(v int64) *APIKeyCreate {
+	_c.mutation.SetDedicatedAccountID(v)
+	return _c
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableDedicatedAccountID(v *int64) *APIKeyCreate {
+	if v != nil {
+		_c.SetDedicatedAccountID(*v)
+	}
+	return _c
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (_c *APIKeyCreate) SetDedicatedPoolMode(v bool) *APIKeyCreate {
+	_c.mutation.SetDedicatedPoolMode(v)
+	return _c
+}
+
+// SetNillableDedicatedPoolMode sets the "dedicated_pool_mode" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableDedicatedPoolMode(v *bool) *APIKeyCreate {
+	if v != nil {
+		_c.SetDedicatedPoolMode(*v)
+	}
+	return _c
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_c *APIKeyCreate) SetUser(v *User) *APIKeyCreate {
 	return _c.SetUserID(v.ID)
@@ -419,6 +447,10 @@ func (_c *APIKeyCreate) defaults() error {
 		v := apikey.DefaultUsage7d
 		_c.mutation.SetUsage7d(v)
 	}
+	if _, ok := _c.mutation.DedicatedPoolMode(); !ok {
+		v := apikey.DefaultDedicatedPoolMode
+		_c.mutation.SetDedicatedPoolMode(v)
+	}
 	return nil
 }
 
@@ -480,6 +512,9 @@ func (_c *APIKeyCreate) check() error {
 	}
 	if _, ok := _c.mutation.Usage7d(); !ok {
 		return &ValidationError{Name: "usage_7d", err: errors.New(`ent: missing required field "APIKey.usage_7d"`)}
+	}
+	if _, ok := _c.mutation.DedicatedPoolMode(); !ok {
+		return &ValidationError{Name: "dedicated_pool_mode", err: errors.New(`ent: missing required field "APIKey.dedicated_pool_mode"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "APIKey.user"`)}
@@ -594,6 +629,14 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Window7dStart(); ok {
 		_spec.SetField(apikey.FieldWindow7dStart, field.TypeTime, value)
 		_node.Window7dStart = &value
+	}
+	if value, ok := _c.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(apikey.FieldDedicatedAccountID, field.TypeInt64, value)
+		_node.DedicatedAccountID = &value
+	}
+	if value, ok := _c.mutation.DedicatedPoolMode(); ok {
+		_spec.SetField(apikey.FieldDedicatedPoolMode, field.TypeBool, value)
+		_node.DedicatedPoolMode = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1060,6 +1103,42 @@ func (u *APIKeyUpsert) UpdateWindow7dStart() *APIKeyUpsert {
 // ClearWindow7dStart clears the value of the "window_7d_start" field.
 func (u *APIKeyUpsert) ClearWindow7dStart() *APIKeyUpsert {
 	u.SetNull(apikey.FieldWindow7dStart)
+	return u
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *APIKeyUpsert) SetDedicatedAccountID(v int64) *APIKeyUpsert {
+	u.Set(apikey.FieldDedicatedAccountID, v)
+	return u
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateDedicatedAccountID() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldDedicatedAccountID)
+	return u
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *APIKeyUpsert) AddDedicatedAccountID(v int64) *APIKeyUpsert {
+	u.Add(apikey.FieldDedicatedAccountID, v)
+	return u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *APIKeyUpsert) ClearDedicatedAccountID() *APIKeyUpsert {
+	u.SetNull(apikey.FieldDedicatedAccountID)
+	return u
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (u *APIKeyUpsert) SetDedicatedPoolMode(v bool) *APIKeyUpsert {
+	u.Set(apikey.FieldDedicatedPoolMode, v)
+	return u
+}
+
+// UpdateDedicatedPoolMode sets the "dedicated_pool_mode" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateDedicatedPoolMode() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldDedicatedPoolMode)
 	return u
 }
 
@@ -1532,6 +1611,48 @@ func (u *APIKeyUpsertOne) UpdateWindow7dStart() *APIKeyUpsertOne {
 func (u *APIKeyUpsertOne) ClearWindow7dStart() *APIKeyUpsertOne {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearWindow7dStart()
+	})
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *APIKeyUpsertOne) SetDedicatedAccountID(v int64) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetDedicatedAccountID(v)
+	})
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *APIKeyUpsertOne) AddDedicatedAccountID(v int64) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.AddDedicatedAccountID(v)
+	})
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateDedicatedAccountID() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateDedicatedAccountID()
+	})
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *APIKeyUpsertOne) ClearDedicatedAccountID() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearDedicatedAccountID()
+	})
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (u *APIKeyUpsertOne) SetDedicatedPoolMode(v bool) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetDedicatedPoolMode(v)
+	})
+}
+
+// UpdateDedicatedPoolMode sets the "dedicated_pool_mode" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateDedicatedPoolMode() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateDedicatedPoolMode()
 	})
 }
 
@@ -2170,6 +2291,48 @@ func (u *APIKeyUpsertBulk) UpdateWindow7dStart() *APIKeyUpsertBulk {
 func (u *APIKeyUpsertBulk) ClearWindow7dStart() *APIKeyUpsertBulk {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearWindow7dStart()
+	})
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *APIKeyUpsertBulk) SetDedicatedAccountID(v int64) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetDedicatedAccountID(v)
+	})
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *APIKeyUpsertBulk) AddDedicatedAccountID(v int64) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.AddDedicatedAccountID(v)
+	})
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateDedicatedAccountID() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateDedicatedAccountID()
+	})
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *APIKeyUpsertBulk) ClearDedicatedAccountID() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearDedicatedAccountID()
+	})
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (u *APIKeyUpsertBulk) SetDedicatedPoolMode(v bool) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetDedicatedPoolMode(v)
+	})
+}
+
+// UpdateDedicatedPoolMode sets the "dedicated_pool_mode" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateDedicatedPoolMode() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateDedicatedPoolMode()
 	})
 }
 

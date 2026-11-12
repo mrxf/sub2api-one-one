@@ -145,6 +145,10 @@ func init() {
 	apikeyDescUsage7d := apikeyFields[16].Descriptor()
 	// apikey.DefaultUsage7d holds the default value on creation for the usage_7d field.
 	apikey.DefaultUsage7d = apikeyDescUsage7d.Default.(float64)
+	// apikeyDescDedicatedPoolMode is the schema descriptor for dedicated_pool_mode field.
+	apikeyDescDedicatedPoolMode := apikeyFields[21].Descriptor()
+	// apikey.DefaultDedicatedPoolMode holds the default value on creation for the dedicated_pool_mode field.
+	apikey.DefaultDedicatedPoolMode = apikeyDescDedicatedPoolMode.Default.(bool)
 	accountMixin := schema.Account{}.Mixin()
 	accountMixinHooks1 := accountMixin[1].Hooks()
 	account.Hooks[0] = accountMixinHooks1[0]
@@ -256,6 +260,34 @@ func init() {
 	accountDescSessionWindowStatus := accountFields[25].Descriptor()
 	// account.SessionWindowStatusValidator is a validator for the "session_window_status" field. It is called by the builders before save.
 	account.SessionWindowStatusValidator = accountDescSessionWindowStatus.Validators[0].(func(string) error)
+	// accountDescDisplayAlias is the schema descriptor for display_alias field.
+	accountDescDisplayAlias := accountFields[29].Descriptor()
+	// account.DefaultDisplayAlias holds the default value on creation for the display_alias field.
+	account.DefaultDisplayAlias = accountDescDisplayAlias.Default.(string)
+	// account.DisplayAliasValidator is a validator for the "display_alias" field. It is called by the builders before save.
+	account.DisplayAliasValidator = accountDescDisplayAlias.Validators[0].(func(string) error)
+	// accountDescSaleStatus is the schema descriptor for sale_status field.
+	accountDescSaleStatus := accountFields[30].Descriptor()
+	// account.DefaultSaleStatus holds the default value on creation for the sale_status field.
+	account.DefaultSaleStatus = accountDescSaleStatus.Default.(string)
+	// account.SaleStatusValidator is a validator for the "sale_status" field. It is called by the builders before save.
+	account.SaleStatusValidator = accountDescSaleStatus.Validators[0].(func(string) error)
+	// accountDescSalePrice is the schema descriptor for sale_price field.
+	accountDescSalePrice := accountFields[31].Descriptor()
+	// account.DefaultSalePrice holds the default value on creation for the sale_price field.
+	account.DefaultSalePrice = accountDescSalePrice.Default.(float64)
+	// accountDescDailyPriceDecay is the schema descriptor for daily_price_decay field.
+	accountDescDailyPriceDecay := accountFields[32].Descriptor()
+	// account.DefaultDailyPriceDecay holds the default value on creation for the daily_price_decay field.
+	account.DefaultDailyPriceDecay = accountDescDailyPriceDecay.Default.(float64)
+	// accountDescMinSalePrice is the schema descriptor for min_sale_price field.
+	accountDescMinSalePrice := accountFields[33].Descriptor()
+	// account.DefaultMinSalePrice holds the default value on creation for the min_sale_price field.
+	account.DefaultMinSalePrice = accountDescMinSalePrice.Default.(float64)
+	// accountDescSaleDescription is the schema descriptor for sale_description field.
+	accountDescSaleDescription := accountFields[36].Descriptor()
+	// account.DefaultSaleDescription holds the default value on creation for the sale_description field.
+	account.DefaultSaleDescription = accountDescSaleDescription.Default.(string)
 	accountgroupFields := schema.AccountGroup{}.Fields()
 	_ = accountgroupFields
 	// accountgroupDescPriority is the schema descriptor for priority field.
@@ -1374,45 +1406,45 @@ func init() {
 	// paymentorder.OrderTypeValidator is a validator for the "order_type" field. It is called by the builders before save.
 	paymentorder.OrderTypeValidator = paymentorderDescOrderType.Validators[0].(func(string) error)
 	// paymentorderDescProviderInstanceID is the schema descriptor for provider_instance_id field.
-	paymentorderDescProviderInstanceID := paymentorderFields[19].Descriptor()
+	paymentorderDescProviderInstanceID := paymentorderFields[20].Descriptor()
 	// paymentorder.ProviderInstanceIDValidator is a validator for the "provider_instance_id" field. It is called by the builders before save.
 	paymentorder.ProviderInstanceIDValidator = paymentorderDescProviderInstanceID.Validators[0].(func(string) error)
 	// paymentorderDescProviderKey is the schema descriptor for provider_key field.
-	paymentorderDescProviderKey := paymentorderFields[20].Descriptor()
+	paymentorderDescProviderKey := paymentorderFields[21].Descriptor()
 	// paymentorder.ProviderKeyValidator is a validator for the "provider_key" field. It is called by the builders before save.
 	paymentorder.ProviderKeyValidator = paymentorderDescProviderKey.Validators[0].(func(string) error)
 	// paymentorderDescStatus is the schema descriptor for status field.
-	paymentorderDescStatus := paymentorderFields[22].Descriptor()
+	paymentorderDescStatus := paymentorderFields[23].Descriptor()
 	// paymentorder.DefaultStatus holds the default value on creation for the status field.
 	paymentorder.DefaultStatus = paymentorderDescStatus.Default.(string)
 	// paymentorder.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	paymentorder.StatusValidator = paymentorderDescStatus.Validators[0].(func(string) error)
 	// paymentorderDescRefundAmount is the schema descriptor for refund_amount field.
-	paymentorderDescRefundAmount := paymentorderFields[23].Descriptor()
+	paymentorderDescRefundAmount := paymentorderFields[24].Descriptor()
 	// paymentorder.DefaultRefundAmount holds the default value on creation for the refund_amount field.
 	paymentorder.DefaultRefundAmount = paymentorderDescRefundAmount.Default.(float64)
 	// paymentorderDescForceRefund is the schema descriptor for force_refund field.
-	paymentorderDescForceRefund := paymentorderFields[26].Descriptor()
+	paymentorderDescForceRefund := paymentorderFields[27].Descriptor()
 	// paymentorder.DefaultForceRefund holds the default value on creation for the force_refund field.
 	paymentorder.DefaultForceRefund = paymentorderDescForceRefund.Default.(bool)
 	// paymentorderDescRefundRequestedBy is the schema descriptor for refund_requested_by field.
-	paymentorderDescRefundRequestedBy := paymentorderFields[29].Descriptor()
+	paymentorderDescRefundRequestedBy := paymentorderFields[30].Descriptor()
 	// paymentorder.RefundRequestedByValidator is a validator for the "refund_requested_by" field. It is called by the builders before save.
 	paymentorder.RefundRequestedByValidator = paymentorderDescRefundRequestedBy.Validators[0].(func(string) error)
 	// paymentorderDescClientIP is the schema descriptor for client_ip field.
-	paymentorderDescClientIP := paymentorderFields[35].Descriptor()
+	paymentorderDescClientIP := paymentorderFields[36].Descriptor()
 	// paymentorder.ClientIPValidator is a validator for the "client_ip" field. It is called by the builders before save.
 	paymentorder.ClientIPValidator = paymentorderDescClientIP.Validators[0].(func(string) error)
 	// paymentorderDescSrcHost is the schema descriptor for src_host field.
-	paymentorderDescSrcHost := paymentorderFields[36].Descriptor()
+	paymentorderDescSrcHost := paymentorderFields[37].Descriptor()
 	// paymentorder.SrcHostValidator is a validator for the "src_host" field. It is called by the builders before save.
 	paymentorder.SrcHostValidator = paymentorderDescSrcHost.Validators[0].(func(string) error)
 	// paymentorderDescCreatedAt is the schema descriptor for created_at field.
-	paymentorderDescCreatedAt := paymentorderFields[38].Descriptor()
+	paymentorderDescCreatedAt := paymentorderFields[39].Descriptor()
 	// paymentorder.DefaultCreatedAt holds the default value on creation for the created_at field.
 	paymentorder.DefaultCreatedAt = paymentorderDescCreatedAt.Default.(func() time.Time)
 	// paymentorderDescUpdatedAt is the schema descriptor for updated_at field.
-	paymentorderDescUpdatedAt := paymentorderFields[39].Descriptor()
+	paymentorderDescUpdatedAt := paymentorderFields[40].Descriptor()
 	// paymentorder.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	paymentorder.DefaultUpdatedAt = paymentorderDescUpdatedAt.Default.(func() time.Time)
 	// paymentorder.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

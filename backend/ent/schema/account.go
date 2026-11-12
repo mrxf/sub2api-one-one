@@ -201,6 +201,50 @@ func (Account) Fields() []ent.Field {
 			Comment("Parent account id for a linked spark shadow (NULL = normal)."),
 		field.Enum("quota_dimension").Values("global", "spark").Default("global").
 			Comment("'global' (default) or 'spark' (shadow reads codex_bengalfox)."),
+
+		// ========== 独享账号与上架买断集市字段 ==========
+		field.Int64("owner_user_id").
+			Optional().
+			Nillable().
+			Comment("Dedicated owner user ID (NULL = shared public pool)."),
+		field.String("display_alias").
+			MaxLen(100).
+			Default("").
+			Comment("Sanitized display title shown to dedicated buyers/owners."),
+		field.String("sale_status").
+			MaxLen(20).
+			Default("none").
+			Comment("Marketplace status: none | listed | locked | sold."),
+		field.Float("sale_price").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(20,2)"}).
+			Default(0).
+			Comment("Base buyout price in CNY."),
+		field.Float("daily_price_decay").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(20,2)"}).
+			Default(0).
+			Comment("Daily CNY price reduction elapsed since listed_at."),
+		field.Float("min_sale_price").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(20,2)"}).
+			Default(0).
+			Comment("Floor buyout price in CNY."),
+		field.Time("listed_at").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+		field.Time("sold_at").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+		field.String("sale_description").
+			Default("").
+			SchemaType(map[string]string{dialect.Postgres: "text"}),
+		field.Int64("locked_by_order_id").
+			Optional().
+			Nillable(),
+		field.Time("locked_until").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
 	}
 }
 
@@ -249,5 +293,7 @@ func (Account) Indexes() []ent.Index {
 		index.Fields("priority", "status"),
 		index.Fields("deleted_at"), // 软删除查询优化
 		index.Fields("parent_account_id"),
+		index.Fields("owner_user_id"),
+		index.Fields("sale_status"),
 	}
 }

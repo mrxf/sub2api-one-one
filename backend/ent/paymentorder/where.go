@@ -150,6 +150,11 @@ func SubscriptionDays(v int) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldSubscriptionDays, v))
 }
 
+// DedicatedAccountID applies equality check predicate on the "dedicated_account_id" field. It's identical to DedicatedAccountIDEQ.
+func DedicatedAccountID(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldDedicatedAccountID, v))
+}
+
 // ProviderInstanceID applies equality check predicate on the "provider_instance_id" field. It's identical to ProviderInstanceIDEQ.
 func ProviderInstanceID(v string) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldProviderInstanceID, v))
@@ -1333,6 +1338,56 @@ func SubscriptionDaysIsNil() predicate.PaymentOrder {
 // SubscriptionDaysNotNil applies the NotNil predicate on the "subscription_days" field.
 func SubscriptionDaysNotNil() predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldNotNull(FieldSubscriptionDays))
+}
+
+// DedicatedAccountIDEQ applies the EQ predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDNEQ applies the NEQ predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNEQ(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDIn applies the In predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldDedicatedAccountID, vs...))
+}
+
+// DedicatedAccountIDNotIn applies the NotIn predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNotIn(vs ...int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldDedicatedAccountID, vs...))
+}
+
+// DedicatedAccountIDGT applies the GT predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDGT(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDGTE applies the GTE predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDGTE(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDLT applies the LT predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDLT(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDLTE applies the LTE predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDLTE(v int64) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDIsNil applies the IsNil predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldDedicatedAccountID))
+}
+
+// DedicatedAccountIDNotNil applies the NotNil predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldDedicatedAccountID))
 }
 
 // ProviderInstanceIDEQ applies the EQ predicate on the "provider_instance_id" field.

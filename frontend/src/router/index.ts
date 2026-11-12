@@ -216,6 +216,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/dedicated-accounts',
+    name: 'DedicatedAccounts',
+    component: () => import('@/views/user/DedicatedAccountsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Dedicated Accounts',
+      titleKey: 'dedicatedAccounts.title',
+      descriptionKey: 'dedicatedAccounts.description'
+    }
+  },
+  {
     path: '/batch-image',
     name: 'BatchImageGuide',
     alias: '/docs/batch-image',

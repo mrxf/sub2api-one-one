@@ -256,6 +256,11 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 }
 
 func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) *RefundResult {
+	if o.OrderType == payment.OrderTypeDedicatedAccount {
+		p.DeductionType = payment.DeductionTypeNone
+		p.BalanceToDeduct = 0
+		return nil
+	}
 	if o.OrderType == payment.OrderTypeSubscription {
 		p.DeductionType = payment.DeductionTypeSubscription
 		if o.SubscriptionGroupID != nil && o.SubscriptionDays != nil {
@@ -771,6 +776,11 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 	_, err := s.entClient.PaymentOrder.UpdateOneID(p.OrderID).SetStatus(fs).SetRefundAmount(p.RefundAmount).SetRefundReason(p.Reason).SetRefundAt(now).SetForceRefund(p.Force).Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
+	}
+	if p.DeductBalance && p.Order != nil && p.Order.OrderType == payment.OrderTypeDedicatedAccount && p.Order.DedicatedAccountID != nil && s.dedicatedAccountSvc != nil {
+		if revokeErr := s.dedicatedAccountSvc.RevokeOwnershipOnRefund(ctx, *p.Order.DedicatedAccountID, p.Order.UserID); revokeErr != nil {
+			slog.Error("revoke dedicated account ownership on refund failed", "orderID", p.OrderID, "accountID", *p.Order.DedicatedAccountID, "error", revokeErr)
+		}
 	}
 	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force})
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil

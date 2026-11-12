@@ -44,6 +44,10 @@ type CreateAPIKeyRequest struct {
 	RateLimit5h *float64 `json:"rate_limit_5h"`
 	RateLimit1d *float64 `json:"rate_limit_1d"`
 	RateLimit7d *float64 `json:"rate_limit_7d"`
+
+	// 独享账号路由绑定配置
+	DedicatedAccountID *int64 `json:"dedicated_account_id"`
+	DedicatedPoolMode  *bool  `json:"dedicated_pool_mode"`
 }
 
 // UpdateAPIKeyRequest represents the update API key request payload
@@ -62,6 +66,11 @@ type UpdateAPIKeyRequest struct {
 	RateLimit1d         *float64 `json:"rate_limit_1d"`
 	RateLimit7d         *float64 `json:"rate_limit_7d"`
 	ResetRateLimitUsage *bool    `json:"reset_rate_limit_usage"` // 重置限速用量
+
+	// 独享账号路由绑定配置
+	DedicatedAccountID      *int64 `json:"dedicated_account_id"`
+	ClearDedicatedAccountID bool   `json:"clear_dedicated_account_id"`
+	DedicatedPoolMode       *bool  `json:"dedicated_pool_mode"`
 }
 
 func validAPIKeyLimit(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) && v >= 0 }
@@ -197,12 +206,16 @@ func (h *APIKeyHandler) Create(c *gin.Context) {
 	}
 
 	svcReq := service.CreateAPIKeyRequest{
-		Name:          req.Name,
-		GroupID:       req.GroupID,
-		CustomKey:     req.CustomKey,
-		IPWhitelist:   req.IPWhitelist,
-		IPBlacklist:   req.IPBlacklist,
-		ExpiresInDays: req.ExpiresInDays,
+		Name:               req.Name,
+		GroupID:            req.GroupID,
+		CustomKey:          req.CustomKey,
+		IPWhitelist:        req.IPWhitelist,
+		IPBlacklist:        req.IPBlacklist,
+		ExpiresInDays:      req.ExpiresInDays,
+		DedicatedAccountID: req.DedicatedAccountID,
+	}
+	if req.DedicatedPoolMode != nil {
+		svcReq.DedicatedPoolMode = *req.DedicatedPoolMode
 	}
 	if req.Quota != nil {
 		svcReq.Quota = *req.Quota
@@ -252,14 +265,17 @@ func (h *APIKeyHandler) Update(c *gin.Context) {
 	}
 
 	svcReq := service.UpdateAPIKeyRequest{
-		IPWhitelist:         req.IPWhitelist,
-		IPBlacklist:         req.IPBlacklist,
-		Quota:               req.Quota,
-		ResetQuota:          req.ResetQuota,
-		RateLimit5h:         req.RateLimit5h,
-		RateLimit1d:         req.RateLimit1d,
-		RateLimit7d:         req.RateLimit7d,
-		ResetRateLimitUsage: req.ResetRateLimitUsage,
+		IPWhitelist:             req.IPWhitelist,
+		IPBlacklist:             req.IPBlacklist,
+		Quota:                   req.Quota,
+		ResetQuota:              req.ResetQuota,
+		RateLimit5h:             req.RateLimit5h,
+		RateLimit1d:             req.RateLimit1d,
+		RateLimit7d:             req.RateLimit7d,
+		ResetRateLimitUsage:     req.ResetRateLimitUsage,
+		DedicatedAccountID:      req.DedicatedAccountID,
+		ClearDedicatedAccountID: req.ClearDedicatedAccountID,
+		DedicatedPoolMode:       req.DedicatedPoolMode,
 	}
 	if req.Name != "" {
 		svcReq.Name = &req.Name

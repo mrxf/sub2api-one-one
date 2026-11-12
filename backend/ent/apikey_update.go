@@ -438,6 +438,47 @@ func (_u *APIKeyUpdate) ClearWindow7dStart() *APIKeyUpdate {
 	return _u
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_u *APIKeyUpdate) SetDedicatedAccountID(v int64) *APIKeyUpdate {
+	_u.mutation.ResetDedicatedAccountID()
+	_u.mutation.SetDedicatedAccountID(v)
+	return _u
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableDedicatedAccountID(v *int64) *APIKeyUpdate {
+	if v != nil {
+		_u.SetDedicatedAccountID(*v)
+	}
+	return _u
+}
+
+// AddDedicatedAccountID adds value to the "dedicated_account_id" field.
+func (_u *APIKeyUpdate) AddDedicatedAccountID(v int64) *APIKeyUpdate {
+	_u.mutation.AddDedicatedAccountID(v)
+	return _u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (_u *APIKeyUpdate) ClearDedicatedAccountID() *APIKeyUpdate {
+	_u.mutation.ClearDedicatedAccountID()
+	return _u
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (_u *APIKeyUpdate) SetDedicatedPoolMode(v bool) *APIKeyUpdate {
+	_u.mutation.SetDedicatedPoolMode(v)
+	return _u
+}
+
+// SetNillableDedicatedPoolMode sets the "dedicated_pool_mode" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableDedicatedPoolMode(v *bool) *APIKeyUpdate {
+	if v != nil {
+		_u.SetDedicatedPoolMode(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *APIKeyUpdate) SetUser(v *User) *APIKeyUpdate {
 	return _u.SetUserID(v.ID)
@@ -695,6 +736,18 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.Window7dStartCleared() {
 		_spec.ClearField(apikey.FieldWindow7dStart, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(apikey.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedDedicatedAccountID(); ok {
+		_spec.AddField(apikey.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if _u.mutation.DedicatedAccountIDCleared() {
+		_spec.ClearField(apikey.FieldDedicatedAccountID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.DedicatedPoolMode(); ok {
+		_spec.SetField(apikey.FieldDedicatedPoolMode, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1225,6 +1278,47 @@ func (_u *APIKeyUpdateOne) ClearWindow7dStart() *APIKeyUpdateOne {
 	return _u
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_u *APIKeyUpdateOne) SetDedicatedAccountID(v int64) *APIKeyUpdateOne {
+	_u.mutation.ResetDedicatedAccountID()
+	_u.mutation.SetDedicatedAccountID(v)
+	return _u
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableDedicatedAccountID(v *int64) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetDedicatedAccountID(*v)
+	}
+	return _u
+}
+
+// AddDedicatedAccountID adds value to the "dedicated_account_id" field.
+func (_u *APIKeyUpdateOne) AddDedicatedAccountID(v int64) *APIKeyUpdateOne {
+	_u.mutation.AddDedicatedAccountID(v)
+	return _u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (_u *APIKeyUpdateOne) ClearDedicatedAccountID() *APIKeyUpdateOne {
+	_u.mutation.ClearDedicatedAccountID()
+	return _u
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (_u *APIKeyUpdateOne) SetDedicatedPoolMode(v bool) *APIKeyUpdateOne {
+	_u.mutation.SetDedicatedPoolMode(v)
+	return _u
+}
+
+// SetNillableDedicatedPoolMode sets the "dedicated_pool_mode" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableDedicatedPoolMode(v *bool) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetDedicatedPoolMode(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *APIKeyUpdateOne) SetUser(v *User) *APIKeyUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -1512,6 +1606,18 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 	}
 	if _u.mutation.Window7dStartCleared() {
 		_spec.ClearField(apikey.FieldWindow7dStart, field.TypeTime)
+	}
+	if value, ok := _u.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(apikey.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedDedicatedAccountID(); ok {
+		_spec.AddField(apikey.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if _u.mutation.DedicatedAccountIDCleared() {
+		_spec.ClearField(apikey.FieldDedicatedAccountID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.DedicatedPoolMode(); ok {
+		_spec.SetField(apikey.FieldDedicatedPoolMode, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -375,12 +375,19 @@ export default {
       cancel: 'Cancel Order',
       userId: 'User ID',
       orderType: 'Order Type',
+      orderTypes: {
+        balance: 'Balance Top-Up',
+        subscription: 'Subscription',
+        dedicated_account: 'Dedicated Buyout'
+      },
       actions: 'Actions',
       requestRefund: 'Request Refund',
     },
     result: {
       success: 'Payment Successful',
       subscriptionSuccess: 'Subscription Successful',
+      dedicatedSuccess: 'Dedicated Account Activated',
+      goToDedicatedAccounts: 'View My Dedicated Account & API Key',
       processing: 'Payment Processing',
       processingHint: 'Payment confirmation is still pending. This page will refresh automatically.',
       failed: 'Payment Failed',
@@ -516,6 +523,7 @@ export default {
       orders: 'Orders',
       balanceOrder: 'Balance Top-Up',
       subscriptionOrder: 'Subscription',
+      dedicated_accountOrder: 'Dedicated Buyout',
       paidAt: 'Paid At',
       completedAt: 'Completed At',
       expiresAt: 'Expires At',

@@ -1457,6 +1457,45 @@
           />
         </div>
       </div>
+
+      <!-- Dedicated Ownership & Marketplace Sale (Bulk) -->
+      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
+        <div class="mb-3 flex items-center justify-between">
+          <div class="flex-1 pr-4">
+            <label
+              id="bulk-edit-dedicated-sale-label"
+              class="input-label mb-0"
+              for="bulk-edit-dedicated-sale-enabled"
+            >
+              {{ t('dedicatedAccounts.admin.bulk.enableDedicatedSale') }}
+            </label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('dedicatedAccounts.admin.bulk.hint') }}
+            </p>
+          </div>
+          <input
+            id="bulk-edit-dedicated-sale-enabled"
+            v-model="enableDedicatedSale"
+            type="checkbox"
+            aria-controls="bulk-edit-dedicated-sale-body"
+            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+        </div>
+        <div
+          id="bulk-edit-dedicated-sale-body"
+          :class="!enableDedicatedSale && 'pointer-events-none opacity-50'"
+          role="group"
+          aria-labelledby="bulk-edit-dedicated-sale-label"
+        >
+          <AccountDedicatedSaleSection
+            v-model="bulkDedicatedSaleState"
+            :disabled="!enableDedicatedSale"
+            :show-group-warning="false"
+            hide-alias
+            hide-header
+          />
+        </div>
+      </div>
     </form>
 
     <template #footer>
@@ -1529,6 +1568,13 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Select from '@/components/common/Select.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
+import AccountDedicatedSaleSection from '@/components/account/AccountDedicatedSaleSection.vue'
+import {
+  buildDedicatedSaleUpdatePatch,
+  createDefaultDedicatedSaleFormState,
+  validateDedicatedSaleForm,
+  type DedicatedSaleFormState
+} from '@/components/account/dedicatedSaleForm'
 import ModelWhitelistSelector from '@/components/account/ModelWhitelistSelector.vue'
 import Icon from '@/components/icons/Icon.vue'
 import {
@@ -1716,6 +1762,8 @@ const enableCodexCLIOnlyAppServer = ref(false)
 const enableOpenAICompactMode = ref(false)
 const enableOpenAICompactModelMapping = ref(false)
 const enableRpmLimit = ref(false)
+const enableDedicatedSale = ref(false)
+const bulkDedicatedSaleState = ref<DedicatedSaleFormState>(createDefaultDedicatedSaleFormState())
 
 // State - field values
 const submitting = ref(false)
@@ -2199,6 +2247,13 @@ const buildUpdatePayload = (): Record<string, unknown> | null => {
     umqExtra.user_msg_queue_enabled = false  // 清理旧字段（JSONB merge）
   }
 
+  if (enableDedicatedSale.value) {
+    Object.assign(
+      updates,
+      buildDedicatedSaleUpdatePatch(bulkDedicatedSaleState.value, { includeAlias: false })
+    )
+  }
+
   if (credentialsChanged) {
     updates.credentials = credentials
   }
@@ -2280,11 +2335,20 @@ const handleSubmit = async () => {
     enableOpenAICompactMode.value ||
     enableOpenAICompactModelMapping.value ||
     enableRpmLimit.value ||
+    enableDedicatedSale.value ||
     userMsgQueueMode.value !== null
 
   if (!hasAnyFieldEnabled) {
     appStore.showError(t('admin.accounts.bulkEdit.noFieldsSelected'))
     return
+  }
+
+  if (enableDedicatedSale.value) {
+    const dedicatedError = validateDedicatedSaleForm(bulkDedicatedSaleState.value, t)
+    if (dedicatedError) {
+      appStore.showError(dedicatedError)
+      return
+    }
   }
 
   // base_url 现在也会作用于 Grok OAuth 订阅账号的转发端点；坏值会让请求期
@@ -2433,6 +2497,7 @@ watch(
       enableOpenAICompactMode.value = false
       enableOpenAICompactModelMapping.value = false
       enableRpmLimit.value = false
+      enableDedicatedSale.value = false
 
       // Reset all values
       baseUrl.value = ''
@@ -2469,6 +2534,7 @@ watch(
       bulkRpmStrategy.value = 'tiered'
       bulkRpmStickyBuffer.value = null
       userMsgQueueMode.value = null
+      bulkDedicatedSaleState.value = createDefaultDedicatedSaleFormState()
 
       // Reset mixed channel warning state
       showMixedChannelWarning.value = false

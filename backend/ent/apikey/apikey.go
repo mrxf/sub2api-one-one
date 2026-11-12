@@ -61,6 +61,10 @@ const (
 	FieldWindow1dStart = "window_1d_start"
 	// FieldWindow7dStart holds the string denoting the window_7d_start field in the database.
 	FieldWindow7dStart = "window_7d_start"
+	// FieldDedicatedAccountID holds the string denoting the dedicated_account_id field in the database.
+	FieldDedicatedAccountID = "dedicated_account_id"
+	// FieldDedicatedPoolMode holds the string denoting the dedicated_pool_mode field in the database.
+	FieldDedicatedPoolMode = "dedicated_pool_mode"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -118,6 +122,8 @@ var Columns = []string{
 	FieldWindow5hStart,
 	FieldWindow1dStart,
 	FieldWindow7dStart,
+	FieldDedicatedAccountID,
+	FieldDedicatedPoolMode,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -168,6 +174,8 @@ var (
 	DefaultUsage1d float64
 	// DefaultUsage7d holds the default value on creation for the "usage_7d" field.
 	DefaultUsage7d float64
+	// DefaultDedicatedPoolMode holds the default value on creation for the "dedicated_pool_mode" field.
+	DefaultDedicatedPoolMode bool
 )
 
 // OrderOption defines the ordering options for the APIKey queries.
@@ -281,6 +289,16 @@ func ByWindow1dStart(opts ...sql.OrderTermOption) OrderOption {
 // ByWindow7dStart orders the results by the window_7d_start field.
 func ByWindow7dStart(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWindow7dStart, opts...).ToFunc()
+}
+
+// ByDedicatedAccountID orders the results by the dedicated_account_id field.
+func ByDedicatedAccountID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDedicatedAccountID, opts...).ToFunc()
+}
+
+// ByDedicatedPoolMode orders the results by the dedicated_pool_mode field.
+func ByDedicatedPoolMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDedicatedPoolMode, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

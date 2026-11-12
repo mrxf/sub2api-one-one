@@ -108,51 +108,54 @@ const (
 // APIKeyMutation represents an operation that mutates the APIKey nodes in the graph.
 type APIKeyMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int64
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	key                *string
-	name               *string
-	status             *string
-	last_used_at       *time.Time
-	ip_whitelist       *[]string
-	appendip_whitelist []string
-	ip_blacklist       *[]string
-	appendip_blacklist []string
-	quota              *float64
-	addquota           *float64
-	quota_used         *float64
-	addquota_used      *float64
-	expires_at         *time.Time
-	rate_limit_5h      *float64
-	addrate_limit_5h   *float64
-	rate_limit_1d      *float64
-	addrate_limit_1d   *float64
-	rate_limit_7d      *float64
-	addrate_limit_7d   *float64
-	usage_5h           *float64
-	addusage_5h        *float64
-	usage_1d           *float64
-	addusage_1d        *float64
-	usage_7d           *float64
-	addusage_7d        *float64
-	window_5h_start    *time.Time
-	window_1d_start    *time.Time
-	window_7d_start    *time.Time
-	clearedFields      map[string]struct{}
-	user               *int64
-	cleareduser        bool
-	group              *int64
-	clearedgroup       bool
-	usage_logs         map[int64]struct{}
-	removedusage_logs  map[int64]struct{}
-	clearedusage_logs  bool
-	done               bool
-	oldValue           func(context.Context) (*APIKey, error)
-	predicates         []predicate.APIKey
+	op                      Op
+	typ                     string
+	id                      *int64
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	key                     *string
+	name                    *string
+	status                  *string
+	last_used_at            *time.Time
+	ip_whitelist            *[]string
+	appendip_whitelist      []string
+	ip_blacklist            *[]string
+	appendip_blacklist      []string
+	quota                   *float64
+	addquota                *float64
+	quota_used              *float64
+	addquota_used           *float64
+	expires_at              *time.Time
+	rate_limit_5h           *float64
+	addrate_limit_5h        *float64
+	rate_limit_1d           *float64
+	addrate_limit_1d        *float64
+	rate_limit_7d           *float64
+	addrate_limit_7d        *float64
+	usage_5h                *float64
+	addusage_5h             *float64
+	usage_1d                *float64
+	addusage_1d             *float64
+	usage_7d                *float64
+	addusage_7d             *float64
+	window_5h_start         *time.Time
+	window_1d_start         *time.Time
+	window_7d_start         *time.Time
+	dedicated_account_id    *int64
+	adddedicated_account_id *int64
+	dedicated_pool_mode     *bool
+	clearedFields           map[string]struct{}
+	user                    *int64
+	cleareduser             bool
+	group                   *int64
+	clearedgroup            bool
+	usage_logs              map[int64]struct{}
+	removedusage_logs       map[int64]struct{}
+	clearedusage_logs       bool
+	done                    bool
+	oldValue                func(context.Context) (*APIKey, error)
+	predicates              []predicate.APIKey
 }
 
 var _ ent.Mutation = (*APIKeyMutation)(nil)
@@ -1390,6 +1393,112 @@ func (m *APIKeyMutation) ResetWindow7dStart() {
 	delete(m.clearedFields, apikey.FieldWindow7dStart)
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (m *APIKeyMutation) SetDedicatedAccountID(i int64) {
+	m.dedicated_account_id = &i
+	m.adddedicated_account_id = nil
+}
+
+// DedicatedAccountID returns the value of the "dedicated_account_id" field in the mutation.
+func (m *APIKeyMutation) DedicatedAccountID() (r int64, exists bool) {
+	v := m.dedicated_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDedicatedAccountID returns the old "dedicated_account_id" field's value of the APIKey entity.
+// If the APIKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *APIKeyMutation) OldDedicatedAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDedicatedAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDedicatedAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDedicatedAccountID: %w", err)
+	}
+	return oldValue.DedicatedAccountID, nil
+}
+
+// AddDedicatedAccountID adds i to the "dedicated_account_id" field.
+func (m *APIKeyMutation) AddDedicatedAccountID(i int64) {
+	if m.adddedicated_account_id != nil {
+		*m.adddedicated_account_id += i
+	} else {
+		m.adddedicated_account_id = &i
+	}
+}
+
+// AddedDedicatedAccountID returns the value that was added to the "dedicated_account_id" field in this mutation.
+func (m *APIKeyMutation) AddedDedicatedAccountID() (r int64, exists bool) {
+	v := m.adddedicated_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (m *APIKeyMutation) ClearDedicatedAccountID() {
+	m.dedicated_account_id = nil
+	m.adddedicated_account_id = nil
+	m.clearedFields[apikey.FieldDedicatedAccountID] = struct{}{}
+}
+
+// DedicatedAccountIDCleared returns if the "dedicated_account_id" field was cleared in this mutation.
+func (m *APIKeyMutation) DedicatedAccountIDCleared() bool {
+	_, ok := m.clearedFields[apikey.FieldDedicatedAccountID]
+	return ok
+}
+
+// ResetDedicatedAccountID resets all changes to the "dedicated_account_id" field.
+func (m *APIKeyMutation) ResetDedicatedAccountID() {
+	m.dedicated_account_id = nil
+	m.adddedicated_account_id = nil
+	delete(m.clearedFields, apikey.FieldDedicatedAccountID)
+}
+
+// SetDedicatedPoolMode sets the "dedicated_pool_mode" field.
+func (m *APIKeyMutation) SetDedicatedPoolMode(b bool) {
+	m.dedicated_pool_mode = &b
+}
+
+// DedicatedPoolMode returns the value of the "dedicated_pool_mode" field in the mutation.
+func (m *APIKeyMutation) DedicatedPoolMode() (r bool, exists bool) {
+	v := m.dedicated_pool_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDedicatedPoolMode returns the old "dedicated_pool_mode" field's value of the APIKey entity.
+// If the APIKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *APIKeyMutation) OldDedicatedPoolMode(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDedicatedPoolMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDedicatedPoolMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDedicatedPoolMode: %w", err)
+	}
+	return oldValue.DedicatedPoolMode, nil
+}
+
+// ResetDedicatedPoolMode resets all changes to the "dedicated_pool_mode" field.
+func (m *APIKeyMutation) ResetDedicatedPoolMode() {
+	m.dedicated_pool_mode = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *APIKeyMutation) ClearUser() {
 	m.cleareduser = true
@@ -1532,7 +1641,7 @@ func (m *APIKeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *APIKeyMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, apikey.FieldCreatedAt)
 	}
@@ -1602,6 +1711,12 @@ func (m *APIKeyMutation) Fields() []string {
 	if m.window_7d_start != nil {
 		fields = append(fields, apikey.FieldWindow7dStart)
 	}
+	if m.dedicated_account_id != nil {
+		fields = append(fields, apikey.FieldDedicatedAccountID)
+	}
+	if m.dedicated_pool_mode != nil {
+		fields = append(fields, apikey.FieldDedicatedPoolMode)
+	}
 	return fields
 }
 
@@ -1656,6 +1771,10 @@ func (m *APIKeyMutation) Field(name string) (ent.Value, bool) {
 		return m.Window1dStart()
 	case apikey.FieldWindow7dStart:
 		return m.Window7dStart()
+	case apikey.FieldDedicatedAccountID:
+		return m.DedicatedAccountID()
+	case apikey.FieldDedicatedPoolMode:
+		return m.DedicatedPoolMode()
 	}
 	return nil, false
 }
@@ -1711,6 +1830,10 @@ func (m *APIKeyMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldWindow1dStart(ctx)
 	case apikey.FieldWindow7dStart:
 		return m.OldWindow7dStart(ctx)
+	case apikey.FieldDedicatedAccountID:
+		return m.OldDedicatedAccountID(ctx)
+	case apikey.FieldDedicatedPoolMode:
+		return m.OldDedicatedPoolMode(ctx)
 	}
 	return nil, fmt.Errorf("unknown APIKey field %s", name)
 }
@@ -1881,6 +2004,20 @@ func (m *APIKeyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWindow7dStart(v)
 		return nil
+	case apikey.FieldDedicatedAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDedicatedAccountID(v)
+		return nil
+	case apikey.FieldDedicatedPoolMode:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDedicatedPoolMode(v)
+		return nil
 	}
 	return fmt.Errorf("unknown APIKey field %s", name)
 }
@@ -1913,6 +2050,9 @@ func (m *APIKeyMutation) AddedFields() []string {
 	if m.addusage_7d != nil {
 		fields = append(fields, apikey.FieldUsage7d)
 	}
+	if m.adddedicated_account_id != nil {
+		fields = append(fields, apikey.FieldDedicatedAccountID)
+	}
 	return fields
 }
 
@@ -1937,6 +2077,8 @@ func (m *APIKeyMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedUsage1d()
 	case apikey.FieldUsage7d:
 		return m.AddedUsage7d()
+	case apikey.FieldDedicatedAccountID:
+		return m.AddedDedicatedAccountID()
 	}
 	return nil, false
 }
@@ -2002,6 +2144,13 @@ func (m *APIKeyMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddUsage7d(v)
 		return nil
+	case apikey.FieldDedicatedAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDedicatedAccountID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown APIKey numeric field %s", name)
 }
@@ -2036,6 +2185,9 @@ func (m *APIKeyMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(apikey.FieldWindow7dStart) {
 		fields = append(fields, apikey.FieldWindow7dStart)
+	}
+	if m.FieldCleared(apikey.FieldDedicatedAccountID) {
+		fields = append(fields, apikey.FieldDedicatedAccountID)
 	}
 	return fields
 }
@@ -2077,6 +2229,9 @@ func (m *APIKeyMutation) ClearField(name string) error {
 		return nil
 	case apikey.FieldWindow7dStart:
 		m.ClearWindow7dStart()
+		return nil
+	case apikey.FieldDedicatedAccountID:
+		m.ClearDedicatedAccountID()
 		return nil
 	}
 	return fmt.Errorf("unknown APIKey nullable field %s", name)
@@ -2154,6 +2309,12 @@ func (m *APIKeyMutation) ResetField(name string) error {
 		return nil
 	case apikey.FieldWindow7dStart:
 		m.ResetWindow7dStart()
+		return nil
+	case apikey.FieldDedicatedAccountID:
+		m.ResetDedicatedAccountID()
+		return nil
+	case apikey.FieldDedicatedPoolMode:
+		m.ResetDedicatedPoolMode()
 		return nil
 	}
 	return fmt.Errorf("unknown APIKey field %s", name)
@@ -2319,6 +2480,22 @@ type AccountMutation struct {
 	session_window_end          *time.Time
 	session_window_status       *string
 	quota_dimension             *account.QuotaDimension
+	owner_user_id               *int64
+	addowner_user_id            *int64
+	display_alias               *string
+	sale_status                 *string
+	sale_price                  *float64
+	addsale_price               *float64
+	daily_price_decay           *float64
+	adddaily_price_decay        *float64
+	min_sale_price              *float64
+	addmin_sale_price           *float64
+	listed_at                   *time.Time
+	sold_at                     *time.Time
+	sale_description            *string
+	locked_by_order_id          *int64
+	addlocked_by_order_id       *int64
+	locked_until                *time.Time
 	clearedFields               map[string]struct{}
 	groups                      map[int64]struct{}
 	removedgroups               map[int64]struct{}
@@ -3875,6 +4052,569 @@ func (m *AccountMutation) ResetQuotaDimension() {
 	m.quota_dimension = nil
 }
 
+// SetOwnerUserID sets the "owner_user_id" field.
+func (m *AccountMutation) SetOwnerUserID(i int64) {
+	m.owner_user_id = &i
+	m.addowner_user_id = nil
+}
+
+// OwnerUserID returns the value of the "owner_user_id" field in the mutation.
+func (m *AccountMutation) OwnerUserID() (r int64, exists bool) {
+	v := m.owner_user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwnerUserID returns the old "owner_user_id" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldOwnerUserID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwnerUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwnerUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwnerUserID: %w", err)
+	}
+	return oldValue.OwnerUserID, nil
+}
+
+// AddOwnerUserID adds i to the "owner_user_id" field.
+func (m *AccountMutation) AddOwnerUserID(i int64) {
+	if m.addowner_user_id != nil {
+		*m.addowner_user_id += i
+	} else {
+		m.addowner_user_id = &i
+	}
+}
+
+// AddedOwnerUserID returns the value that was added to the "owner_user_id" field in this mutation.
+func (m *AccountMutation) AddedOwnerUserID() (r int64, exists bool) {
+	v := m.addowner_user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (m *AccountMutation) ClearOwnerUserID() {
+	m.owner_user_id = nil
+	m.addowner_user_id = nil
+	m.clearedFields[account.FieldOwnerUserID] = struct{}{}
+}
+
+// OwnerUserIDCleared returns if the "owner_user_id" field was cleared in this mutation.
+func (m *AccountMutation) OwnerUserIDCleared() bool {
+	_, ok := m.clearedFields[account.FieldOwnerUserID]
+	return ok
+}
+
+// ResetOwnerUserID resets all changes to the "owner_user_id" field.
+func (m *AccountMutation) ResetOwnerUserID() {
+	m.owner_user_id = nil
+	m.addowner_user_id = nil
+	delete(m.clearedFields, account.FieldOwnerUserID)
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (m *AccountMutation) SetDisplayAlias(s string) {
+	m.display_alias = &s
+}
+
+// DisplayAlias returns the value of the "display_alias" field in the mutation.
+func (m *AccountMutation) DisplayAlias() (r string, exists bool) {
+	v := m.display_alias
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayAlias returns the old "display_alias" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldDisplayAlias(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayAlias is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayAlias requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayAlias: %w", err)
+	}
+	return oldValue.DisplayAlias, nil
+}
+
+// ResetDisplayAlias resets all changes to the "display_alias" field.
+func (m *AccountMutation) ResetDisplayAlias() {
+	m.display_alias = nil
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (m *AccountMutation) SetSaleStatus(s string) {
+	m.sale_status = &s
+}
+
+// SaleStatus returns the value of the "sale_status" field in the mutation.
+func (m *AccountMutation) SaleStatus() (r string, exists bool) {
+	v := m.sale_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSaleStatus returns the old "sale_status" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldSaleStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSaleStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSaleStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSaleStatus: %w", err)
+	}
+	return oldValue.SaleStatus, nil
+}
+
+// ResetSaleStatus resets all changes to the "sale_status" field.
+func (m *AccountMutation) ResetSaleStatus() {
+	m.sale_status = nil
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (m *AccountMutation) SetSalePrice(f float64) {
+	m.sale_price = &f
+	m.addsale_price = nil
+}
+
+// SalePrice returns the value of the "sale_price" field in the mutation.
+func (m *AccountMutation) SalePrice() (r float64, exists bool) {
+	v := m.sale_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSalePrice returns the old "sale_price" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldSalePrice(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSalePrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSalePrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSalePrice: %w", err)
+	}
+	return oldValue.SalePrice, nil
+}
+
+// AddSalePrice adds f to the "sale_price" field.
+func (m *AccountMutation) AddSalePrice(f float64) {
+	if m.addsale_price != nil {
+		*m.addsale_price += f
+	} else {
+		m.addsale_price = &f
+	}
+}
+
+// AddedSalePrice returns the value that was added to the "sale_price" field in this mutation.
+func (m *AccountMutation) AddedSalePrice() (r float64, exists bool) {
+	v := m.addsale_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSalePrice resets all changes to the "sale_price" field.
+func (m *AccountMutation) ResetSalePrice() {
+	m.sale_price = nil
+	m.addsale_price = nil
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (m *AccountMutation) SetDailyPriceDecay(f float64) {
+	m.daily_price_decay = &f
+	m.adddaily_price_decay = nil
+}
+
+// DailyPriceDecay returns the value of the "daily_price_decay" field in the mutation.
+func (m *AccountMutation) DailyPriceDecay() (r float64, exists bool) {
+	v := m.daily_price_decay
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDailyPriceDecay returns the old "daily_price_decay" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldDailyPriceDecay(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDailyPriceDecay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDailyPriceDecay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDailyPriceDecay: %w", err)
+	}
+	return oldValue.DailyPriceDecay, nil
+}
+
+// AddDailyPriceDecay adds f to the "daily_price_decay" field.
+func (m *AccountMutation) AddDailyPriceDecay(f float64) {
+	if m.adddaily_price_decay != nil {
+		*m.adddaily_price_decay += f
+	} else {
+		m.adddaily_price_decay = &f
+	}
+}
+
+// AddedDailyPriceDecay returns the value that was added to the "daily_price_decay" field in this mutation.
+func (m *AccountMutation) AddedDailyPriceDecay() (r float64, exists bool) {
+	v := m.adddaily_price_decay
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDailyPriceDecay resets all changes to the "daily_price_decay" field.
+func (m *AccountMutation) ResetDailyPriceDecay() {
+	m.daily_price_decay = nil
+	m.adddaily_price_decay = nil
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (m *AccountMutation) SetMinSalePrice(f float64) {
+	m.min_sale_price = &f
+	m.addmin_sale_price = nil
+}
+
+// MinSalePrice returns the value of the "min_sale_price" field in the mutation.
+func (m *AccountMutation) MinSalePrice() (r float64, exists bool) {
+	v := m.min_sale_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinSalePrice returns the old "min_sale_price" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldMinSalePrice(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinSalePrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinSalePrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinSalePrice: %w", err)
+	}
+	return oldValue.MinSalePrice, nil
+}
+
+// AddMinSalePrice adds f to the "min_sale_price" field.
+func (m *AccountMutation) AddMinSalePrice(f float64) {
+	if m.addmin_sale_price != nil {
+		*m.addmin_sale_price += f
+	} else {
+		m.addmin_sale_price = &f
+	}
+}
+
+// AddedMinSalePrice returns the value that was added to the "min_sale_price" field in this mutation.
+func (m *AccountMutation) AddedMinSalePrice() (r float64, exists bool) {
+	v := m.addmin_sale_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinSalePrice resets all changes to the "min_sale_price" field.
+func (m *AccountMutation) ResetMinSalePrice() {
+	m.min_sale_price = nil
+	m.addmin_sale_price = nil
+}
+
+// SetListedAt sets the "listed_at" field.
+func (m *AccountMutation) SetListedAt(t time.Time) {
+	m.listed_at = &t
+}
+
+// ListedAt returns the value of the "listed_at" field in the mutation.
+func (m *AccountMutation) ListedAt() (r time.Time, exists bool) {
+	v := m.listed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldListedAt returns the old "listed_at" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldListedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldListedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldListedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldListedAt: %w", err)
+	}
+	return oldValue.ListedAt, nil
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (m *AccountMutation) ClearListedAt() {
+	m.listed_at = nil
+	m.clearedFields[account.FieldListedAt] = struct{}{}
+}
+
+// ListedAtCleared returns if the "listed_at" field was cleared in this mutation.
+func (m *AccountMutation) ListedAtCleared() bool {
+	_, ok := m.clearedFields[account.FieldListedAt]
+	return ok
+}
+
+// ResetListedAt resets all changes to the "listed_at" field.
+func (m *AccountMutation) ResetListedAt() {
+	m.listed_at = nil
+	delete(m.clearedFields, account.FieldListedAt)
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (m *AccountMutation) SetSoldAt(t time.Time) {
+	m.sold_at = &t
+}
+
+// SoldAt returns the value of the "sold_at" field in the mutation.
+func (m *AccountMutation) SoldAt() (r time.Time, exists bool) {
+	v := m.sold_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSoldAt returns the old "sold_at" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldSoldAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSoldAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSoldAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSoldAt: %w", err)
+	}
+	return oldValue.SoldAt, nil
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (m *AccountMutation) ClearSoldAt() {
+	m.sold_at = nil
+	m.clearedFields[account.FieldSoldAt] = struct{}{}
+}
+
+// SoldAtCleared returns if the "sold_at" field was cleared in this mutation.
+func (m *AccountMutation) SoldAtCleared() bool {
+	_, ok := m.clearedFields[account.FieldSoldAt]
+	return ok
+}
+
+// ResetSoldAt resets all changes to the "sold_at" field.
+func (m *AccountMutation) ResetSoldAt() {
+	m.sold_at = nil
+	delete(m.clearedFields, account.FieldSoldAt)
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (m *AccountMutation) SetSaleDescription(s string) {
+	m.sale_description = &s
+}
+
+// SaleDescription returns the value of the "sale_description" field in the mutation.
+func (m *AccountMutation) SaleDescription() (r string, exists bool) {
+	v := m.sale_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSaleDescription returns the old "sale_description" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldSaleDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSaleDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSaleDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSaleDescription: %w", err)
+	}
+	return oldValue.SaleDescription, nil
+}
+
+// ResetSaleDescription resets all changes to the "sale_description" field.
+func (m *AccountMutation) ResetSaleDescription() {
+	m.sale_description = nil
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (m *AccountMutation) SetLockedByOrderID(i int64) {
+	m.locked_by_order_id = &i
+	m.addlocked_by_order_id = nil
+}
+
+// LockedByOrderID returns the value of the "locked_by_order_id" field in the mutation.
+func (m *AccountMutation) LockedByOrderID() (r int64, exists bool) {
+	v := m.locked_by_order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockedByOrderID returns the old "locked_by_order_id" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldLockedByOrderID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockedByOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockedByOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockedByOrderID: %w", err)
+	}
+	return oldValue.LockedByOrderID, nil
+}
+
+// AddLockedByOrderID adds i to the "locked_by_order_id" field.
+func (m *AccountMutation) AddLockedByOrderID(i int64) {
+	if m.addlocked_by_order_id != nil {
+		*m.addlocked_by_order_id += i
+	} else {
+		m.addlocked_by_order_id = &i
+	}
+}
+
+// AddedLockedByOrderID returns the value that was added to the "locked_by_order_id" field in this mutation.
+func (m *AccountMutation) AddedLockedByOrderID() (r int64, exists bool) {
+	v := m.addlocked_by_order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (m *AccountMutation) ClearLockedByOrderID() {
+	m.locked_by_order_id = nil
+	m.addlocked_by_order_id = nil
+	m.clearedFields[account.FieldLockedByOrderID] = struct{}{}
+}
+
+// LockedByOrderIDCleared returns if the "locked_by_order_id" field was cleared in this mutation.
+func (m *AccountMutation) LockedByOrderIDCleared() bool {
+	_, ok := m.clearedFields[account.FieldLockedByOrderID]
+	return ok
+}
+
+// ResetLockedByOrderID resets all changes to the "locked_by_order_id" field.
+func (m *AccountMutation) ResetLockedByOrderID() {
+	m.locked_by_order_id = nil
+	m.addlocked_by_order_id = nil
+	delete(m.clearedFields, account.FieldLockedByOrderID)
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (m *AccountMutation) SetLockedUntil(t time.Time) {
+	m.locked_until = &t
+}
+
+// LockedUntil returns the value of the "locked_until" field in the mutation.
+func (m *AccountMutation) LockedUntil() (r time.Time, exists bool) {
+	v := m.locked_until
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockedUntil returns the old "locked_until" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldLockedUntil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockedUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockedUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockedUntil: %w", err)
+	}
+	return oldValue.LockedUntil, nil
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (m *AccountMutation) ClearLockedUntil() {
+	m.locked_until = nil
+	m.clearedFields[account.FieldLockedUntil] = struct{}{}
+}
+
+// LockedUntilCleared returns if the "locked_until" field was cleared in this mutation.
+func (m *AccountMutation) LockedUntilCleared() bool {
+	_, ok := m.clearedFields[account.FieldLockedUntil]
+	return ok
+}
+
+// ResetLockedUntil resets all changes to the "locked_until" field.
+func (m *AccountMutation) ResetLockedUntil() {
+	m.locked_until = nil
+	delete(m.clearedFields, account.FieldLockedUntil)
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
 func (m *AccountMutation) AddGroupIDs(ids ...int64) {
 	if m.groups == nil {
@@ -4138,7 +4878,7 @@ func (m *AccountMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccountMutation) Fields() []string {
-	fields := make([]string, 0, 31)
+	fields := make([]string, 0, 42)
 	if m.created_at != nil {
 		fields = append(fields, account.FieldCreatedAt)
 	}
@@ -4232,6 +4972,39 @@ func (m *AccountMutation) Fields() []string {
 	if m.quota_dimension != nil {
 		fields = append(fields, account.FieldQuotaDimension)
 	}
+	if m.owner_user_id != nil {
+		fields = append(fields, account.FieldOwnerUserID)
+	}
+	if m.display_alias != nil {
+		fields = append(fields, account.FieldDisplayAlias)
+	}
+	if m.sale_status != nil {
+		fields = append(fields, account.FieldSaleStatus)
+	}
+	if m.sale_price != nil {
+		fields = append(fields, account.FieldSalePrice)
+	}
+	if m.daily_price_decay != nil {
+		fields = append(fields, account.FieldDailyPriceDecay)
+	}
+	if m.min_sale_price != nil {
+		fields = append(fields, account.FieldMinSalePrice)
+	}
+	if m.listed_at != nil {
+		fields = append(fields, account.FieldListedAt)
+	}
+	if m.sold_at != nil {
+		fields = append(fields, account.FieldSoldAt)
+	}
+	if m.sale_description != nil {
+		fields = append(fields, account.FieldSaleDescription)
+	}
+	if m.locked_by_order_id != nil {
+		fields = append(fields, account.FieldLockedByOrderID)
+	}
+	if m.locked_until != nil {
+		fields = append(fields, account.FieldLockedUntil)
+	}
 	return fields
 }
 
@@ -4302,6 +5075,28 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.ParentAccountID()
 	case account.FieldQuotaDimension:
 		return m.QuotaDimension()
+	case account.FieldOwnerUserID:
+		return m.OwnerUserID()
+	case account.FieldDisplayAlias:
+		return m.DisplayAlias()
+	case account.FieldSaleStatus:
+		return m.SaleStatus()
+	case account.FieldSalePrice:
+		return m.SalePrice()
+	case account.FieldDailyPriceDecay:
+		return m.DailyPriceDecay()
+	case account.FieldMinSalePrice:
+		return m.MinSalePrice()
+	case account.FieldListedAt:
+		return m.ListedAt()
+	case account.FieldSoldAt:
+		return m.SoldAt()
+	case account.FieldSaleDescription:
+		return m.SaleDescription()
+	case account.FieldLockedByOrderID:
+		return m.LockedByOrderID()
+	case account.FieldLockedUntil:
+		return m.LockedUntil()
 	}
 	return nil, false
 }
@@ -4373,6 +5168,28 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldParentAccountID(ctx)
 	case account.FieldQuotaDimension:
 		return m.OldQuotaDimension(ctx)
+	case account.FieldOwnerUserID:
+		return m.OldOwnerUserID(ctx)
+	case account.FieldDisplayAlias:
+		return m.OldDisplayAlias(ctx)
+	case account.FieldSaleStatus:
+		return m.OldSaleStatus(ctx)
+	case account.FieldSalePrice:
+		return m.OldSalePrice(ctx)
+	case account.FieldDailyPriceDecay:
+		return m.OldDailyPriceDecay(ctx)
+	case account.FieldMinSalePrice:
+		return m.OldMinSalePrice(ctx)
+	case account.FieldListedAt:
+		return m.OldListedAt(ctx)
+	case account.FieldSoldAt:
+		return m.OldSoldAt(ctx)
+	case account.FieldSaleDescription:
+		return m.OldSaleDescription(ctx)
+	case account.FieldLockedByOrderID:
+		return m.OldLockedByOrderID(ctx)
+	case account.FieldLockedUntil:
+		return m.OldLockedUntil(ctx)
 	}
 	return nil, fmt.Errorf("unknown Account field %s", name)
 }
@@ -4599,6 +5416,83 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetQuotaDimension(v)
 		return nil
+	case account.FieldOwnerUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwnerUserID(v)
+		return nil
+	case account.FieldDisplayAlias:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayAlias(v)
+		return nil
+	case account.FieldSaleStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSaleStatus(v)
+		return nil
+	case account.FieldSalePrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSalePrice(v)
+		return nil
+	case account.FieldDailyPriceDecay:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDailyPriceDecay(v)
+		return nil
+	case account.FieldMinSalePrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinSalePrice(v)
+		return nil
+	case account.FieldListedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetListedAt(v)
+		return nil
+	case account.FieldSoldAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSoldAt(v)
+		return nil
+	case account.FieldSaleDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSaleDescription(v)
+		return nil
+	case account.FieldLockedByOrderID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockedByOrderID(v)
+		return nil
+	case account.FieldLockedUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockedUntil(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)
 }
@@ -4622,6 +5516,21 @@ func (m *AccountMutation) AddedFields() []string {
 	if m.addrate_multiplier != nil {
 		fields = append(fields, account.FieldRateMultiplier)
 	}
+	if m.addowner_user_id != nil {
+		fields = append(fields, account.FieldOwnerUserID)
+	}
+	if m.addsale_price != nil {
+		fields = append(fields, account.FieldSalePrice)
+	}
+	if m.adddaily_price_decay != nil {
+		fields = append(fields, account.FieldDailyPriceDecay)
+	}
+	if m.addmin_sale_price != nil {
+		fields = append(fields, account.FieldMinSalePrice)
+	}
+	if m.addlocked_by_order_id != nil {
+		fields = append(fields, account.FieldLockedByOrderID)
+	}
 	return fields
 }
 
@@ -4640,6 +5549,16 @@ func (m *AccountMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPriority()
 	case account.FieldRateMultiplier:
 		return m.AddedRateMultiplier()
+	case account.FieldOwnerUserID:
+		return m.AddedOwnerUserID()
+	case account.FieldSalePrice:
+		return m.AddedSalePrice()
+	case account.FieldDailyPriceDecay:
+		return m.AddedDailyPriceDecay()
+	case account.FieldMinSalePrice:
+		return m.AddedMinSalePrice()
+	case account.FieldLockedByOrderID:
+		return m.AddedLockedByOrderID()
 	}
 	return nil, false
 }
@@ -4683,6 +5602,41 @@ func (m *AccountMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRateMultiplier(v)
+		return nil
+	case account.FieldOwnerUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOwnerUserID(v)
+		return nil
+	case account.FieldSalePrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSalePrice(v)
+		return nil
+	case account.FieldDailyPriceDecay:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDailyPriceDecay(v)
+		return nil
+	case account.FieldMinSalePrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinSalePrice(v)
+		return nil
+	case account.FieldLockedByOrderID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLockedByOrderID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Account numeric field %s", name)
@@ -4742,6 +5696,21 @@ func (m *AccountMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(account.FieldParentAccountID) {
 		fields = append(fields, account.FieldParentAccountID)
+	}
+	if m.FieldCleared(account.FieldOwnerUserID) {
+		fields = append(fields, account.FieldOwnerUserID)
+	}
+	if m.FieldCleared(account.FieldListedAt) {
+		fields = append(fields, account.FieldListedAt)
+	}
+	if m.FieldCleared(account.FieldSoldAt) {
+		fields = append(fields, account.FieldSoldAt)
+	}
+	if m.FieldCleared(account.FieldLockedByOrderID) {
+		fields = append(fields, account.FieldLockedByOrderID)
+	}
+	if m.FieldCleared(account.FieldLockedUntil) {
+		fields = append(fields, account.FieldLockedUntil)
 	}
 	return fields
 }
@@ -4807,6 +5776,21 @@ func (m *AccountMutation) ClearField(name string) error {
 		return nil
 	case account.FieldParentAccountID:
 		m.ClearParentAccountID()
+		return nil
+	case account.FieldOwnerUserID:
+		m.ClearOwnerUserID()
+		return nil
+	case account.FieldListedAt:
+		m.ClearListedAt()
+		return nil
+	case account.FieldSoldAt:
+		m.ClearSoldAt()
+		return nil
+	case account.FieldLockedByOrderID:
+		m.ClearLockedByOrderID()
+		return nil
+	case account.FieldLockedUntil:
+		m.ClearLockedUntil()
 		return nil
 	}
 	return fmt.Errorf("unknown Account nullable field %s", name)
@@ -4908,6 +5892,39 @@ func (m *AccountMutation) ResetField(name string) error {
 		return nil
 	case account.FieldQuotaDimension:
 		m.ResetQuotaDimension()
+		return nil
+	case account.FieldOwnerUserID:
+		m.ResetOwnerUserID()
+		return nil
+	case account.FieldDisplayAlias:
+		m.ResetDisplayAlias()
+		return nil
+	case account.FieldSaleStatus:
+		m.ResetSaleStatus()
+		return nil
+	case account.FieldSalePrice:
+		m.ResetSalePrice()
+		return nil
+	case account.FieldDailyPriceDecay:
+		m.ResetDailyPriceDecay()
+		return nil
+	case account.FieldMinSalePrice:
+		m.ResetMinSalePrice()
+		return nil
+	case account.FieldListedAt:
+		m.ResetListedAt()
+		return nil
+	case account.FieldSoldAt:
+		m.ResetSoldAt()
+		return nil
+	case account.FieldSaleDescription:
+		m.ResetSaleDescription()
+		return nil
+	case account.FieldLockedByOrderID:
+		m.ResetLockedByOrderID()
+		return nil
+	case account.FieldLockedUntil:
+		m.ResetLockedUntil()
 		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)
@@ -30237,6 +31254,8 @@ type PaymentOrderMutation struct {
 	addsubscription_group_id *int64
 	subscription_days        *int
 	addsubscription_days     *int
+	dedicated_account_id     *int64
+	adddedicated_account_id  *int64
 	provider_instance_id     *string
 	provider_key             *string
 	provider_snapshot        *map[string]interface{}
@@ -31283,6 +32302,76 @@ func (m *PaymentOrderMutation) ResetSubscriptionDays() {
 	delete(m.clearedFields, paymentorder.FieldSubscriptionDays)
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (m *PaymentOrderMutation) SetDedicatedAccountID(i int64) {
+	m.dedicated_account_id = &i
+	m.adddedicated_account_id = nil
+}
+
+// DedicatedAccountID returns the value of the "dedicated_account_id" field in the mutation.
+func (m *PaymentOrderMutation) DedicatedAccountID() (r int64, exists bool) {
+	v := m.dedicated_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDedicatedAccountID returns the old "dedicated_account_id" field's value of the PaymentOrder entity.
+// If the PaymentOrder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PaymentOrderMutation) OldDedicatedAccountID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDedicatedAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDedicatedAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDedicatedAccountID: %w", err)
+	}
+	return oldValue.DedicatedAccountID, nil
+}
+
+// AddDedicatedAccountID adds i to the "dedicated_account_id" field.
+func (m *PaymentOrderMutation) AddDedicatedAccountID(i int64) {
+	if m.adddedicated_account_id != nil {
+		*m.adddedicated_account_id += i
+	} else {
+		m.adddedicated_account_id = &i
+	}
+}
+
+// AddedDedicatedAccountID returns the value that was added to the "dedicated_account_id" field in this mutation.
+func (m *PaymentOrderMutation) AddedDedicatedAccountID() (r int64, exists bool) {
+	v := m.adddedicated_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (m *PaymentOrderMutation) ClearDedicatedAccountID() {
+	m.dedicated_account_id = nil
+	m.adddedicated_account_id = nil
+	m.clearedFields[paymentorder.FieldDedicatedAccountID] = struct{}{}
+}
+
+// DedicatedAccountIDCleared returns if the "dedicated_account_id" field was cleared in this mutation.
+func (m *PaymentOrderMutation) DedicatedAccountIDCleared() bool {
+	_, ok := m.clearedFields[paymentorder.FieldDedicatedAccountID]
+	return ok
+}
+
+// ResetDedicatedAccountID resets all changes to the "dedicated_account_id" field.
+func (m *PaymentOrderMutation) ResetDedicatedAccountID() {
+	m.dedicated_account_id = nil
+	m.adddedicated_account_id = nil
+	delete(m.clearedFields, paymentorder.FieldDedicatedAccountID)
+}
+
 // SetProviderInstanceID sets the "provider_instance_id" field.
 func (m *PaymentOrderMutation) SetProviderInstanceID(s string) {
 	m.provider_instance_id = &s
@@ -32289,7 +33378,7 @@ func (m *PaymentOrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PaymentOrderMutation) Fields() []string {
-	fields := make([]string, 0, 40)
+	fields := make([]string, 0, 41)
 	if m.user != nil {
 		fields = append(fields, paymentorder.FieldUserID)
 	}
@@ -32346,6 +33435,9 @@ func (m *PaymentOrderMutation) Fields() []string {
 	}
 	if m.subscription_days != nil {
 		fields = append(fields, paymentorder.FieldSubscriptionDays)
+	}
+	if m.dedicated_account_id != nil {
+		fields = append(fields, paymentorder.FieldDedicatedAccountID)
 	}
 	if m.provider_instance_id != nil {
 		fields = append(fields, paymentorder.FieldProviderInstanceID)
@@ -32456,6 +33548,8 @@ func (m *PaymentOrderMutation) Field(name string) (ent.Value, bool) {
 		return m.SubscriptionGroupID()
 	case paymentorder.FieldSubscriptionDays:
 		return m.SubscriptionDays()
+	case paymentorder.FieldDedicatedAccountID:
+		return m.DedicatedAccountID()
 	case paymentorder.FieldProviderInstanceID:
 		return m.ProviderInstanceID()
 	case paymentorder.FieldProviderKey:
@@ -32545,6 +33639,8 @@ func (m *PaymentOrderMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldSubscriptionGroupID(ctx)
 	case paymentorder.FieldSubscriptionDays:
 		return m.OldSubscriptionDays(ctx)
+	case paymentorder.FieldDedicatedAccountID:
+		return m.OldDedicatedAccountID(ctx)
 	case paymentorder.FieldProviderInstanceID:
 		return m.OldProviderInstanceID(ctx)
 	case paymentorder.FieldProviderKey:
@@ -32729,6 +33825,13 @@ func (m *PaymentOrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSubscriptionDays(v)
 		return nil
+	case paymentorder.FieldDedicatedAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDedicatedAccountID(v)
+		return nil
 	case paymentorder.FieldProviderInstanceID:
 		v, ok := value.(string)
 		if !ok {
@@ -32905,6 +34008,9 @@ func (m *PaymentOrderMutation) AddedFields() []string {
 	if m.addsubscription_days != nil {
 		fields = append(fields, paymentorder.FieldSubscriptionDays)
 	}
+	if m.adddedicated_account_id != nil {
+		fields = append(fields, paymentorder.FieldDedicatedAccountID)
+	}
 	if m.addrefund_amount != nil {
 		fields = append(fields, paymentorder.FieldRefundAmount)
 	}
@@ -32930,6 +34036,8 @@ func (m *PaymentOrderMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSubscriptionGroupID()
 	case paymentorder.FieldSubscriptionDays:
 		return m.AddedSubscriptionDays()
+	case paymentorder.FieldDedicatedAccountID:
+		return m.AddedDedicatedAccountID()
 	case paymentorder.FieldRefundAmount:
 		return m.AddedRefundAmount()
 	}
@@ -32990,6 +34098,13 @@ func (m *PaymentOrderMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddSubscriptionDays(v)
 		return nil
+	case paymentorder.FieldDedicatedAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDedicatedAccountID(v)
+		return nil
 	case paymentorder.FieldRefundAmount:
 		v, ok := value.(float64)
 		if !ok {
@@ -33025,6 +34140,9 @@ func (m *PaymentOrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(paymentorder.FieldSubscriptionDays) {
 		fields = append(fields, paymentorder.FieldSubscriptionDays)
+	}
+	if m.FieldCleared(paymentorder.FieldDedicatedAccountID) {
+		fields = append(fields, paymentorder.FieldDedicatedAccountID)
 	}
 	if m.FieldCleared(paymentorder.FieldProviderInstanceID) {
 		fields = append(fields, paymentorder.FieldProviderInstanceID)
@@ -33099,6 +34217,9 @@ func (m *PaymentOrderMutation) ClearField(name string) error {
 		return nil
 	case paymentorder.FieldSubscriptionDays:
 		m.ClearSubscriptionDays()
+		return nil
+	case paymentorder.FieldDedicatedAccountID:
+		m.ClearDedicatedAccountID()
 		return nil
 	case paymentorder.FieldProviderInstanceID:
 		m.ClearProviderInstanceID()
@@ -33203,6 +34324,9 @@ func (m *PaymentOrderMutation) ResetField(name string) error {
 		return nil
 	case paymentorder.FieldSubscriptionDays:
 		m.ResetSubscriptionDays()
+		return nil
+	case paymentorder.FieldDedicatedAccountID:
+		m.ResetDedicatedAccountID()
 		return nil
 	case paymentorder.FieldProviderInstanceID:
 		m.ResetProviderInstanceID()

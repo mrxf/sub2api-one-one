@@ -78,6 +78,28 @@ const (
 	FieldParentAccountID = "parent_account_id"
 	// FieldQuotaDimension holds the string denoting the quota_dimension field in the database.
 	FieldQuotaDimension = "quota_dimension"
+	// FieldOwnerUserID holds the string denoting the owner_user_id field in the database.
+	FieldOwnerUserID = "owner_user_id"
+	// FieldDisplayAlias holds the string denoting the display_alias field in the database.
+	FieldDisplayAlias = "display_alias"
+	// FieldSaleStatus holds the string denoting the sale_status field in the database.
+	FieldSaleStatus = "sale_status"
+	// FieldSalePrice holds the string denoting the sale_price field in the database.
+	FieldSalePrice = "sale_price"
+	// FieldDailyPriceDecay holds the string denoting the daily_price_decay field in the database.
+	FieldDailyPriceDecay = "daily_price_decay"
+	// FieldMinSalePrice holds the string denoting the min_sale_price field in the database.
+	FieldMinSalePrice = "min_sale_price"
+	// FieldListedAt holds the string denoting the listed_at field in the database.
+	FieldListedAt = "listed_at"
+	// FieldSoldAt holds the string denoting the sold_at field in the database.
+	FieldSoldAt = "sold_at"
+	// FieldSaleDescription holds the string denoting the sale_description field in the database.
+	FieldSaleDescription = "sale_description"
+	// FieldLockedByOrderID holds the string denoting the locked_by_order_id field in the database.
+	FieldLockedByOrderID = "locked_by_order_id"
+	// FieldLockedUntil holds the string denoting the locked_until field in the database.
+	FieldLockedUntil = "locked_until"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// EdgeProxy holds the string denoting the proxy edge name in mutations.
@@ -162,6 +184,17 @@ var Columns = []string{
 	FieldSessionWindowStatus,
 	FieldParentAccountID,
 	FieldQuotaDimension,
+	FieldOwnerUserID,
+	FieldDisplayAlias,
+	FieldSaleStatus,
+	FieldSalePrice,
+	FieldDailyPriceDecay,
+	FieldMinSalePrice,
+	FieldListedAt,
+	FieldSoldAt,
+	FieldSaleDescription,
+	FieldLockedByOrderID,
+	FieldLockedUntil,
 }
 
 var (
@@ -220,6 +253,22 @@ var (
 	DefaultSchedulable bool
 	// SessionWindowStatusValidator is a validator for the "session_window_status" field. It is called by the builders before save.
 	SessionWindowStatusValidator func(string) error
+	// DefaultDisplayAlias holds the default value on creation for the "display_alias" field.
+	DefaultDisplayAlias string
+	// DisplayAliasValidator is a validator for the "display_alias" field. It is called by the builders before save.
+	DisplayAliasValidator func(string) error
+	// DefaultSaleStatus holds the default value on creation for the "sale_status" field.
+	DefaultSaleStatus string
+	// SaleStatusValidator is a validator for the "sale_status" field. It is called by the builders before save.
+	SaleStatusValidator func(string) error
+	// DefaultSalePrice holds the default value on creation for the "sale_price" field.
+	DefaultSalePrice float64
+	// DefaultDailyPriceDecay holds the default value on creation for the "daily_price_decay" field.
+	DefaultDailyPriceDecay float64
+	// DefaultMinSalePrice holds the default value on creation for the "min_sale_price" field.
+	DefaultMinSalePrice float64
+	// DefaultSaleDescription holds the default value on creation for the "sale_description" field.
+	DefaultSaleDescription string
 )
 
 // QuotaDimension defines the type for the "quota_dimension" enum field.
@@ -399,6 +448,61 @@ func ByParentAccountID(opts ...sql.OrderTermOption) OrderOption {
 // ByQuotaDimension orders the results by the quota_dimension field.
 func ByQuotaDimension(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuotaDimension, opts...).ToFunc()
+}
+
+// ByOwnerUserID orders the results by the owner_user_id field.
+func ByOwnerUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOwnerUserID, opts...).ToFunc()
+}
+
+// ByDisplayAlias orders the results by the display_alias field.
+func ByDisplayAlias(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDisplayAlias, opts...).ToFunc()
+}
+
+// BySaleStatus orders the results by the sale_status field.
+func BySaleStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSaleStatus, opts...).ToFunc()
+}
+
+// BySalePrice orders the results by the sale_price field.
+func BySalePrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSalePrice, opts...).ToFunc()
+}
+
+// ByDailyPriceDecay orders the results by the daily_price_decay field.
+func ByDailyPriceDecay(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDailyPriceDecay, opts...).ToFunc()
+}
+
+// ByMinSalePrice orders the results by the min_sale_price field.
+func ByMinSalePrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinSalePrice, opts...).ToFunc()
+}
+
+// ByListedAt orders the results by the listed_at field.
+func ByListedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldListedAt, opts...).ToFunc()
+}
+
+// BySoldAt orders the results by the sold_at field.
+func BySoldAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSoldAt, opts...).ToFunc()
+}
+
+// BySaleDescription orders the results by the sale_description field.
+func BySaleDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSaleDescription, opts...).ToFunc()
+}
+
+// ByLockedByOrderID orders the results by the locked_by_order_id field.
+func ByLockedByOrderID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockedByOrderID, opts...).ToFunc()
+}
+
+// ByLockedUntil orders the results by the locked_until field.
+func ByLockedUntil(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockedUntil, opts...).ToFunc()
 }
 
 // ByGroupsCount orders the results by groups count.

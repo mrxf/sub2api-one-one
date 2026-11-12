@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/ent/apikey"
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
@@ -475,10 +476,62 @@ func buildAccountForCreate(input *CreateAccountInput, accountExtra map[string]an
 		}
 		account.LoadFactor = input.LoadFactor
 	}
+
+	saleStatus := NormalizeAccountSaleStatus(input.SaleStatus)
+	if saleStatus == "" {
+		return nil, fmt.Errorf("%w: invalid sale_status %q", ErrDedicatedSaleConfigInvalid, input.SaleStatus)
+	}
+	now := time.Now()
+	if input.OwnerUserID != nil && *input.OwnerUserID > 0 {
+		uid := *input.OwnerUserID
+		account.OwnerUserID = &uid
+		if saleStatus == AccountSaleStatusNone {
+			saleStatus = AccountSaleStatusSold
+		}
+		account.SoldAt = &now
+	}
+	account.SaleStatus = saleStatus
+	if saleStatus == AccountSaleStatusListed {
+		account.ListedAt = &now
+	}
+	if input.DisplayAlias != nil {
+		if trimmed := strings.TrimSpace(*input.DisplayAlias); trimmed != "" {
+			account.DisplayAlias = &trimmed
+		}
+	}
+	if input.SaleDescription != nil {
+		if trimmed := strings.TrimSpace(*input.SaleDescription); trimmed != "" {
+			account.SaleDescription = &trimmed
+		}
+	}
+	if input.SalePrice != nil {
+		account.SalePrice = *input.SalePrice
+	}
+	if input.DailyPriceDecay != nil {
+		account.DailyPriceDecay = *input.DailyPriceDecay
+	}
+	if input.MinSalePrice != nil {
+		account.MinSalePrice = *input.MinSalePrice
+	}
+	if err := ValidateAccountSaleConfig(
+		account.SaleStatus,
+		account.OwnerUserID,
+		account.SalePrice,
+		account.DailyPriceDecay,
+		account.MinSalePrice,
+	); err != nil {
+		return nil, err
+	}
+
 	return account, nil
 }
 
 func (s *adminServiceImpl) CreateAccount(ctx context.Context, input *CreateAccountInput) (*Account, error) {
+	if input.OwnerUserID != nil && *input.OwnerUserID > 0 && s.userRepo != nil {
+		if _, err := s.userRepo.GetByID(ctx, *input.OwnerUserID); err != nil {
+			return nil, err
+		}
+	}
 	accountExtra, err := normalizeOpenAILongContextBillingExtra(input.Platform, input.Extra)
 	if err != nil {
 		return nil, err
@@ -544,6 +597,9 @@ func (s *adminServiceImpl) CreateAccount(ctx context.Context, input *CreateAccou
 		if err := s.accountRepo.BindGroups(ctx, account.ID, groupIDs); err != nil {
 			return nil, err
 		}
+	}
+	if account.OwnerUserID != nil && *account.OwnerUserID > 0 && s.authCacheInvalidator != nil {
+		s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, *account.OwnerUserID)
 	}
 
 	AfterAccountCommit(ctx, func(_ context.Context) {
@@ -851,6 +907,99 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 		account.AutoPauseOnExpired = *input.AutoPauseOnExpired
 	}
 
+	var prevOwnerID int64
+	if account.OwnerUserID != nil && *account.OwnerUserID > 0 {
+		prevOwnerID = *account.OwnerUserID
+	}
+	hasDedicatedUpdate := input.ClearOwnerUserID ||
+		input.OwnerUserID != nil ||
+		input.DisplayAlias != nil ||
+		input.SaleStatus != nil ||
+		input.SalePrice != nil ||
+		input.DailyPriceDecay != nil ||
+		input.MinSalePrice != nil ||
+		input.SaleDescription != nil
+	if hasDedicatedUpdate {
+		if account.IsCredentialShadow() {
+			return nil, infraerrors.New(http.StatusBadRequest, "SPARK_SHADOW_DEDICATED_INHERITED",
+				"spark shadow account dedicated ownership and sale settings are inherited from its parent account")
+		}
+		now := time.Now()
+		if input.DisplayAlias != nil {
+			if trimmed := strings.TrimSpace(*input.DisplayAlias); trimmed != "" {
+				account.DisplayAlias = &trimmed
+			} else {
+				account.DisplayAlias = nil
+			}
+		}
+		if input.SaleDescription != nil {
+			if trimmed := strings.TrimSpace(*input.SaleDescription); trimmed != "" {
+				account.SaleDescription = &trimmed
+			} else {
+				account.SaleDescription = nil
+			}
+		}
+		if input.SalePrice != nil {
+			account.SalePrice = *input.SalePrice
+		}
+		if input.DailyPriceDecay != nil {
+			account.DailyPriceDecay = *input.DailyPriceDecay
+		}
+		if input.MinSalePrice != nil {
+			account.MinSalePrice = *input.MinSalePrice
+		}
+		if input.ClearOwnerUserID || (input.OwnerUserID != nil && *input.OwnerUserID <= 0) {
+			account.OwnerUserID = nil
+			account.SoldAt = nil
+			if NormalizeAccountSaleStatus(account.SaleStatus) == AccountSaleStatusSold && input.SaleStatus == nil {
+				account.SaleStatus = AccountSaleStatusNone
+			}
+		} else if input.OwnerUserID != nil && *input.OwnerUserID > 0 {
+			if s.userRepo != nil {
+				if _, err := s.userRepo.GetByID(ctx, *input.OwnerUserID); err != nil {
+					return nil, err
+				}
+			}
+			uid := *input.OwnerUserID
+			account.OwnerUserID = &uid
+			if prevOwnerID != uid || account.SoldAt == nil {
+				account.SoldAt = &now
+			}
+			account.LockedByOrderID = nil
+			account.LockedUntil = nil
+			if input.SaleStatus == nil {
+				account.SaleStatus = AccountSaleStatusSold
+			}
+		}
+		if input.SaleStatus != nil {
+			prevStatus := NormalizeAccountSaleStatus(account.SaleStatus)
+			normStatus := NormalizeAccountSaleStatus(*input.SaleStatus)
+			if normStatus == "" {
+				return nil, fmt.Errorf("%w: invalid sale_status %q", ErrDedicatedSaleConfigInvalid, *input.SaleStatus)
+			}
+			account.SaleStatus = normStatus
+			if normStatus == AccountSaleStatusListed {
+				if prevStatus != AccountSaleStatusListed || account.ListedAt == nil {
+					account.ListedAt = &now
+				}
+				account.LockedByOrderID = nil
+				account.LockedUntil = nil
+			} else if normStatus == AccountSaleStatusNone {
+				account.LockedByOrderID = nil
+				account.LockedUntil = nil
+			}
+		}
+		if err := ValidateAccountSaleConfig(
+			account.SaleStatus,
+			account.OwnerUserID,
+			account.SalePrice,
+			account.DailyPriceDecay,
+			account.MinSalePrice,
+		); err != nil {
+			return nil, err
+		}
+	}
+
 	// 先验证分组是否存在（在任何写操作之前）
 	if input.GroupIDs != nil {
 		if err := s.validateGroupIDsExist(ctx, *input.GroupIDs); err != nil {
@@ -922,12 +1071,46 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 		}
 	}
 
+	var newOwnerID int64
+	if account.OwnerUserID != nil && *account.OwnerUserID > 0 {
+		newOwnerID = *account.OwnerUserID
+	}
+	if prevOwnerID > 0 && prevOwnerID != newOwnerID {
+		s.deactivateUserPinnedKeysForAccount(ctx, prevOwnerID, account.ID)
+	}
+	if newOwnerID > 0 && newOwnerID != prevOwnerID && s.authCacheInvalidator != nil {
+		s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, newOwnerID)
+	}
+
 	// 重新查询以确保返回完整数据（包括正确的 Proxy 关联对象）
 	updated, err := s.accountRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return updated, nil
+}
+
+func (s *adminServiceImpl) deactivateUserPinnedKeysForAccount(ctx context.Context, userID int64, accountID int64) {
+	if userID <= 0 || accountID <= 0 {
+		return
+	}
+	if s.entClient != nil {
+		if _, err := s.entClient.APIKey.Update().
+			Where(
+				apikey.UserIDEQ(userID),
+				apikey.DedicatedAccountIDEQ(accountID),
+				apikey.DeletedAtIsNil(),
+			).
+			SetStatus(StatusAPIKeyInactive).
+			ClearDedicatedAccountID().
+			SetDedicatedPoolMode(false).
+			Save(ctx); err != nil {
+			slog.Warn("deactivate_user_pinned_keys_failed", "user_id", userID, "account_id", accountID, "error", err)
+		}
+	}
+	if s.authCacheInvalidator != nil {
+		s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, userID)
+	}
 }
 
 // UpdateAccountExtra 仅对 Extra JSONB 做 key 级合并，避免覆盖其它运行态键
@@ -1004,10 +1187,17 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 	}
 
 	needMixedChannelCheck := input.GroupIDs != nil && !input.SkipMixedChannelCheck
+	hasDedicatedBulkUpdates := input.ClearOwnerUserID ||
+		input.OwnerUserID != nil ||
+		input.SaleStatus != nil ||
+		input.SalePrice != nil ||
+		input.DailyPriceDecay != nil ||
+		input.MinSalePrice != nil ||
+		input.SaleDescription != nil
 
-	// 预取所有目标账号，供凭据守卫/代理守卫/混合渠道检查共用，避免多次 DB 查询。
+	// 预取所有目标账号，供凭据守卫/代理守卫/混合渠道检查/独享配置校验共用，避免多次 DB 查询。
 	var cachedTargets []*Account
-	if len(input.Credentials) > 0 || input.ProxyID != nil || needMixedChannelCheck || openAISettings.any() || input.ProbeEnabled != nil || input.RateMultiplier != nil {
+	if len(input.Credentials) > 0 || input.ProxyID != nil || needMixedChannelCheck || openAISettings.any() || input.ProbeEnabled != nil || input.RateMultiplier != nil || hasDedicatedBulkUpdates {
 		loaded, err := s.accountRepo.GetByIDs(ctx, input.AccountIDs)
 		if err != nil {
 			return nil, err
@@ -1057,6 +1247,58 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 			if acc != nil && acc.IsCredentialShadow() {
 				return nil, infraerrors.Newf(http.StatusBadRequest, "SPARK_SHADOW_PROXY_INHERITED",
 					"spark shadow account %d proxy is inherited from its parent and cannot be set in bulk; manage it on the parent account", acc.ID)
+			}
+		}
+	}
+
+	if hasDedicatedBulkUpdates {
+		if input.OwnerUserID != nil && *input.OwnerUserID > 0 && s.userRepo != nil {
+			if _, err := s.userRepo.GetByID(ctx, *input.OwnerUserID); err != nil {
+				return nil, err
+			}
+		}
+		if input.SaleStatus != nil && NormalizeAccountSaleStatus(*input.SaleStatus) == "" {
+			return nil, fmt.Errorf("%w: invalid sale_status %q", ErrDedicatedSaleConfigInvalid, *input.SaleStatus)
+		}
+		for _, acc := range cachedTargets {
+			if acc == nil {
+				continue
+			}
+			if acc.IsCredentialShadow() {
+				return nil, infraerrors.Newf(http.StatusBadRequest, "SPARK_SHADOW_DEDICATED_INHERITED",
+					"spark shadow account %d dedicated ownership and sale settings are inherited from its parent account", acc.ID)
+			}
+			effOwner := acc.OwnerUserID
+			effStatus := NormalizeAccountSaleStatus(acc.SaleStatus)
+			if input.ClearOwnerUserID || (input.OwnerUserID != nil && *input.OwnerUserID <= 0) {
+				effOwner = nil
+				if effStatus == AccountSaleStatusSold && input.SaleStatus == nil {
+					effStatus = AccountSaleStatusNone
+				}
+			} else if input.OwnerUserID != nil && *input.OwnerUserID > 0 {
+				uid := *input.OwnerUserID
+				effOwner = &uid
+				if input.SaleStatus == nil {
+					effStatus = AccountSaleStatusSold
+				}
+			}
+			if input.SaleStatus != nil {
+				effStatus = NormalizeAccountSaleStatus(*input.SaleStatus)
+			}
+			effPrice := acc.SalePrice
+			if input.SalePrice != nil {
+				effPrice = *input.SalePrice
+			}
+			effDecay := acc.DailyPriceDecay
+			if input.DailyPriceDecay != nil {
+				effDecay = *input.DailyPriceDecay
+			}
+			effMin := acc.MinSalePrice
+			if input.MinSalePrice != nil {
+				effMin = *input.MinSalePrice
+			}
+			if err := ValidateAccountSaleConfig(effStatus, effOwner, effPrice, effDecay, effMin); err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -1124,6 +1366,17 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 		Extra:                      input.Extra,
 		ProbeEnabled:               input.ProbeEnabled,
 		EnsureCodexFingerprintSeed: ShouldEnsureCodexFingerprintSeedForExtraUpdates(input.Extra),
+		OwnerUserID:                input.OwnerUserID,
+		ClearOwnerUserID:           input.ClearOwnerUserID,
+		SaleStatus:                 input.SaleStatus,
+		SalePrice:                  input.SalePrice,
+		DailyPriceDecay:            input.DailyPriceDecay,
+		MinSalePrice:               input.MinSalePrice,
+		SaleDescription:            input.SaleDescription,
+	}
+	if input.OwnerUserID != nil && *input.OwnerUserID <= 0 {
+		repoUpdates.OwnerUserID = nil
+		repoUpdates.ClearOwnerUserID = true
 	}
 	if input.ProbeEnabled != nil {
 		if repoUpdates.Extra == nil {
@@ -1176,6 +1429,25 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 	// Run bulk update for column/jsonb fields first.
 	if _, err := s.accountRepo.BulkUpdate(ctx, input.AccountIDs, repoUpdates); err != nil {
 		return nil, err
+	}
+
+	if repoUpdates.ClearOwnerUserID || repoUpdates.OwnerUserID != nil {
+		var newOwner int64
+		if repoUpdates.OwnerUserID != nil && *repoUpdates.OwnerUserID > 0 {
+			newOwner = *repoUpdates.OwnerUserID
+		}
+		for _, acc := range cachedTargets {
+			if acc == nil || acc.OwnerUserID == nil || *acc.OwnerUserID <= 0 {
+				continue
+			}
+			prevUID := *acc.OwnerUserID
+			if prevUID != newOwner {
+				s.deactivateUserPinnedKeysForAccount(ctx, prevUID, acc.ID)
+			}
+		}
+		if newOwner > 0 && s.authCacheInvalidator != nil {
+			s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, newOwner)
+		}
 	}
 
 	// 将 proxy 变更传播到每个目标账号的 spark 影子账号
@@ -1240,6 +1512,21 @@ func upstreamBillingProbeIdentity(account *Account) map[string]any {
 	return identity
 }
 
+func matchesDedicatedModeFilter(acc *Account, mode string) bool {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "":
+		return true
+	case "public":
+		return acc != nil && !acc.IsOwnedDedicated() && !acc.IsOnSaleShelf()
+	case "listed":
+		return acc != nil && acc.IsOnSaleShelf()
+	case "sold", "dedicated":
+		return acc != nil && acc.IsOwnedDedicated()
+	default:
+		return true
+	}
+}
+
 func (s *adminServiceImpl) resolveBulkUpdateTargetIDs(ctx context.Context, filters *BulkUpdateAccountFilters) ([]int64, error) {
 	if filters == nil {
 		return nil, nil
@@ -1260,6 +1547,7 @@ func (s *adminServiceImpl) resolveBulkUpdateTargetIDs(ctx context.Context, filte
 
 	const pageSize = 500
 	page := 1
+	scanned := int64(0)
 	accountIDs := make([]int64, 0, pageSize)
 
 	for {
@@ -1279,10 +1567,13 @@ func (s *adminServiceImpl) resolveBulkUpdateTargetIDs(ctx context.Context, filte
 		if err != nil {
 			return nil, err
 		}
-		for _, account := range accounts {
-			accountIDs = append(accountIDs, account.ID)
+		scanned += int64(len(accounts))
+		for i := range accounts {
+			if matchesDedicatedModeFilter(&accounts[i], filters.DedicatedMode) {
+				accountIDs = append(accountIDs, accounts[i].ID)
+			}
 		}
-		if int64(len(accountIDs)) >= total || len(accounts) == 0 {
+		if scanned >= total || len(accounts) == 0 {
 			return accountIDs, nil
 		}
 		page++
@@ -1290,6 +1581,7 @@ func (s *adminServiceImpl) resolveBulkUpdateTargetIDs(ctx context.Context, filte
 }
 
 func (s *adminServiceImpl) DeleteAccount(ctx context.Context, id int64) error {
+	existing, _ := s.accountRepo.GetByID(ctx, id)
 	// 级联删除 spark 影子账号（先删影子，再删母账号）
 	shadows, err := s.accountRepo.ListShadowsByParent(ctx, id)
 	if err != nil {
@@ -1302,6 +1594,9 @@ func (s *adminServiceImpl) DeleteAccount(ctx context.Context, id int64) error {
 	}
 	if err := s.accountRepo.Delete(ctx, id); err != nil {
 		return err
+	}
+	if existing != nil && existing.OwnerUserID != nil && *existing.OwnerUserID > 0 {
+		s.deactivateUserPinnedKeysForAccount(ctx, *existing.OwnerUserID, id)
 	}
 	return nil
 }

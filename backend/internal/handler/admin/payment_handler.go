@@ -136,6 +136,7 @@ type AdminPaymentOrderResult struct {
 	QRCodeImg           *string    `json:"qr_code_img,omitempty"`
 	OrderType           string     `json:"order_type"`
 	PlanID              *int64     `json:"plan_id,omitempty"`
+	DedicatedAccountID  *int64     `json:"dedicated_account_id,omitempty"`
 	SubscriptionGroupID *int64     `json:"subscription_group_id,omitempty"`
 	SubscriptionDays    *int       `json:"subscription_days,omitempty"`
 	ProviderInstanceID  *string    `json:"provider_instance_id,omitempty"`
@@ -194,6 +195,7 @@ func sanitizeAdminPaymentOrderForResponse(order *dbent.PaymentOrder) *AdminPayme
 		QRCodeImg:           order.QrCodeImg,
 		OrderType:           order.OrderType,
 		PlanID:              order.PlanID,
+		DedicatedAccountID:  order.DedicatedAccountID,
 		SubscriptionGroupID: order.SubscriptionGroupID,
 		SubscriptionDays:    order.SubscriptionDays,
 		ProviderInstanceID:  order.ProviderInstanceID,

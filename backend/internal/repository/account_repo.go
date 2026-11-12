@@ -25,6 +25,7 @@ import (
 	dbgroup "github.com/Wei-Shaw/sub2api/ent/group"
 	dbpredicate "github.com/Wei-Shaw/sub2api/ent/predicate"
 	dbproxy "github.com/Wei-Shaw/sub2api/ent/proxy"
+	dbuser "github.com/Wei-Shaw/sub2api/ent/user"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/adminaccess"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
@@ -143,6 +144,12 @@ func createAccountRecord(ctx context.Context, client *dbent.Client, account *ser
 		return service.ErrAccountNilInput
 	}
 
+	saleStatus := service.NormalizeAccountSaleStatus(account.SaleStatus)
+	if saleStatus == "" {
+		saleStatus = service.AccountSaleStatusNone
+	}
+	account.SaleStatus = saleStatus
+
 	builder := client.Account.Create().
 		SetName(account.Name).
 		SetNillableNotes(account.Notes).
@@ -155,7 +162,18 @@ func createAccountRecord(ctx context.Context, client *dbent.Client, account *ser
 		SetStatus(account.Status).
 		SetErrorMessage(account.ErrorMessage).
 		SetSchedulable(account.Schedulable).
-		SetAutoPauseOnExpired(account.AutoPauseOnExpired)
+		SetAutoPauseOnExpired(account.AutoPauseOnExpired).
+		SetNillableOwnerUserID(account.OwnerUserID).
+		SetNillableDisplayAlias(account.DisplayAlias).
+		SetSaleStatus(saleStatus).
+		SetSalePrice(account.SalePrice).
+		SetDailyPriceDecay(account.DailyPriceDecay).
+		SetMinSalePrice(account.MinSalePrice).
+		SetNillableListedAt(account.ListedAt).
+		SetNillableSoldAt(account.SoldAt).
+		SetNillableSaleDescription(account.SaleDescription).
+		SetNillableLockedByOrderID(account.LockedByOrderID).
+		SetNillableLockedUntil(account.LockedUntil)
 
 	if account.RateMultiplier != nil {
 		builder.SetRateMultiplier(*account.RateMultiplier)
@@ -506,8 +524,18 @@ func (r *accountRepository) updateAccount(
 	if err != nil {
 		return translatePersistenceError(err, service.ErrAccountNotFound, nil)
 	}
+	shadowIDs, err := cascadeDedicatedFieldsToShadows(ctx, client, account)
+	if err != nil {
+		return err
+	}
 	if err := enqueueSchedulerOutbox(ctx, client, service.SchedulerOutboxEventAccountChanged, &account.ID, nil, buildSchedulerGroupPayload(account.GroupIDs)); err != nil {
 		return err
+	}
+	for i := range shadowIDs {
+		sid := shadowIDs[i]
+		if err := enqueueSchedulerOutbox(ctx, client, service.SchedulerOutboxEventAccountChanged, &sid, nil, nil); err != nil {
+			return err
+		}
 	}
 	if tx != nil {
 		if err := tx.Commit(); err != nil {
@@ -520,8 +548,44 @@ func (r *accountRepository) updateAccount(
 	// 否则网关在 outbox worker 延迟或异常时仍可能读到旧配置。
 	if contextTx == nil {
 		r.syncSchedulerAccountSnapshot(baseCtx, account.ID)
+		for _, sid := range shadowIDs {
+			r.syncSchedulerAccountSnapshot(baseCtx, sid)
+		}
 	}
 	return nil
+}
+
+func cascadeDedicatedFieldsToShadows(ctx context.Context, client *dbent.Client, parent *service.Account) ([]int64, error) {
+	if client == nil || parent == nil || parent.ParentAccountID != nil || parent.ID <= 0 || !parent.IsOpenAIOAuth() {
+		return nil, nil
+	}
+	shadows, err := client.Account.Query().
+		Where(dbaccount.ParentAccountIDEQ(parent.ID)).
+		Select(dbaccount.FieldID).
+		All(ctx)
+	if err != nil || len(shadows) == 0 {
+		return nil, err
+	}
+	saleStatus := service.NormalizeAccountSaleStatus(parent.SaleStatus)
+	if saleStatus == "" {
+		saleStatus = service.AccountSaleStatusNone
+	}
+	upd := client.Account.Update().
+		Where(dbaccount.ParentAccountIDEQ(parent.ID)).
+		SetSaleStatus(saleStatus)
+	if parent.OwnerUserID != nil && *parent.OwnerUserID > 0 {
+		upd.SetOwnerUserID(*parent.OwnerUserID)
+	} else {
+		upd.ClearOwnerUserID()
+	}
+	if _, err := upd.Save(ctx); err != nil {
+		return nil, err
+	}
+	ids := make([]int64, 0, len(shadows))
+	for _, s := range shadows {
+		ids = append(ids, s.ID)
+	}
+	return ids, nil
 }
 
 func (r *accountRepository) updateLockedAccount(
@@ -543,6 +607,12 @@ func (r *accountRepository) updateLockedAccount(
 		schedulable = false
 	}
 
+	saleStatus := service.NormalizeAccountSaleStatus(account.SaleStatus)
+	if saleStatus == "" {
+		saleStatus = service.AccountSaleStatusNone
+	}
+	account.SaleStatus = saleStatus
+
 	builder := client.Account.UpdateOneID(account.ID).
 		SetName(account.Name).
 		SetNillableNotes(account.Notes).
@@ -555,7 +625,49 @@ func (r *accountRepository) updateLockedAccount(
 		SetStatus(account.Status).
 		SetErrorMessage(account.ErrorMessage).
 		SetSchedulable(schedulable).
-		SetAutoPauseOnExpired(account.AutoPauseOnExpired)
+		SetAutoPauseOnExpired(account.AutoPauseOnExpired).
+		SetSaleStatus(saleStatus).
+		SetSalePrice(account.SalePrice).
+		SetDailyPriceDecay(account.DailyPriceDecay).
+		SetMinSalePrice(account.MinSalePrice)
+
+	if account.OwnerUserID != nil && *account.OwnerUserID > 0 {
+		builder.SetOwnerUserID(*account.OwnerUserID)
+	} else {
+		builder.ClearOwnerUserID()
+	}
+	if account.DisplayAlias != nil && strings.TrimSpace(*account.DisplayAlias) != "" {
+		alias := strings.TrimSpace(*account.DisplayAlias)
+		builder.SetDisplayAlias(alias)
+	} else {
+		builder.SetDisplayAlias("")
+	}
+	if account.ListedAt != nil {
+		builder.SetListedAt(*account.ListedAt)
+	} else {
+		builder.ClearListedAt()
+	}
+	if account.SoldAt != nil {
+		builder.SetSoldAt(*account.SoldAt)
+	} else {
+		builder.ClearSoldAt()
+	}
+	if account.SaleDescription != nil && strings.TrimSpace(*account.SaleDescription) != "" {
+		desc := strings.TrimSpace(*account.SaleDescription)
+		builder.SetSaleDescription(desc)
+	} else {
+		builder.SetSaleDescription("")
+	}
+	if account.LockedByOrderID != nil && *account.LockedByOrderID > 0 {
+		builder.SetLockedByOrderID(*account.LockedByOrderID)
+	} else {
+		builder.ClearLockedByOrderID()
+	}
+	if account.LockedUntil != nil {
+		builder.SetLockedUntil(*account.LockedUntil)
+	} else {
+		builder.ClearLockedUntil()
+	}
 
 	if explicitRateMultiplier != nil {
 		builder.SetRateMultiplier(*explicitRateMultiplier)
@@ -2099,6 +2211,9 @@ func (r *accountRepository) ListSchedulableCapacityByGroupIDs(ctx context.Contex
 			}
 			for i := range accounts {
 				acc := &accounts[i]
+				if acc.IsOwnedDedicated() || acc.IsOnSaleShelf() {
+					continue
+				}
 				rows = append(rows, service.GroupAccountCapacityRow{
 					GroupID:             groupID,
 					AccountID:           acc.ID,
@@ -2128,6 +2243,8 @@ func (r *accountRepository) ListSchedulableCapacityByGroupIDs(ctx context.Contex
 			AND a.deleted_at IS NULL
 			AND a.status = $2
 			AND a.schedulable = TRUE
+			AND a.owner_user_id IS NULL
+			AND COALESCE(a.sale_status, 'none') NOT IN ('listed', 'locked')
 			AND (a.temp_unschedulable_until IS NULL OR a.temp_unschedulable_until <= $3)
 			AND (a.expires_at IS NULL OR a.expires_at > $3 OR a.auto_pause_on_expired = FALSE)
 			AND (a.overload_until IS NULL OR a.overload_until <= $3)
@@ -3128,6 +3245,51 @@ func (r *accountRepository) BulkUpdate(ctx context.Context, ids []int64, updates
 		args = append(args, *updates.Schedulable)
 		idx++
 	}
+	if updates.ClearOwnerUserID {
+		setClauses = append(setClauses, "owner_user_id = NULL")
+	} else if updates.OwnerUserID != nil && *updates.OwnerUserID > 0 {
+		setClauses = append(setClauses, "owner_user_id = $"+itoa(idx))
+		args = append(args, *updates.OwnerUserID)
+		idx++
+	}
+	if updates.SaleStatus != nil {
+		norm := service.NormalizeAccountSaleStatus(*updates.SaleStatus)
+		if norm != "" {
+			setClauses = append(setClauses, "sale_status = $"+itoa(idx))
+			args = append(args, norm)
+			idx++
+			if norm == service.AccountSaleStatusListed {
+				setClauses = append(setClauses, "listed_at = COALESCE(listed_at, NOW()), locked_by_order_id = NULL, locked_until = NULL")
+			} else if norm == service.AccountSaleStatusNone {
+				setClauses = append(setClauses, "listed_at = NULL, locked_by_order_id = NULL, locked_until = NULL")
+			}
+		}
+	}
+	if updates.SalePrice != nil {
+		setClauses = append(setClauses, "sale_price = $"+itoa(idx))
+		args = append(args, *updates.SalePrice)
+		idx++
+	}
+	if updates.DailyPriceDecay != nil {
+		setClauses = append(setClauses, "daily_price_decay = $"+itoa(idx))
+		args = append(args, *updates.DailyPriceDecay)
+		idx++
+	}
+	if updates.MinSalePrice != nil {
+		setClauses = append(setClauses, "min_sale_price = $"+itoa(idx))
+		args = append(args, *updates.MinSalePrice)
+		idx++
+	}
+	if updates.SaleDescription != nil {
+		desc := strings.TrimSpace(*updates.SaleDescription)
+		if desc == "" {
+			setClauses = append(setClauses, "sale_description = NULL")
+		} else {
+			setClauses = append(setClauses, "sale_description = $"+itoa(idx))
+			args = append(args, desc)
+			idx++
+		}
+	}
 	if updates.ProbeEnabled != nil {
 		if updates.Extra == nil {
 			updates.Extra = make(map[string]any)
@@ -3435,6 +3597,7 @@ func (r *accountRepository) accountsToService(ctx context.Context, accounts []*d
 
 	accountIDs := make([]int64, 0, len(accounts))
 	proxyIDs := make([]int64, 0, len(accounts))
+	ownerUserIDs := make([]int64, 0, len(accounts))
 	for _, acc := range accounts {
 		accountIDs = append(accountIDs, acc.ID)
 		if acc.ProxyID != nil {
@@ -3442,6 +3605,9 @@ func (r *accountRepository) accountsToService(ctx context.Context, accounts []*d
 		}
 		if acc.ProxyFallbackOriginID != nil {
 			proxyIDs = append(proxyIDs, *acc.ProxyFallbackOriginID)
+		}
+		if acc.OwnerUserID != nil && *acc.OwnerUserID > 0 {
+			ownerUserIDs = append(ownerUserIDs, *acc.OwnerUserID)
 		}
 	}
 
@@ -3453,6 +3619,7 @@ func (r *accountRepository) accountsToService(ctx context.Context, accounts []*d
 	if err != nil {
 		return nil, err
 	}
+	ownerEmailMap := r.loadOwnerUserEmails(ctx, ownerUserIDs)
 
 	outAccounts := make([]service.Account, 0, len(accounts))
 	for _, acc := range accounts {
@@ -3472,6 +3639,12 @@ func (r *accountRepository) accountsToService(ctx context.Context, accounts []*d
 				out.ProxyFallbackOriginName = &n
 			}
 		}
+		if acc.OwnerUserID != nil {
+			if email, ok := ownerEmailMap[*acc.OwnerUserID]; ok && email != "" {
+				e := email
+				out.OwnerUserEmail = &e
+			}
+		}
 		if groups, ok := groupsByAccount[acc.ID]; ok {
 			out.Groups = groups
 		}
@@ -3485,6 +3658,34 @@ func (r *accountRepository) accountsToService(ctx context.Context, accounts []*d
 	}
 
 	return outAccounts, nil
+}
+
+func (r *accountRepository) loadOwnerUserEmails(ctx context.Context, userIDs []int64) map[int64]string {
+	out := make(map[int64]string)
+	if r == nil || r.client == nil {
+		return out
+	}
+	userIDs = uniquePositiveInt64s(userIDs)
+	if len(userIDs) == 0 {
+		return out
+	}
+	for start := 0; start < len(userIDs); start += postgresParameterBatchSize {
+		end := start + postgresParameterBatchSize
+		if end > len(userIDs) {
+			end = len(userIDs)
+		}
+		users, err := r.client.User.Query().
+			Where(dbuser.IDIn(userIDs[start:end]...)).
+			Select(dbuser.FieldID, dbuser.FieldEmail).
+			All(ctx)
+		if err != nil {
+			continue
+		}
+		for _, u := range users {
+			out[u.ID] = u.Email
+		}
+	}
+	return out
 }
 
 func tempUnschedulablePredicate() dbpredicate.Account {
@@ -3679,6 +3880,10 @@ func accountEntityToService(m *dbent.Account) *service.Account {
 	}
 
 	rateMultiplier := m.RateMultiplier
+	saleStatus := service.NormalizeAccountSaleStatus(m.SaleStatus)
+	if saleStatus == "" {
+		saleStatus = service.AccountSaleStatusNone
+	}
 
 	return &service.Account{
 		ID:                      m.ID,
@@ -3712,7 +3917,26 @@ func accountEntityToService(m *dbent.Account) *service.Account {
 		SessionWindowStatus:     derefString(m.SessionWindowStatus),
 		ParentAccountID:         m.ParentAccountID,
 		QuotaDimension:          string(m.QuotaDimension),
+		OwnerUserID:             m.OwnerUserID,
+		DisplayAlias:            nonEmptyStringPtr(m.DisplayAlias),
+		SaleStatus:              saleStatus,
+		SalePrice:               m.SalePrice,
+		DailyPriceDecay:         m.DailyPriceDecay,
+		MinSalePrice:            m.MinSalePrice,
+		ListedAt:                m.ListedAt,
+		SoldAt:                  m.SoldAt,
+		SaleDescription:         nonEmptyStringPtr(m.SaleDescription),
+		LockedByOrderID:         m.LockedByOrderID,
+		LockedUntil:             m.LockedUntil,
 	}
+}
+
+func nonEmptyStringPtr(s string) *string {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }
 
 func normalizeJSONMap(in map[string]any) map[string]any {

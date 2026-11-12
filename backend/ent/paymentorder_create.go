@@ -225,6 +225,20 @@ func (_c *PaymentOrderCreate) SetNillableSubscriptionDays(v *int) *PaymentOrderC
 	return _c
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_c *PaymentOrderCreate) SetDedicatedAccountID(v int64) *PaymentOrderCreate {
+	_c.mutation.SetDedicatedAccountID(v)
+	return _c
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableDedicatedAccountID(v *int64) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetDedicatedAccountID(*v)
+	}
+	return _c
+}
+
 // SetProviderInstanceID sets the "provider_instance_id" field.
 func (_c *PaymentOrderCreate) SetProviderInstanceID(v string) *PaymentOrderCreate {
 	_c.mutation.SetProviderInstanceID(v)
@@ -794,6 +808,10 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 		_spec.SetField(paymentorder.FieldSubscriptionDays, field.TypeInt, value)
 		_node.SubscriptionDays = &value
 	}
+	if value, ok := _c.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(paymentorder.FieldDedicatedAccountID, field.TypeInt64, value)
+		_node.DedicatedAccountID = &value
+	}
 	if value, ok := _c.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)
 		_node.ProviderInstanceID = &value
@@ -1256,6 +1274,30 @@ func (u *PaymentOrderUpsert) AddSubscriptionDays(v int) *PaymentOrderUpsert {
 // ClearSubscriptionDays clears the value of the "subscription_days" field.
 func (u *PaymentOrderUpsert) ClearSubscriptionDays() *PaymentOrderUpsert {
 	u.SetNull(paymentorder.FieldSubscriptionDays)
+	return u
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *PaymentOrderUpsert) SetDedicatedAccountID(v int64) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldDedicatedAccountID, v)
+	return u
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateDedicatedAccountID() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldDedicatedAccountID)
+	return u
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *PaymentOrderUpsert) AddDedicatedAccountID(v int64) *PaymentOrderUpsert {
+	u.Add(paymentorder.FieldDedicatedAccountID, v)
+	return u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *PaymentOrderUpsert) ClearDedicatedAccountID() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldDedicatedAccountID)
 	return u
 }
 
@@ -1989,6 +2031,34 @@ func (u *PaymentOrderUpsertOne) UpdateSubscriptionDays() *PaymentOrderUpsertOne 
 func (u *PaymentOrderUpsertOne) ClearSubscriptionDays() *PaymentOrderUpsertOne {
 	return u.Update(func(s *PaymentOrderUpsert) {
 		s.ClearSubscriptionDays()
+	})
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertOne) SetDedicatedAccountID(v int64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetDedicatedAccountID(v)
+	})
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertOne) AddDedicatedAccountID(v int64) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddDedicatedAccountID(v)
+	})
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateDedicatedAccountID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateDedicatedAccountID()
+	})
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertOne) ClearDedicatedAccountID() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearDedicatedAccountID()
 	})
 }
 
@@ -2942,6 +3012,34 @@ func (u *PaymentOrderUpsertBulk) UpdateSubscriptionDays() *PaymentOrderUpsertBul
 func (u *PaymentOrderUpsertBulk) ClearSubscriptionDays() *PaymentOrderUpsertBulk {
 	return u.Update(func(s *PaymentOrderUpsert) {
 		s.ClearSubscriptionDays()
+	})
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertBulk) SetDedicatedAccountID(v int64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetDedicatedAccountID(v)
+	})
+}
+
+// AddDedicatedAccountID adds v to the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertBulk) AddDedicatedAccountID(v int64) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.AddDedicatedAccountID(v)
+	})
+}
+
+// UpdateDedicatedAccountID sets the "dedicated_account_id" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateDedicatedAccountID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateDedicatedAccountID()
+	})
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (u *PaymentOrderUpsertBulk) ClearDedicatedAccountID() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearDedicatedAccountID()
 	})
 }
 

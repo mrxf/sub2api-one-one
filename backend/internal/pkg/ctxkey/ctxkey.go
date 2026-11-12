@@ -81,4 +81,10 @@ const (
 
 	// ClaudeCodeVersion stores the extracted Claude Code version from User-Agent (e.g. "2.1.22")
 	ClaudeCodeVersion Key = "ctx_claude_code_version"
+
+	// DedicatedAccountID 标识当前 API Key 1对1 绑定的独享账号 ID（>0 生效）
+	DedicatedAccountID Key = "ctx_dedicated_account_id"
+
+	// DedicatedPoolMode 标识当前 API Key 开启了“在当前用户名下所有同组独享号间轮转/切号”模式
+	DedicatedPoolMode Key = "ctx_dedicated_pool_mode"
 )

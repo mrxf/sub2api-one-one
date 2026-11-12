@@ -79,6 +79,8 @@ type APIKeyUpdateFields struct {
 	RateLimitUsage bool
 	// IPRules 覆盖 ip_whitelist 与 ip_blacklist。
 	IPRules bool
+	// Dedicated 覆盖 dedicated_account_id 与 dedicated_pool_mode。
+	Dedicated bool
 }
 
 // IsEmpty 报告该次 Update 是否不写任何列。
@@ -229,6 +231,10 @@ type CreateAPIKeyRequest struct {
 	RateLimit5h float64 `json:"rate_limit_5h"`
 	RateLimit1d float64 `json:"rate_limit_1d"`
 	RateLimit7d float64 `json:"rate_limit_7d"`
+
+	// Dedicated account fields
+	DedicatedAccountID *int64 `json:"dedicated_account_id"`
+	DedicatedPoolMode  bool   `json:"dedicated_pool_mode"`
 }
 
 // UpdateAPIKeyRequest 更新API Key请求
@@ -250,6 +256,17 @@ type UpdateAPIKeyRequest struct {
 	RateLimit1d         *float64 `json:"rate_limit_1d"`
 	RateLimit7d         *float64 `json:"rate_limit_7d"`
 	ResetRateLimitUsage *bool    `json:"reset_rate_limit_usage"` // Reset all usage counters to 0
+
+	// Dedicated account fields
+	DedicatedAccountID      *int64 `json:"dedicated_account_id"`
+	ClearDedicatedAccountID bool   `json:"clear_dedicated_account_id"`
+	DedicatedPoolMode       *bool  `json:"dedicated_pool_mode"`
+}
+
+// DedicatedAccountResolver 校验独享账号归属权并自动解析对应的平台分组 ID。
+type DedicatedAccountResolver interface {
+	ResolveUserDedicatedAccountGroup(ctx context.Context, userID int64, dedicatedAccountID *int64, dedicatedPoolMode bool, requestedGroupID *int64) (*int64, error)
+	PopulateAPIKeysDedicatedAliases(ctx context.Context, keys []APIKey)
 }
 
 func validateAPIKeyLimit(v float64) error {
@@ -297,6 +314,7 @@ type APIKeyService struct {
 	cache                     APIKeyCache
 	rateLimitCacheInvalid     RateLimitCacheInvalidator // optional: invalidate Redis rate limit cache
 	concurrencyService        *ConcurrencyService
+	dedicatedResolver         DedicatedAccountResolver
 	cfg                       *config.Config
 	authCacheL1               *ristretto.Cache
 	authNegativeCacheL1       *ristretto.Cache
@@ -373,6 +391,10 @@ func (s *APIKeyService) SetRateLimitCacheInvalidator(inv RateLimitCacheInvalidat
 
 func (s *APIKeyService) SetConcurrencyService(concurrencyService *ConcurrencyService) {
 	s.concurrencyService = concurrencyService
+}
+
+func (s *APIKeyService) SetDedicatedAccountResolver(resolver DedicatedAccountResolver) {
+	s.dedicatedResolver = resolver
 }
 
 func (s *APIKeyService) compileAPIKeyIPRules(apiKey *APIKey) {
@@ -516,8 +538,29 @@ func (s *APIKeyService) Create(ctx context.Context, userID int64, req CreateAPIK
 		}
 	}
 
-	// 验证分组权限（如果指定了分组）
-	if req.GroupID != nil {
+	var normalizedDedicatedID *int64
+	if req.DedicatedAccountID != nil && *req.DedicatedAccountID > 0 {
+		idCopy := *req.DedicatedAccountID
+		normalizedDedicatedID = &idCopy
+	}
+	isDedicatedReq := normalizedDedicatedID != nil || req.DedicatedPoolMode
+	resolvedGroupID := req.GroupID
+
+	if isDedicatedReq {
+		if s.dedicatedResolver == nil {
+			return nil, ErrDedicatedAccountForbidden
+		}
+		resolvedGroupID, err = s.dedicatedResolver.ResolveUserDedicatedAccountGroup(
+			ctx,
+			userID,
+			normalizedDedicatedID,
+			req.DedicatedPoolMode,
+			req.GroupID,
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else if req.GroupID != nil {
 		group, err := s.groupRepo.GetByID(ctx, *req.GroupID)
 		if err != nil {
 			return nil, fmt.Errorf("get group: %w", err)
@@ -570,18 +613,20 @@ func (s *APIKeyService) Create(ctx context.Context, userID int64, req CreateAPIK
 
 	// 创建API Key记录
 	apiKey := &APIKey{
-		UserID:      userID,
-		Key:         key,
-		Name:        html.EscapeString(req.Name),
-		GroupID:     req.GroupID,
-		Status:      StatusActive,
-		IPWhitelist: req.IPWhitelist,
-		IPBlacklist: req.IPBlacklist,
-		Quota:       req.Quota,
-		QuotaUsed:   0,
-		RateLimit5h: req.RateLimit5h,
-		RateLimit1d: req.RateLimit1d,
-		RateLimit7d: req.RateLimit7d,
+		UserID:             userID,
+		Key:                key,
+		Name:               html.EscapeString(req.Name),
+		GroupID:            resolvedGroupID,
+		Status:             StatusActive,
+		IPWhitelist:        req.IPWhitelist,
+		IPBlacklist:        req.IPBlacklist,
+		Quota:              req.Quota,
+		QuotaUsed:          0,
+		RateLimit5h:        req.RateLimit5h,
+		RateLimit1d:        req.RateLimit1d,
+		RateLimit7d:        req.RateLimit7d,
+		DedicatedAccountID: normalizedDedicatedID,
+		DedicatedPoolMode:  req.DedicatedPoolMode,
 	}
 
 	// Set expiration time if specified
@@ -592,6 +637,12 @@ func (s *APIKeyService) Create(ctx context.Context, userID int64, req CreateAPIK
 
 	if err := s.apiKeyRepo.Create(ctx, apiKey); err != nil {
 		return nil, fmt.Errorf("create api key: %w", err)
+	}
+
+	if s.dedicatedResolver != nil && apiKey.DedicatedAccountID != nil {
+		tmp := []APIKey{*apiKey}
+		s.dedicatedResolver.PopulateAPIKeysDedicatedAliases(ctx, tmp)
+		apiKey.DedicatedAccountAlias = tmp[0].DedicatedAccountAlias
 	}
 
 	s.InvalidateAuthCacheByKey(ctx, apiKey.Key)
@@ -611,6 +662,9 @@ func (s *APIKeyService) List(ctx context.Context, userID int64, params paginatio
 		return nil, nil, fmt.Errorf("list api keys: %w", err)
 	}
 	s.fillCurrentConcurrency(ctx, keys)
+	if s.dedicatedResolver != nil {
+		s.dedicatedResolver.PopulateAPIKeysDedicatedAliases(ctx, keys)
+	}
 	return keys, pagination, nil
 }
 
@@ -625,6 +679,9 @@ func (s *APIKeyService) listByCurrentConcurrency(ctx context.Context, userID int
 		return nil, nil, fmt.Errorf("list api keys: %w", err)
 	}
 	s.fillCurrentConcurrency(ctx, keys)
+	if s.dedicatedResolver != nil {
+		s.dedicatedResolver.PopulateAPIKeysDedicatedAliases(ctx, keys)
+	}
 	sortAPIKeysByCurrentConcurrency(keys, params.NormalizedSortOrder(pagination.SortOrderDesc))
 	return paginateAPIKeys(keys, params), apiKeyPaginationResult(int64(len(keys)), params), nil
 }
@@ -730,6 +787,11 @@ func (s *APIKeyService) GetByID(ctx context.Context, id int64) (*APIKey, error) 
 	s.compileAPIKeyIPRules(apiKey)
 	if apiKey != nil {
 		apiKey.CurrentConcurrency = s.currentConcurrencyForAPIKey(ctx, apiKey.ID)
+		if s.dedicatedResolver != nil && apiKey.DedicatedAccountID != nil {
+			tmp := []APIKey{*apiKey}
+			s.dedicatedResolver.PopulateAPIKeysDedicatedAliases(ctx, tmp)
+			apiKey.DedicatedAccountAlias = tmp[0].DedicatedAccountAlias
+		}
 	}
 	return apiKey, nil
 }
@@ -826,6 +888,7 @@ func (s *APIKeyService) Update(ctx context.Context, id int64, userID int64, req 
 	// 下面若干分支会顺带把 Status 改回 active（配额扩容、清除过期等），
 	// 所以用原始值比对来决定是否写 status，而不是只看 req.Status。
 	originalStatus := apiKey.Status
+	wasDedicatedMode := apiKey.IsDedicatedMode()
 
 	// 更新字段
 	if req.Name != nil {
@@ -833,24 +896,71 @@ func (s *APIKeyService) Update(ctx context.Context, id int64, userID int64, req 
 		fields.Name = true
 	}
 
+	// 更新独享绑定配置
+	if req.ClearDedicatedAccountID {
+		apiKey.DedicatedAccountID = nil
+		apiKey.DedicatedAccountAlias = ""
+		fields.Dedicated = true
+	} else if req.DedicatedAccountID != nil {
+		if *req.DedicatedAccountID <= 0 {
+			apiKey.DedicatedAccountID = nil
+			apiKey.DedicatedAccountAlias = ""
+		} else {
+			idCopy := *req.DedicatedAccountID
+			apiKey.DedicatedAccountID = &idCopy
+		}
+		fields.Dedicated = true
+	}
+	if req.DedicatedPoolMode != nil {
+		apiKey.DedicatedPoolMode = *req.DedicatedPoolMode
+		fields.Dedicated = true
+	}
+
+	targetGroupID := apiKey.GroupID
 	if req.GroupID != nil {
-		// 验证分组权限
-		user, err := s.userRepo.GetByID(ctx, userID)
-		if err != nil {
-			return nil, fmt.Errorf("get user: %w", err)
-		}
+		targetGroupID = req.GroupID
+	}
 
-		group, err := s.groupRepo.GetByID(ctx, *req.GroupID)
-		if err != nil {
-			return nil, fmt.Errorf("get group: %w", err)
+	if apiKey.IsDedicatedMode() {
+		if fields.Dedicated || req.GroupID != nil {
+			if s.dedicatedResolver == nil {
+				return nil, ErrDedicatedAccountForbidden
+			}
+			resolvedGroupID, err := s.dedicatedResolver.ResolveUserDedicatedAccountGroup(
+				ctx,
+				userID,
+				apiKey.DedicatedAccountID,
+				apiKey.DedicatedPoolMode,
+				targetGroupID,
+			)
+			if err != nil {
+				return nil, err
+			}
+			if !sameOptionalInt64(apiKey.GroupID, resolvedGroupID) || req.GroupID != nil {
+				apiKey.GroupID = resolvedGroupID
+				fields.GroupID = true
+			}
 		}
-
-		if !s.canUserBindGroup(ctx, user, group) {
-			return nil, ErrGroupNotAllowed
+	} else if wasDedicatedMode || req.GroupID != nil {
+		// 安全守卫：当从独享模式退出为普通模式，或普通模式修改分组时，必须严格复核分组绑定权限，
+		// 防止通过先绑定独享专属组再关闭独享开关越权访问公共/专属分组。
+		if targetGroupID != nil {
+			user, err := s.userRepo.GetByID(ctx, userID)
+			if err != nil {
+				return nil, fmt.Errorf("get user: %w", err)
+			}
+			group, err := s.groupRepo.GetByID(ctx, *targetGroupID)
+			if err != nil {
+				return nil, fmt.Errorf("get group: %w", err)
+			}
+			if !s.canUserBindGroup(ctx, user, group) {
+				return nil, ErrGroupNotAllowed
+			}
 		}
-
-		apiKey.GroupID = req.GroupID
-		fields.GroupID = true
+		if req.GroupID != nil {
+			apiKey.GroupID = req.GroupID
+			fields.GroupID = true
+		}
 	}
 
 	if req.Status != nil {
@@ -934,6 +1044,12 @@ func (s *APIKeyService) Update(ctx context.Context, id int64, userID int64, req 
 		return nil, fmt.Errorf("update api key: %w", err)
 	}
 
+	if s.dedicatedResolver != nil && apiKey.DedicatedAccountID != nil {
+		tmp := []APIKey{*apiKey}
+		s.dedicatedResolver.PopulateAPIKeysDedicatedAliases(ctx, tmp)
+		apiKey.DedicatedAccountAlias = tmp[0].DedicatedAccountAlias
+	}
+
 	s.InvalidateAuthCacheByKey(ctx, apiKey.Key)
 	s.compileAPIKeyIPRules(apiKey)
 
@@ -943,6 +1059,16 @@ func (s *APIKeyService) Update(ctx context.Context, id int64, userID int64, req 
 	}
 
 	return apiKey, nil
+}
+
+func sameOptionalInt64(a, b *int64) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 // Delete 删除API Key

@@ -62,6 +62,20 @@ type Account struct {
 	ParentAccountID *int64 // non-nil → 影子账号（不持凭据，透传母账号凭据）
 	QuotaDimension  string // 用量维度："" / "global" / "spark"
 
+	// 独享账号与上架买断字段
+	OwnerUserID      *int64     // 归属用户 ID（nil = 公共池或待售货架；非 nil = 该用户独享）
+	OwnerUserEmail   *string    // 仅后台展示用
+	DisplayAlias     *string    // 商城与用户端展示别名（隐藏后台内部账号名）
+	SaleStatus       string     // none | listed | locked | sold
+	SalePrice        float64    // 初始上架价格（CNY 元）
+	DailyPriceDecay  float64    // 每满 24h 自动递减金额（CNY 元）
+	MinSalePrice     float64    // 递减保底价（CNY 元）
+	ListedAt         *time.Time // 上架起算时间
+	SoldAt           *time.Time // 售出成交时间
+	SaleDescription  *string    // 商城卡片卖点说明
+	LockedByOrderID  *int64     // 待支付锁定的订单 ID
+	LockedUntil      *time.Time // 订单锁定截止时间
+
 	Proxy         *Proxy
 	AccountGroups []AccountGroup
 	GroupIDs      []int64
@@ -192,7 +206,7 @@ func (a *Account) EffectiveLoadFactor() int {
 }
 
 func (a *Account) IsSchedulable() bool {
-	if !a.IsActive() || !a.Schedulable {
+	if a == nil || !a.IsActive() || !a.Schedulable || a.IsOnSaleShelf() {
 		return false
 	}
 	now := time.Now()
@@ -227,7 +241,7 @@ func (a *Account) IsSchedulable() bool {
 // 手动 Schedulable 开关:spark 影子拥有独立 spark 配额窗口,母账号 global 429(走 RateLimitResetAt)
 // 不应连坐 spark(否则重新耦合影子架构本应解耦的两条 429 道)。nil receiver 返回 false。
 func (a *Account) IsCredentialUsableForShadow() bool {
-	if a == nil || !a.IsActive() {
+	if a == nil || !a.IsActive() || a.IsOnSaleShelf() {
 		return false
 	}
 	now := time.Now()

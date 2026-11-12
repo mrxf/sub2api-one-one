@@ -14,7 +14,7 @@ import (
 	"github.com/dgraph-io/ristretto"
 )
 
-const apiKeyAuthSnapshotVersion = 27 // v27: group require_privacy_set (OpenAI scheduling reads it from ctx)
+const apiKeyAuthSnapshotVersion = 28 // v28: dedicated_account_id & dedicated_pool_mode
 
 type apiKeyAuthCacheConfig struct {
 	l1Size        int
@@ -347,9 +347,11 @@ func (s *APIKeyService) snapshotFromAPIKey(ctx context.Context, apiKey *APIKey) 
 		Quota:       apiKey.Quota,
 		QuotaUsed:   apiKey.QuotaUsed,
 		ExpiresAt:   apiKey.ExpiresAt,
-		RateLimit5h: apiKey.RateLimit5h,
-		RateLimit1d: apiKey.RateLimit1d,
-		RateLimit7d: apiKey.RateLimit7d,
+		RateLimit5h:        apiKey.RateLimit5h,
+		RateLimit1d:        apiKey.RateLimit1d,
+		RateLimit7d:        apiKey.RateLimit7d,
+		DedicatedAccountID: apiKey.DedicatedAccountID,
+		DedicatedPoolMode:  apiKey.DedicatedPoolMode,
 		User: APIKeyAuthUserSnapshot{
 			ID:                         apiKey.User.ID,
 			Status:                     apiKey.User.Status,
@@ -448,20 +450,22 @@ func (s *APIKeyService) snapshotToAPIKey(key string, snapshot *APIKeyAuthSnapsho
 		return nil
 	}
 	apiKey := &APIKey{
-		ID:          snapshot.APIKeyID,
-		UserID:      snapshot.UserID,
-		GroupID:     snapshot.GroupID,
-		Key:         key,
-		Name:        snapshot.Name,
-		Status:      snapshot.Status,
-		IPWhitelist: snapshot.IPWhitelist,
-		IPBlacklist: snapshot.IPBlacklist,
-		Quota:       snapshot.Quota,
-		QuotaUsed:   snapshot.QuotaUsed,
-		ExpiresAt:   snapshot.ExpiresAt,
-		RateLimit5h: snapshot.RateLimit5h,
-		RateLimit1d: snapshot.RateLimit1d,
-		RateLimit7d: snapshot.RateLimit7d,
+		ID:                 snapshot.APIKeyID,
+		UserID:             snapshot.UserID,
+		GroupID:            snapshot.GroupID,
+		Key:                key,
+		Name:               snapshot.Name,
+		Status:             snapshot.Status,
+		IPWhitelist:        snapshot.IPWhitelist,
+		IPBlacklist:        snapshot.IPBlacklist,
+		Quota:              snapshot.Quota,
+		QuotaUsed:          snapshot.QuotaUsed,
+		ExpiresAt:          snapshot.ExpiresAt,
+		RateLimit5h:        snapshot.RateLimit5h,
+		RateLimit1d:        snapshot.RateLimit1d,
+		RateLimit7d:        snapshot.RateLimit7d,
+		DedicatedAccountID: snapshot.DedicatedAccountID,
+		DedicatedPoolMode:  snapshot.DedicatedPoolMode,
 		User: &User{
 			ID:                          snapshot.User.ID,
 			Status:                      snapshot.User.Status,

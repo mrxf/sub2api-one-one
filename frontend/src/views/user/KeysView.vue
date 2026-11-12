@@ -142,15 +142,39 @@
           </template>
 
           <template #cell-name="{ value, row }">
-            <div class="flex items-center gap-1.5">
-              <span class="font-medium text-gray-900 dark:text-white">{{ value }}</span>
-              <Icon
-                v-if="row.ip_whitelist?.length > 0 || row.ip_blacklist?.length > 0"
-                name="shield"
-                size="sm"
-                class="text-blue-500"
-                :title="t('keys.ipRestrictionEnabled')"
-              />
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-1.5">
+                <span class="font-medium text-gray-900 dark:text-white">{{ value }}</span>
+                <Icon
+                  v-if="row.ip_whitelist?.length > 0 || row.ip_blacklist?.length > 0"
+                  name="shield"
+                  size="sm"
+                  class="text-blue-500"
+                  :title="t('keys.ipRestrictionEnabled')"
+                />
+              </div>
+              <div v-if="row.dedicated_account_id || row.dedicated_pool_mode" class="flex items-center">
+                <span
+                  v-if="row.dedicated_account_id"
+                  data-testid="key-dedicated-pinned-badge"
+                  class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-500/30"
+                >
+                  <Icon name="lock" size="xs" />
+                  {{
+                    row.dedicated_account_alias
+                      ? t('dedicatedAccounts.keys.badgePinned', { alias: row.dedicated_account_alias })
+                      : t('dedicatedAccounts.keys.badgePinnedFallback', { id: row.dedicated_account_id })
+                  }}
+                </span>
+                <span
+                  v-else-if="row.dedicated_pool_mode"
+                  data-testid="key-dedicated-pool-badge"
+                  class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-500/30"
+                >
+                  <Icon name="server" size="xs" />
+                  {{ t('dedicatedAccounts.keys.badgePool') }}
+                </span>
+              </div>
             </div>
           </template>
 
@@ -158,9 +182,9 @@
             <div class="group/dropdown relative">
               <button
                 :ref="(el) => setGroupButtonRef(row.id, el)"
-                @click="openGroupSelector(row)"
+                @click="(row.dedicated_account_id || row.dedicated_pool_mode) ? editKey(row) : openGroupSelector(row)"
                 class="-mx-2 -my-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-dark-700"
-                :title="t('keys.clickToChangeGroup')"
+                :title="(row.dedicated_account_id || row.dedicated_pool_mode) ? t('dedicatedAccounts.keys.clickToEditDedicated') : t('keys.clickToChangeGroup')"
               >
                 <GroupBadge
                   v-if="row.group"
@@ -494,7 +518,124 @@
           />
         </div>
 
-        <fieldset v-if="!showEditModal" data-tour="key-form-provider">
+        <!-- Dedicated Account Routing Mode Selector (shown when user owns dedicated accounts or edits a dedicated key) -->
+        <div
+          v-if="ownedDedicatedAccounts.length > 0 || formData.routing_mode !== 'public'"
+          class="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-dark-600 dark:bg-dark-800/60"
+        >
+          <label class="input-label mb-1">{{ t('dedicatedAccounts.keys.routingModeLabel') }}</label>
+          <div class="space-y-2">
+            <!-- Mode 1: Shared Public Pool -->
+            <label
+              class="flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors"
+              :class="
+                formData.routing_mode === 'public'
+                  ? 'border-primary-500 bg-white ring-1 ring-primary-500 dark:bg-dark-700'
+                  : 'border-gray-200 bg-white/70 hover:border-gray-300 dark:border-dark-600 dark:bg-dark-800'
+              "
+            >
+              <input
+                type="radio"
+                name="key-routing-mode"
+                value="public"
+                :checked="formData.routing_mode === 'public'"
+                class="mt-0.5 text-primary-600 focus:ring-primary-500"
+                @change="setRoutingMode('public')"
+              />
+              <div class="min-w-0 text-xs">
+                <div class="font-semibold text-gray-900 dark:text-white">
+                  {{ t('dedicatedAccounts.keys.modePublic') }}
+                </div>
+                <p class="mt-0.5 text-gray-500 dark:text-gray-400">
+                  {{ t('dedicatedAccounts.keys.modePublicDesc') }}
+                </p>
+              </div>
+            </label>
+
+            <!-- Mode 2: 1-to-1 Pinned Single Dedicated Account (Recommended) -->
+            <label
+              class="flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors"
+              :class="
+                formData.routing_mode === 'pinned'
+                  ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500 dark:bg-emerald-950/25'
+                  : 'border-gray-200 bg-white/70 hover:border-gray-300 dark:border-dark-600 dark:bg-dark-800'
+              "
+            >
+              <input
+                type="radio"
+                name="key-routing-mode"
+                value="pinned"
+                data-testid="routing-mode-pinned"
+                :checked="formData.routing_mode === 'pinned'"
+                class="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                @change="setRoutingMode('pinned')"
+              />
+              <div class="min-w-0 text-xs">
+                <div class="font-semibold text-gray-900 dark:text-white">
+                  {{ t('dedicatedAccounts.keys.modePinned') }}
+                </div>
+                <p class="mt-0.5 text-gray-500 dark:text-gray-400">
+                  {{ t('dedicatedAccounts.keys.modePinnedDesc') }}
+                </p>
+              </div>
+            </label>
+
+            <!-- Mode 3: Multi-Account Dedicated Pool (N accounts : 1 user) -->
+            <label
+              class="flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors"
+              :class="
+                formData.routing_mode === 'pool'
+                  ? 'border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500 dark:bg-indigo-950/25'
+                  : 'border-gray-200 bg-white/70 hover:border-gray-300 dark:border-dark-600 dark:bg-dark-800'
+              "
+            >
+              <input
+                type="radio"
+                name="key-routing-mode"
+                value="pool"
+                data-testid="routing-mode-pool"
+                :checked="formData.routing_mode === 'pool'"
+                class="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                @change="setRoutingMode('pool')"
+              />
+              <div class="min-w-0 text-xs">
+                <div class="font-semibold text-gray-900 dark:text-white">
+                  {{ t('dedicatedAccounts.keys.modePool') }}
+                </div>
+                <p class="mt-0.5 text-gray-500 dark:text-gray-400">
+                  {{ t('dedicatedAccounts.keys.modePoolDesc') }}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Pinned Dedicated Account Picker -->
+          <div v-if="formData.routing_mode === 'pinned'" class="pt-1">
+            <label class="input-label text-xs">{{ t('dedicatedAccounts.keys.selectDedicatedAccount') }}</label>
+            <Select
+              v-model="formData.dedicated_account_id"
+              :options="dedicatedAccountOptions"
+              :placeholder="t('dedicatedAccounts.keys.selectDedicatedPlaceholder')"
+              @update:model-value="onSelectDedicatedAccount"
+            />
+            <p
+              v-if="selectedPinnedDedicatedAccount?.group_name"
+              class="mt-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+            >
+              {{ t('dedicatedAccounts.keys.autoGroupSynced', { group: selectedPinnedDedicatedAccount.group_name }) }}
+            </p>
+          </div>
+
+          <!-- Zero-Overflow Guarantee Banner -->
+          <div
+            v-if="formData.routing_mode !== 'public'"
+            class="rounded-lg bg-emerald-50/90 px-3 py-2 text-[11px] leading-relaxed text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+          >
+            {{ t('dedicatedAccounts.keys.zeroOverflowNotice') }}
+          </div>
+        </div>
+
+        <fieldset v-if="!showEditModal && formData.routing_mode !== 'pinned'" data-tour="key-form-provider">
           <legend class="input-label">{{ t('keys.providerLabel') }}</legend>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <label
@@ -542,7 +683,7 @@
           </p>
         </fieldset>
 
-        <div>
+        <div v-if="formData.routing_mode !== 'pinned'">
           <label class="input-label" for="key-form-group">{{ t('keys.groupLabel') }}</label>
           <Select
             :key="showEditModal ? 'edit' : createProvider"
@@ -1216,7 +1357,7 @@
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
-import { keysAPI, authAPI, usageAPI, userGroupsAPI } from '@/api'
+import { keysAPI, dedicatedAccountsAPI, authAPI, usageAPI, userGroupsAPI } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 import BulkEditKeysModal from '@/components/keys/BulkEditKeysModal.vue'
@@ -1232,7 +1373,7 @@ import BulkEditKeysModal from '@/components/keys/BulkEditKeysModal.vue'
 	import EndpointPopover from '@/components/keys/EndpointPopover.vue'
 	import GroupBadge from '@/components/common/GroupBadge.vue'
 	import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
-	import type { ApiKey, Group, PublicSettings, SubscriptionType, GroupPlatform, UpdateApiKeyRequest } from '@/types'
+	import type { ApiKey, Group, PublicSettings, SubscriptionType, GroupPlatform, UpdateApiKeyRequest, UserDedicatedAccountView } from '@/types'
 import type { Column } from '@/components/common/types'
 import type { BatchApiKeyUsageStats } from '@/api/usage'
 import { formatDateTime } from '@/utils/format'
@@ -1439,9 +1580,13 @@ const setGroupButtonRef = (keyId: number, el: Element | ComponentPublicInstance 
   }
 }
 
+const ownedDedicatedAccounts = ref<UserDedicatedAccountView[]>([])
+
 const formData = ref({
   name: '',
   group_id: null as number | null,
+  routing_mode: 'public' as 'public' | 'pinned' | 'pool',
+  dedicated_account_id: null as number | null,
   status: 'active' as 'active' | 'inactive',
   use_custom_key: false,
   custom_key: '',
@@ -1460,6 +1605,52 @@ const formData = ref({
   expiration_preset: '30' as '7' | '30' | '90' | 'custom',
   expiration_date: ''
 })
+
+const dedicatedAccountOptions = computed(() =>
+  ownedDedicatedAccounts.value.map((acc) => ({
+    value: acc.id,
+    label: `${acc.display_name} (${acc.platform.toUpperCase()}${acc.group_name ? ' · ' + acc.group_name : ''})`
+  }))
+)
+
+const selectedPinnedDedicatedAccount = computed(() =>
+  ownedDedicatedAccounts.value.find((acc) => acc.id === formData.value.dedicated_account_id) || null
+)
+
+const syncGroupFromDedicatedAccount = (accountId: number | null) => {
+  if (!accountId) return
+  const acc = ownedDedicatedAccounts.value.find((item) => item.id === accountId)
+  if (acc?.group_id) {
+    createProvider.value = getKeyGroupProvider(acc.platform)
+    formData.value.group_id = acc.group_id
+  }
+}
+
+const onSelectDedicatedAccount = (val: string | number | boolean | null) => {
+  const numVal = typeof val === 'number' ? val : val ? Number(val) : null
+  formData.value.dedicated_account_id = numVal
+  syncGroupFromDedicatedAccount(numVal)
+}
+
+const setRoutingMode = (mode: 'public' | 'pinned' | 'pool') => {
+  formData.value.routing_mode = mode
+  if (mode === 'pinned') {
+    if (!formData.value.dedicated_account_id && ownedDedicatedAccounts.value.length > 0) {
+      formData.value.dedicated_account_id = ownedDedicatedAccounts.value[0].id
+    }
+    syncGroupFromDedicatedAccount(formData.value.dedicated_account_id)
+  } else if (mode === 'pool') {
+    formData.value.dedicated_account_id = null
+    const firstDedGroup = ownedDedicatedAccounts.value.find((a) => a.group_id)?.group_id
+    if (firstDedGroup && !formData.value.group_id) {
+      const acc = ownedDedicatedAccounts.value.find((a) => a.group_id === firstDedGroup)
+      if (acc) createProvider.value = getKeyGroupProvider(acc.platform)
+      formData.value.group_id = firstDedGroup
+    }
+  } else {
+    formData.value.dedicated_account_id = null
+  }
+}
 
 // 自定义Key验证
 const customKeyError = computed(() => {
@@ -1520,14 +1711,15 @@ const onStatusFilterChange = (value: string | number | boolean | null) => {
   onFilterChange()
 }
 
-// Convert groups to Select options format with rate multiplier and subscription type
-const groupOptions = computed(() =>
-  groups.value.map((group) => ({
+// Convert groups to Select options format with rate multiplier and subscription type,
+// also merging any exclusive group bound to the user's owned dedicated accounts.
+const groupOptions = computed(() => {
+  const base = groups.value.map((group) => ({
     value: group.id,
     label: group.name,
     description: group.description,
     rate: group.rate_multiplier,
-    userRate: userGroupRates.value[group.id] ?? null,
+    userRate: (userGroupRates.value[group.id] ?? null) as number | null,
     peakRateEnabled: group.peak_rate_enabled,
     peakStart: group.peak_start,
     peakEnd: group.peak_end,
@@ -1535,13 +1727,33 @@ const groupOptions = computed(() =>
     subscriptionType: group.subscription_type,
     platform: group.platform
   }))
-)
+  const seen = new Set(base.map((g) => g.value))
+  for (const acc of ownedDedicatedAccounts.value) {
+    if (acc.group_id && !seen.has(acc.group_id)) {
+      seen.add(acc.group_id)
+      base.push({
+        value: acc.group_id,
+        label: acc.group_name || `#${acc.group_id}`,
+        description: null,
+        rate: 0,
+        userRate: null,
+        peakRateEnabled: false,
+        peakStart: '',
+        peakEnd: '',
+        peakRateMultiplier: 1,
+        subscriptionType: 'standard' as SubscriptionType,
+        platform: acc.platform
+      })
+    }
+  }
+  return base
+})
 
 const createProvider = ref<KeyGroupProvider>('anthropic')
 const createProviderOptions = computed(() => KEY_GROUP_PROVIDERS.map((value) => ({
   value,
   label: t(`keys.providers.${value}`),
-  count: groups.value.filter((group) => getKeyGroupProvider(group.platform) === value).length
+  count: groupOptions.value.filter((group) => getKeyGroupProvider(group.platform) === value).length
 })))
 
 const formGroupOptions = computed(() => showEditModal.value
@@ -1557,7 +1769,7 @@ const selectCreateProvider = (provider: KeyGroupProvider) => {
 
 // Also handles groups arriving after the create dialog has already opened.
 watch([showCreateModal, createProviderOptions], ([isOpen, providers], [wasOpen]) => {
-  if (!isOpen) return
+  if (!isOpen || formData.value.routing_mode === 'pinned') return
   if (!wasOpen || !providers.some((provider) => provider.value === createProvider.value && provider.count > 0)) {
     selectCreateProvider(providers.find((provider) => provider.count > 0)?.value ?? 'anthropic')
   }
@@ -1716,9 +1928,16 @@ const editKey = (key: ApiKey) => {
   selectedKey.value = key
   const hasIPRestriction = (key.ip_whitelist?.length > 0) || (key.ip_blacklist?.length > 0)
   const hasExpiration = !!key.expires_at
+  const routingMode: 'public' | 'pinned' | 'pool' = key.dedicated_account_id
+    ? 'pinned'
+    : key.dedicated_pool_mode
+      ? 'pool'
+      : 'public'
   formData.value = {
     name: key.name,
     group_id: key.group_id,
+    routing_mode: routingMode,
+    dedicated_account_id: key.dedicated_account_id ?? null,
     status: key.status === 'quota_exhausted' || key.status === 'expired' ? 'inactive' : key.status,
     use_custom_key: false,
     custom_key: '',
@@ -1817,8 +2036,16 @@ const confirmDelete = (key: ApiKey) => {
 }
 
 const handleSubmit = async () => {
-  // Validate group_id is required
-  if (formData.value.group_id === null) {
+  if (formData.value.routing_mode === 'pinned') {
+    if (!formData.value.dedicated_account_id) {
+      appStore.showError(t('dedicatedAccounts.keys.dedicatedRequired'))
+      return
+    }
+    syncGroupFromDedicatedAccount(formData.value.dedicated_account_id)
+  }
+
+  // Validate group_id is required (unless backend auto-resolves from dedicated_account_id)
+  if (formData.value.group_id === null && formData.value.routing_mode !== 'pinned') {
     appStore.showError(t('keys.groupRequired'))
     return
   }
@@ -1884,6 +2111,19 @@ const handleSubmit = async () => {
         rate_limit_1d: rateLimitData.rate_limit_1d,
         rate_limit_7d: rateLimitData.rate_limit_7d,
       }
+      if (formData.value.routing_mode === 'pinned' && formData.value.dedicated_account_id) {
+        updates.dedicated_account_id = formData.value.dedicated_account_id
+        updates.dedicated_pool_mode = false
+        updates.clear_dedicated_account = false
+      } else if (formData.value.routing_mode === 'pool') {
+        updates.dedicated_account_id = null
+        updates.clear_dedicated_account = true
+        updates.dedicated_pool_mode = true
+      } else {
+        updates.dedicated_account_id = null
+        updates.clear_dedicated_account = true
+        updates.dedicated_pool_mode = false
+      }
       if (shouldSubmitEditStatus(selectedKey.value, formData.value.status)) {
         updates.status = formData.value.status
       }
@@ -1891,6 +2131,12 @@ const handleSubmit = async () => {
       appStore.showSuccess(t('keys.keyUpdatedSuccess'))
     } else {
       const customKey = formData.value.use_custom_key ? formData.value.custom_key : undefined
+      const dedicatedOptions =
+        formData.value.routing_mode === 'pinned' && formData.value.dedicated_account_id
+          ? { dedicated_account_id: formData.value.dedicated_account_id, dedicated_pool_mode: false }
+          : formData.value.routing_mode === 'pool'
+            ? { dedicated_account_id: null, dedicated_pool_mode: true }
+            : undefined
       await keysAPI.create(
         formData.value.name,
         formData.value.group_id,
@@ -1899,7 +2145,8 @@ const handleSubmit = async () => {
         ipBlacklist,
         quota,
         expiresInDays,
-        rateLimitData
+        rateLimitData,
+        dedicatedOptions
       )
       appStore.showSuccess(t('keys.keyCreatedSuccess'))
       // Only advance tour if active, on submit step, and creation succeeded
@@ -1945,6 +2192,8 @@ const closeModals = () => {
   formData.value = {
     name: '',
     group_id: null,
+    routing_mode: 'public',
+    dedicated_account_id: null,
     status: 'active',
     use_custom_key: false,
     custom_key: '',
@@ -2097,10 +2346,19 @@ function formatResetTime(resetAt: string | null): string {
   return `${mins}m`
 }
 
+const loadOwnedDedicatedAccounts = async () => {
+  try {
+    ownedDedicatedAccounts.value = await dedicatedAccountsAPI.listMyAccounts()
+  } catch {
+    ownedDedicatedAccounts.value = []
+  }
+}
+
 onMounted(() => {
   loadSavedColumns()
   loadApiKeys()
   loadGroups()
+  loadOwnedDedicatedAccounts()
   loadUserGroupRates()
   loadPublicSettings()
   document.addEventListener('click', closeGroupSelector)

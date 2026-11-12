@@ -3764,6 +3764,12 @@
           :mixed-scheduling="mixedScheduling"
           data-tour="account-form-groups"
         />
+
+        <!-- Dedicated Ownership & Marketplace Sale Configuration -->
+        <AccountDedicatedSaleSection
+          v-model="dedicatedSaleState"
+          :has-groups-selected="form.group_ids.length > 0"
+        />
       </div>
 
     </form>
@@ -4173,6 +4179,13 @@ import Icon from '@/components/icons/Icon.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
 import ProxyAdBanner from '@/components/common/ProxyAdBanner.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
+import AccountDedicatedSaleSection from '@/components/account/AccountDedicatedSaleSection.vue'
+import {
+  buildDedicatedSaleCreatePatch,
+  createDefaultDedicatedSaleFormState,
+  validateDedicatedSaleForm,
+  type DedicatedSaleFormState
+} from '@/components/account/dedicatedSaleForm'
 import ModelWhitelistSelector from '@/components/account/ModelWhitelistSelector.vue'
 import QuotaLimitCard from '@/components/account/QuotaLimitCard.vue'
 import Toggle from '@/components/common/Toggle.vue'
@@ -5569,10 +5582,19 @@ const ensureAntigravityMixedChannelConfirmed = async (onConfirm: () => Promise<v
   }
 }
 
+const dedicatedSaleState = ref<DedicatedSaleFormState>(createDefaultDedicatedSaleFormState())
+
+const withDedicatedSalePatch = (payload: CreateAccountRequest): CreateAccountRequest => ({
+  ...payload,
+  ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
+})
+
 const submitCreateAccount = async (payload: CreateAccountRequest) => {
   submitting.value = true
   try {
-    const account = await adminAPI.accounts.create(withAntigravityConfirmFlag(payload))
+    const account = await adminAPI.accounts.create(
+      withDedicatedSalePatch(withAntigravityConfirmFlag(payload))
+    )
     const modelMapping = payload.credentials.model_mapping
     const hasConcreteMappedTarget = payload.type === 'apikey' &&
       typeof modelMapping === 'object' &&
@@ -5638,6 +5660,7 @@ const resetForm = () => {
   form.rate_multiplier = 1
   form.group_ids = []
   form.expires_at = null
+  dedicatedSaleState.value = createDefaultDedicatedSaleFormState()
   accountCategory.value = 'oauth-based'
   addMethod.value = 'oauth'
   accountMode.value = 'payg'
@@ -5957,6 +5980,12 @@ const handleVertexServiceAccountDrop = async (event: DragEvent) => {
 }
 
 const handleSubmit = async () => {
+  const dedicatedError = validateDedicatedSaleForm(dedicatedSaleState.value, t)
+  if (dedicatedError) {
+    appStore.showError(dedicatedError)
+    return
+  }
+
   // For OAuth-based type, handle OAuth flow (goes to step 2)
   if (isOAuthFlow.value) {
     if (!isGrokSSOInputMethod.value && !form.name.trim()) {
@@ -6436,7 +6465,8 @@ const handleGrokValidateRT = async (refreshTokenInput: string) => {
           rate_multiplier: form.rate_multiplier,
           group_ids: form.group_ids,
           expires_at: form.expires_at,
-          auto_pause_on_expired: autoPauseOnExpired.value
+          auto_pause_on_expired: autoPauseOnExpired.value,
+          ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
         })
         successCount++
       } catch (error: any) {
@@ -6613,7 +6643,8 @@ const handleGrokAuthorizePassword = async (emailPasswordInput: string) => {
           rate_multiplier: form.rate_multiplier,
           group_ids: form.group_ids,
           expires_at: form.expires_at,
-          auto_pause_on_expired: autoPauseOnExpired.value
+          auto_pause_on_expired: autoPauseOnExpired.value,
+          ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
         })
         successCount++
       } catch (error: any) {
@@ -6712,7 +6743,8 @@ const handleOpenAIExchange = async (authCode: string) => {
         rate_multiplier: form.rate_multiplier,
         group_ids: form.group_ids,
         expires_at: form.expires_at,
-        auto_pause_on_expired: autoPauseOnExpired.value
+        auto_pause_on_expired: autoPauseOnExpired.value,
+        ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
       })
       appStore.showSuccess(t('admin.accounts.accountCreated'))
     }
@@ -6993,7 +7025,8 @@ const handleOpenAIBatchRT = async (refreshTokenInput: string, clientId?: string)
             rate_multiplier: form.rate_multiplier,
             group_ids: form.group_ids,
             expires_at: form.expires_at,
-            auto_pause_on_expired: autoPauseOnExpired.value
+            auto_pause_on_expired: autoPauseOnExpired.value,
+            ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
           })
         }
 
@@ -7092,7 +7125,8 @@ const handleAntigravityValidateRT = async (refreshTokenInput: string) => {
           rate_multiplier: form.rate_multiplier,
           group_ids: form.group_ids,
           expires_at: form.expires_at,
-          auto_pause_on_expired: autoPauseOnExpired.value
+          auto_pause_on_expired: autoPauseOnExpired.value,
+          ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
         })
         await adminAPI.accounts.create(createPayload)
         successCount++
@@ -7473,7 +7507,8 @@ const handleCookieAuth = async (sessionKey: string) => {
           rate_multiplier: form.rate_multiplier,
           group_ids: form.group_ids,
           expires_at: form.expires_at,
-          auto_pause_on_expired: autoPauseOnExpired.value
+          auto_pause_on_expired: autoPauseOnExpired.value,
+          ...buildDedicatedSaleCreatePatch(dedicatedSaleState.value)
         })
 
         successCount++

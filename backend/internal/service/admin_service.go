@@ -423,6 +423,15 @@ type CreateAccountInput struct {
 	// SkipMixedChannelCheck skips the mixed channel risk check when binding groups.
 	// This should only be set when the caller has explicitly confirmed the risk.
 	SkipMixedChannelCheck bool
+
+	// 独享账号与上架买断配置
+	OwnerUserID     *int64
+	DisplayAlias    *string
+	SaleStatus      string
+	SalePrice       *float64
+	DailyPriceDecay *float64
+	MinSalePrice    *float64
+	SaleDescription *string
 }
 
 // ShadowOptions is the input for CreateShadow.
@@ -453,6 +462,16 @@ type UpdateAccountInput struct {
 	ProbeEnabled          *bool
 	RateSyncEnabled       *bool
 	SkipMixedChannelCheck bool // 跳过混合渠道检查（用户已确认风险）
+
+	// 独享账号与上架买断配置（nil 表示不修改）
+	OwnerUserID      *int64
+	ClearOwnerUserID bool
+	DisplayAlias     *string
+	SaleStatus       *string
+	SalePrice        *float64
+	DailyPriceDecay  *float64
+	MinSalePrice     *float64
+	SaleDescription  *string
 }
 
 // BulkUpdateAccountsInput describes the payload for bulk updating accounts.
@@ -474,15 +493,25 @@ type BulkUpdateAccountsInput struct {
 	// SkipMixedChannelCheck skips the mixed channel risk check when binding groups.
 	// This should only be set when the caller has explicitly confirmed the risk.
 	SkipMixedChannelCheck bool
+
+	// 独享与上架批量编辑字段
+	OwnerUserID      *int64
+	ClearOwnerUserID bool
+	SaleStatus       *string
+	SalePrice        *float64
+	DailyPriceDecay  *float64
+	MinSalePrice     *float64
+	SaleDescription  *string
 }
 
 type BulkUpdateAccountFilters struct {
-	Platform    string
-	Type        string
-	Status      string
-	Group       string
-	Search      string
-	PrivacyMode string
+	Platform      string
+	Type          string
+	Status        string
+	Group         string
+	Search        string
+	PrivacyMode   string
+	DedicatedMode string
 }
 
 // BulkUpdateAccountResult captures the result for a single account update.

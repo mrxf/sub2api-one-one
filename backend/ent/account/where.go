@@ -195,6 +195,61 @@ func ParentAccountID(v int64) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldParentAccountID, v))
 }
 
+// OwnerUserID applies equality check predicate on the "owner_user_id" field. It's identical to OwnerUserIDEQ.
+func OwnerUserID(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldOwnerUserID, v))
+}
+
+// DisplayAlias applies equality check predicate on the "display_alias" field. It's identical to DisplayAliasEQ.
+func DisplayAlias(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDisplayAlias, v))
+}
+
+// SaleStatus applies equality check predicate on the "sale_status" field. It's identical to SaleStatusEQ.
+func SaleStatus(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSaleStatus, v))
+}
+
+// SalePrice applies equality check predicate on the "sale_price" field. It's identical to SalePriceEQ.
+func SalePrice(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSalePrice, v))
+}
+
+// DailyPriceDecay applies equality check predicate on the "daily_price_decay" field. It's identical to DailyPriceDecayEQ.
+func DailyPriceDecay(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDailyPriceDecay, v))
+}
+
+// MinSalePrice applies equality check predicate on the "min_sale_price" field. It's identical to MinSalePriceEQ.
+func MinSalePrice(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldMinSalePrice, v))
+}
+
+// ListedAt applies equality check predicate on the "listed_at" field. It's identical to ListedAtEQ.
+func ListedAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldListedAt, v))
+}
+
+// SoldAt applies equality check predicate on the "sold_at" field. It's identical to SoldAtEQ.
+func SoldAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSoldAt, v))
+}
+
+// SaleDescription applies equality check predicate on the "sale_description" field. It's identical to SaleDescriptionEQ.
+func SaleDescription(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSaleDescription, v))
+}
+
+// LockedByOrderID applies equality check predicate on the "locked_by_order_id" field. It's identical to LockedByOrderIDEQ.
+func LockedByOrderID(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldLockedByOrderID, v))
+}
+
+// LockedUntil applies equality check predicate on the "locked_until" field. It's identical to LockedUntilEQ.
+func LockedUntil(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldLockedUntil, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCreatedAt, v))
@@ -1603,6 +1658,571 @@ func QuotaDimensionIn(vs ...QuotaDimension) predicate.Account {
 // QuotaDimensionNotIn applies the NotIn predicate on the "quota_dimension" field.
 func QuotaDimensionNotIn(vs ...QuotaDimension) predicate.Account {
 	return predicate.Account(sql.FieldNotIn(FieldQuotaDimension, vs...))
+}
+
+// OwnerUserIDEQ applies the EQ predicate on the "owner_user_id" field.
+func OwnerUserIDEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDNEQ applies the NEQ predicate on the "owner_user_id" field.
+func OwnerUserIDNEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDIn applies the In predicate on the "owner_user_id" field.
+func OwnerUserIDIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldOwnerUserID, vs...))
+}
+
+// OwnerUserIDNotIn applies the NotIn predicate on the "owner_user_id" field.
+func OwnerUserIDNotIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldOwnerUserID, vs...))
+}
+
+// OwnerUserIDGT applies the GT predicate on the "owner_user_id" field.
+func OwnerUserIDGT(v int64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDGTE applies the GTE predicate on the "owner_user_id" field.
+func OwnerUserIDGTE(v int64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDLT applies the LT predicate on the "owner_user_id" field.
+func OwnerUserIDLT(v int64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDLTE applies the LTE predicate on the "owner_user_id" field.
+func OwnerUserIDLTE(v int64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldOwnerUserID, v))
+}
+
+// OwnerUserIDIsNil applies the IsNil predicate on the "owner_user_id" field.
+func OwnerUserIDIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldOwnerUserID))
+}
+
+// OwnerUserIDNotNil applies the NotNil predicate on the "owner_user_id" field.
+func OwnerUserIDNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldOwnerUserID))
+}
+
+// DisplayAliasEQ applies the EQ predicate on the "display_alias" field.
+func DisplayAliasEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDisplayAlias, v))
+}
+
+// DisplayAliasNEQ applies the NEQ predicate on the "display_alias" field.
+func DisplayAliasNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldDisplayAlias, v))
+}
+
+// DisplayAliasIn applies the In predicate on the "display_alias" field.
+func DisplayAliasIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldDisplayAlias, vs...))
+}
+
+// DisplayAliasNotIn applies the NotIn predicate on the "display_alias" field.
+func DisplayAliasNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldDisplayAlias, vs...))
+}
+
+// DisplayAliasGT applies the GT predicate on the "display_alias" field.
+func DisplayAliasGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldDisplayAlias, v))
+}
+
+// DisplayAliasGTE applies the GTE predicate on the "display_alias" field.
+func DisplayAliasGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldDisplayAlias, v))
+}
+
+// DisplayAliasLT applies the LT predicate on the "display_alias" field.
+func DisplayAliasLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldDisplayAlias, v))
+}
+
+// DisplayAliasLTE applies the LTE predicate on the "display_alias" field.
+func DisplayAliasLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldDisplayAlias, v))
+}
+
+// DisplayAliasContains applies the Contains predicate on the "display_alias" field.
+func DisplayAliasContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldDisplayAlias, v))
+}
+
+// DisplayAliasHasPrefix applies the HasPrefix predicate on the "display_alias" field.
+func DisplayAliasHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldDisplayAlias, v))
+}
+
+// DisplayAliasHasSuffix applies the HasSuffix predicate on the "display_alias" field.
+func DisplayAliasHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldDisplayAlias, v))
+}
+
+// DisplayAliasEqualFold applies the EqualFold predicate on the "display_alias" field.
+func DisplayAliasEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldDisplayAlias, v))
+}
+
+// DisplayAliasContainsFold applies the ContainsFold predicate on the "display_alias" field.
+func DisplayAliasContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldDisplayAlias, v))
+}
+
+// SaleStatusEQ applies the EQ predicate on the "sale_status" field.
+func SaleStatusEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSaleStatus, v))
+}
+
+// SaleStatusNEQ applies the NEQ predicate on the "sale_status" field.
+func SaleStatusNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldSaleStatus, v))
+}
+
+// SaleStatusIn applies the In predicate on the "sale_status" field.
+func SaleStatusIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldSaleStatus, vs...))
+}
+
+// SaleStatusNotIn applies the NotIn predicate on the "sale_status" field.
+func SaleStatusNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldSaleStatus, vs...))
+}
+
+// SaleStatusGT applies the GT predicate on the "sale_status" field.
+func SaleStatusGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldSaleStatus, v))
+}
+
+// SaleStatusGTE applies the GTE predicate on the "sale_status" field.
+func SaleStatusGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldSaleStatus, v))
+}
+
+// SaleStatusLT applies the LT predicate on the "sale_status" field.
+func SaleStatusLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldSaleStatus, v))
+}
+
+// SaleStatusLTE applies the LTE predicate on the "sale_status" field.
+func SaleStatusLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldSaleStatus, v))
+}
+
+// SaleStatusContains applies the Contains predicate on the "sale_status" field.
+func SaleStatusContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldSaleStatus, v))
+}
+
+// SaleStatusHasPrefix applies the HasPrefix predicate on the "sale_status" field.
+func SaleStatusHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldSaleStatus, v))
+}
+
+// SaleStatusHasSuffix applies the HasSuffix predicate on the "sale_status" field.
+func SaleStatusHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldSaleStatus, v))
+}
+
+// SaleStatusEqualFold applies the EqualFold predicate on the "sale_status" field.
+func SaleStatusEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldSaleStatus, v))
+}
+
+// SaleStatusContainsFold applies the ContainsFold predicate on the "sale_status" field.
+func SaleStatusContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldSaleStatus, v))
+}
+
+// SalePriceEQ applies the EQ predicate on the "sale_price" field.
+func SalePriceEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSalePrice, v))
+}
+
+// SalePriceNEQ applies the NEQ predicate on the "sale_price" field.
+func SalePriceNEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldSalePrice, v))
+}
+
+// SalePriceIn applies the In predicate on the "sale_price" field.
+func SalePriceIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldSalePrice, vs...))
+}
+
+// SalePriceNotIn applies the NotIn predicate on the "sale_price" field.
+func SalePriceNotIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldSalePrice, vs...))
+}
+
+// SalePriceGT applies the GT predicate on the "sale_price" field.
+func SalePriceGT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldSalePrice, v))
+}
+
+// SalePriceGTE applies the GTE predicate on the "sale_price" field.
+func SalePriceGTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldSalePrice, v))
+}
+
+// SalePriceLT applies the LT predicate on the "sale_price" field.
+func SalePriceLT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldSalePrice, v))
+}
+
+// SalePriceLTE applies the LTE predicate on the "sale_price" field.
+func SalePriceLTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldSalePrice, v))
+}
+
+// DailyPriceDecayEQ applies the EQ predicate on the "daily_price_decay" field.
+func DailyPriceDecayEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldDailyPriceDecay, v))
+}
+
+// DailyPriceDecayNEQ applies the NEQ predicate on the "daily_price_decay" field.
+func DailyPriceDecayNEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldDailyPriceDecay, v))
+}
+
+// DailyPriceDecayIn applies the In predicate on the "daily_price_decay" field.
+func DailyPriceDecayIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldDailyPriceDecay, vs...))
+}
+
+// DailyPriceDecayNotIn applies the NotIn predicate on the "daily_price_decay" field.
+func DailyPriceDecayNotIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldDailyPriceDecay, vs...))
+}
+
+// DailyPriceDecayGT applies the GT predicate on the "daily_price_decay" field.
+func DailyPriceDecayGT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldDailyPriceDecay, v))
+}
+
+// DailyPriceDecayGTE applies the GTE predicate on the "daily_price_decay" field.
+func DailyPriceDecayGTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldDailyPriceDecay, v))
+}
+
+// DailyPriceDecayLT applies the LT predicate on the "daily_price_decay" field.
+func DailyPriceDecayLT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldDailyPriceDecay, v))
+}
+
+// DailyPriceDecayLTE applies the LTE predicate on the "daily_price_decay" field.
+func DailyPriceDecayLTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldDailyPriceDecay, v))
+}
+
+// MinSalePriceEQ applies the EQ predicate on the "min_sale_price" field.
+func MinSalePriceEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldMinSalePrice, v))
+}
+
+// MinSalePriceNEQ applies the NEQ predicate on the "min_sale_price" field.
+func MinSalePriceNEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldMinSalePrice, v))
+}
+
+// MinSalePriceIn applies the In predicate on the "min_sale_price" field.
+func MinSalePriceIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldMinSalePrice, vs...))
+}
+
+// MinSalePriceNotIn applies the NotIn predicate on the "min_sale_price" field.
+func MinSalePriceNotIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldMinSalePrice, vs...))
+}
+
+// MinSalePriceGT applies the GT predicate on the "min_sale_price" field.
+func MinSalePriceGT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldMinSalePrice, v))
+}
+
+// MinSalePriceGTE applies the GTE predicate on the "min_sale_price" field.
+func MinSalePriceGTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldMinSalePrice, v))
+}
+
+// MinSalePriceLT applies the LT predicate on the "min_sale_price" field.
+func MinSalePriceLT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldMinSalePrice, v))
+}
+
+// MinSalePriceLTE applies the LTE predicate on the "min_sale_price" field.
+func MinSalePriceLTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldMinSalePrice, v))
+}
+
+// ListedAtEQ applies the EQ predicate on the "listed_at" field.
+func ListedAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldListedAt, v))
+}
+
+// ListedAtNEQ applies the NEQ predicate on the "listed_at" field.
+func ListedAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldListedAt, v))
+}
+
+// ListedAtIn applies the In predicate on the "listed_at" field.
+func ListedAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldListedAt, vs...))
+}
+
+// ListedAtNotIn applies the NotIn predicate on the "listed_at" field.
+func ListedAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldListedAt, vs...))
+}
+
+// ListedAtGT applies the GT predicate on the "listed_at" field.
+func ListedAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldListedAt, v))
+}
+
+// ListedAtGTE applies the GTE predicate on the "listed_at" field.
+func ListedAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldListedAt, v))
+}
+
+// ListedAtLT applies the LT predicate on the "listed_at" field.
+func ListedAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldListedAt, v))
+}
+
+// ListedAtLTE applies the LTE predicate on the "listed_at" field.
+func ListedAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldListedAt, v))
+}
+
+// ListedAtIsNil applies the IsNil predicate on the "listed_at" field.
+func ListedAtIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldListedAt))
+}
+
+// ListedAtNotNil applies the NotNil predicate on the "listed_at" field.
+func ListedAtNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldListedAt))
+}
+
+// SoldAtEQ applies the EQ predicate on the "sold_at" field.
+func SoldAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSoldAt, v))
+}
+
+// SoldAtNEQ applies the NEQ predicate on the "sold_at" field.
+func SoldAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldSoldAt, v))
+}
+
+// SoldAtIn applies the In predicate on the "sold_at" field.
+func SoldAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldSoldAt, vs...))
+}
+
+// SoldAtNotIn applies the NotIn predicate on the "sold_at" field.
+func SoldAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldSoldAt, vs...))
+}
+
+// SoldAtGT applies the GT predicate on the "sold_at" field.
+func SoldAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldSoldAt, v))
+}
+
+// SoldAtGTE applies the GTE predicate on the "sold_at" field.
+func SoldAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldSoldAt, v))
+}
+
+// SoldAtLT applies the LT predicate on the "sold_at" field.
+func SoldAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldSoldAt, v))
+}
+
+// SoldAtLTE applies the LTE predicate on the "sold_at" field.
+func SoldAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldSoldAt, v))
+}
+
+// SoldAtIsNil applies the IsNil predicate on the "sold_at" field.
+func SoldAtIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldSoldAt))
+}
+
+// SoldAtNotNil applies the NotNil predicate on the "sold_at" field.
+func SoldAtNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldSoldAt))
+}
+
+// SaleDescriptionEQ applies the EQ predicate on the "sale_description" field.
+func SaleDescriptionEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldSaleDescription, v))
+}
+
+// SaleDescriptionNEQ applies the NEQ predicate on the "sale_description" field.
+func SaleDescriptionNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldSaleDescription, v))
+}
+
+// SaleDescriptionIn applies the In predicate on the "sale_description" field.
+func SaleDescriptionIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldSaleDescription, vs...))
+}
+
+// SaleDescriptionNotIn applies the NotIn predicate on the "sale_description" field.
+func SaleDescriptionNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldSaleDescription, vs...))
+}
+
+// SaleDescriptionGT applies the GT predicate on the "sale_description" field.
+func SaleDescriptionGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldSaleDescription, v))
+}
+
+// SaleDescriptionGTE applies the GTE predicate on the "sale_description" field.
+func SaleDescriptionGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldSaleDescription, v))
+}
+
+// SaleDescriptionLT applies the LT predicate on the "sale_description" field.
+func SaleDescriptionLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldSaleDescription, v))
+}
+
+// SaleDescriptionLTE applies the LTE predicate on the "sale_description" field.
+func SaleDescriptionLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldSaleDescription, v))
+}
+
+// SaleDescriptionContains applies the Contains predicate on the "sale_description" field.
+func SaleDescriptionContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldSaleDescription, v))
+}
+
+// SaleDescriptionHasPrefix applies the HasPrefix predicate on the "sale_description" field.
+func SaleDescriptionHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldSaleDescription, v))
+}
+
+// SaleDescriptionHasSuffix applies the HasSuffix predicate on the "sale_description" field.
+func SaleDescriptionHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldSaleDescription, v))
+}
+
+// SaleDescriptionEqualFold applies the EqualFold predicate on the "sale_description" field.
+func SaleDescriptionEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldSaleDescription, v))
+}
+
+// SaleDescriptionContainsFold applies the ContainsFold predicate on the "sale_description" field.
+func SaleDescriptionContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldSaleDescription, v))
+}
+
+// LockedByOrderIDEQ applies the EQ predicate on the "locked_by_order_id" field.
+func LockedByOrderIDEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDNEQ applies the NEQ predicate on the "locked_by_order_id" field.
+func LockedByOrderIDNEQ(v int64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDIn applies the In predicate on the "locked_by_order_id" field.
+func LockedByOrderIDIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldLockedByOrderID, vs...))
+}
+
+// LockedByOrderIDNotIn applies the NotIn predicate on the "locked_by_order_id" field.
+func LockedByOrderIDNotIn(vs ...int64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldLockedByOrderID, vs...))
+}
+
+// LockedByOrderIDGT applies the GT predicate on the "locked_by_order_id" field.
+func LockedByOrderIDGT(v int64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDGTE applies the GTE predicate on the "locked_by_order_id" field.
+func LockedByOrderIDGTE(v int64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDLT applies the LT predicate on the "locked_by_order_id" field.
+func LockedByOrderIDLT(v int64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDLTE applies the LTE predicate on the "locked_by_order_id" field.
+func LockedByOrderIDLTE(v int64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldLockedByOrderID, v))
+}
+
+// LockedByOrderIDIsNil applies the IsNil predicate on the "locked_by_order_id" field.
+func LockedByOrderIDIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldLockedByOrderID))
+}
+
+// LockedByOrderIDNotNil applies the NotNil predicate on the "locked_by_order_id" field.
+func LockedByOrderIDNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldLockedByOrderID))
+}
+
+// LockedUntilEQ applies the EQ predicate on the "locked_until" field.
+func LockedUntilEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldLockedUntil, v))
+}
+
+// LockedUntilNEQ applies the NEQ predicate on the "locked_until" field.
+func LockedUntilNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldLockedUntil, v))
+}
+
+// LockedUntilIn applies the In predicate on the "locked_until" field.
+func LockedUntilIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldLockedUntil, vs...))
+}
+
+// LockedUntilNotIn applies the NotIn predicate on the "locked_until" field.
+func LockedUntilNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldLockedUntil, vs...))
+}
+
+// LockedUntilGT applies the GT predicate on the "locked_until" field.
+func LockedUntilGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldLockedUntil, v))
+}
+
+// LockedUntilGTE applies the GTE predicate on the "locked_until" field.
+func LockedUntilGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldLockedUntil, v))
+}
+
+// LockedUntilLT applies the LT predicate on the "locked_until" field.
+func LockedUntilLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldLockedUntil, v))
+}
+
+// LockedUntilLTE applies the LTE predicate on the "locked_until" field.
+func LockedUntilLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldLockedUntil, v))
+}
+
+// LockedUntilIsNil applies the IsNil predicate on the "locked_until" field.
+func LockedUntilIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldLockedUntil))
+}
+
+// LockedUntilNotNil applies the NotNil predicate on the "locked_until" field.
+func LockedUntilNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldLockedUntil))
 }
 
 // HasGroups applies the HasEdge predicate on the "groups" edge.

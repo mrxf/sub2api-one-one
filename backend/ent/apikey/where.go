@@ -160,6 +160,16 @@ func Window7dStart(v time.Time) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldWindow7dStart, v))
 }
 
+// DedicatedAccountID applies equality check predicate on the "dedicated_account_id" field. It's identical to DedicatedAccountIDEQ.
+func DedicatedAccountID(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldDedicatedAccountID, v))
+}
+
+// DedicatedPoolMode applies equality check predicate on the "dedicated_pool_mode" field. It's identical to DedicatedPoolModeEQ.
+func DedicatedPoolMode(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldDedicatedPoolMode, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldCreatedAt, v))
@@ -1123,6 +1133,66 @@ func Window7dStartIsNil() predicate.APIKey {
 // Window7dStartNotNil applies the NotNil predicate on the "window_7d_start" field.
 func Window7dStartNotNil() predicate.APIKey {
 	return predicate.APIKey(sql.FieldNotNull(FieldWindow7dStart))
+}
+
+// DedicatedAccountIDEQ applies the EQ predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDEQ(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDNEQ applies the NEQ predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNEQ(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDIn applies the In predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDIn(vs ...int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldIn(FieldDedicatedAccountID, vs...))
+}
+
+// DedicatedAccountIDNotIn applies the NotIn predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNotIn(vs ...int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotIn(FieldDedicatedAccountID, vs...))
+}
+
+// DedicatedAccountIDGT applies the GT predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDGT(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGT(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDGTE applies the GTE predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDGTE(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGTE(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDLT applies the LT predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDLT(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLT(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDLTE applies the LTE predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDLTE(v int64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLTE(FieldDedicatedAccountID, v))
+}
+
+// DedicatedAccountIDIsNil applies the IsNil predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDIsNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldIsNull(FieldDedicatedAccountID))
+}
+
+// DedicatedAccountIDNotNil applies the NotNil predicate on the "dedicated_account_id" field.
+func DedicatedAccountIDNotNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotNull(FieldDedicatedAccountID))
+}
+
+// DedicatedPoolModeEQ applies the EQ predicate on the "dedicated_pool_mode" field.
+func DedicatedPoolModeEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldDedicatedPoolMode, v))
+}
+
+// DedicatedPoolModeNEQ applies the NEQ predicate on the "dedicated_pool_mode" field.
+func DedicatedPoolModeNEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldDedicatedPoolMode, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

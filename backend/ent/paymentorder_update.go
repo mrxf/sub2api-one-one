@@ -386,6 +386,33 @@ func (_u *PaymentOrderUpdate) ClearSubscriptionDays() *PaymentOrderUpdate {
 	return _u
 }
 
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdate) SetDedicatedAccountID(v int64) *PaymentOrderUpdate {
+	_u.mutation.ResetDedicatedAccountID()
+	_u.mutation.SetDedicatedAccountID(v)
+	return _u
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableDedicatedAccountID(v *int64) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetDedicatedAccountID(*v)
+	}
+	return _u
+}
+
+// AddDedicatedAccountID adds value to the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdate) AddDedicatedAccountID(v int64) *PaymentOrderUpdate {
+	_u.mutation.AddDedicatedAccountID(v)
+	return _u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdate) ClearDedicatedAccountID() *PaymentOrderUpdate {
+	_u.mutation.ClearDedicatedAccountID()
+	return _u
+}
+
 // SetProviderInstanceID sets the "provider_instance_id" field.
 func (_u *PaymentOrderUpdate) SetProviderInstanceID(v string) *PaymentOrderUpdate {
 	_u.mutation.SetProviderInstanceID(v)
@@ -968,6 +995,15 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if _u.mutation.SubscriptionDaysCleared() {
 		_spec.ClearField(paymentorder.FieldSubscriptionDays, field.TypeInt)
 	}
+	if value, ok := _u.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(paymentorder.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedDedicatedAccountID(); ok {
+		_spec.AddField(paymentorder.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if _u.mutation.DedicatedAccountIDCleared() {
+		_spec.ClearField(paymentorder.FieldDedicatedAccountID, field.TypeInt64)
+	}
 	if value, ok := _u.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)
 	}
@@ -1473,6 +1509,33 @@ func (_u *PaymentOrderUpdateOne) AddSubscriptionDays(v int) *PaymentOrderUpdateO
 // ClearSubscriptionDays clears the value of the "subscription_days" field.
 func (_u *PaymentOrderUpdateOne) ClearSubscriptionDays() *PaymentOrderUpdateOne {
 	_u.mutation.ClearSubscriptionDays()
+	return _u
+}
+
+// SetDedicatedAccountID sets the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdateOne) SetDedicatedAccountID(v int64) *PaymentOrderUpdateOne {
+	_u.mutation.ResetDedicatedAccountID()
+	_u.mutation.SetDedicatedAccountID(v)
+	return _u
+}
+
+// SetNillableDedicatedAccountID sets the "dedicated_account_id" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableDedicatedAccountID(v *int64) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetDedicatedAccountID(*v)
+	}
+	return _u
+}
+
+// AddDedicatedAccountID adds value to the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdateOne) AddDedicatedAccountID(v int64) *PaymentOrderUpdateOne {
+	_u.mutation.AddDedicatedAccountID(v)
+	return _u
+}
+
+// ClearDedicatedAccountID clears the value of the "dedicated_account_id" field.
+func (_u *PaymentOrderUpdateOne) ClearDedicatedAccountID() *PaymentOrderUpdateOne {
+	_u.mutation.ClearDedicatedAccountID()
 	return _u
 }
 
@@ -2087,6 +2150,15 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 	}
 	if _u.mutation.SubscriptionDaysCleared() {
 		_spec.ClearField(paymentorder.FieldSubscriptionDays, field.TypeInt)
+	}
+	if value, ok := _u.mutation.DedicatedAccountID(); ok {
+		_spec.SetField(paymentorder.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedDedicatedAccountID(); ok {
+		_spec.AddField(paymentorder.FieldDedicatedAccountID, field.TypeInt64, value)
+	}
+	if _u.mutation.DedicatedAccountIDCleared() {
+		_spec.ClearField(paymentorder.FieldDedicatedAccountID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.ProviderInstanceID(); ok {
 		_spec.SetField(paymentorder.FieldProviderInstanceID, field.TypeString, value)

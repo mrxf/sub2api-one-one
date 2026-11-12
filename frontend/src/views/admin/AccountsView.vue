@@ -296,6 +296,44 @@
               <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="[row.schedulable ? 'translate-x-4' : 'translate-x-0']" />
             </button>
           </template>
+          <template #cell-dedicated_sale="{ row }">
+            <div class="flex flex-col items-start gap-0.5">
+              <span
+                v-if="row.sale_status === 'listed'"
+                class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                :title="dedicatedDecayTooltip(row)"
+              >
+                <Icon name="shoppingBag" size="xs" />
+                <span>{{ t('dedicatedAccounts.admin.badges.listed', { price: formatDedicatedPrice(row.current_sale_price ?? row.sale_price) }) }}</span>
+              </span>
+              <span
+                v-else-if="row.sale_status === 'locked'"
+                class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-800 dark:bg-purple-900/40 dark:text-purple-300"
+              >
+                <span>{{ t('dedicatedAccounts.admin.badges.locked') }}</span>
+              </span>
+              <span
+                v-else-if="row.owner_user_id && row.owner_user_id > 0"
+                class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                :title="row.owner_user_email || undefined"
+              >
+                <span>{{ t('dedicatedAccounts.admin.badges.sold', { uid: row.owner_user_id }) }}</span>
+              </span>
+              <span
+                v-else
+                class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-dark-700 dark:text-gray-300"
+              >
+                {{ t('dedicatedAccounts.admin.badges.publicPool') }}
+              </span>
+              <span
+                v-if="row.owner_user_email || row.display_alias"
+                class="max-w-[140px] truncate text-[11px] text-gray-500 dark:text-gray-400"
+                :title="row.owner_user_email || row.display_alias || undefined"
+              >
+                {{ row.owner_user_email || row.display_alias }}
+              </span>
+            </div>
+          </template>
           <template #cell-today_stats="{ row }">
             <AccountTodayStatsCell
               :stats="todayStatsByAccountId[String(row.id)] ?? null"
@@ -1820,6 +1858,22 @@ function getAntigravityTierClass(row: any): string {
   }
 }
 
+const formatDedicatedPrice = (val?: number | null): string => {
+  const num = Number(val ?? 0)
+  if (!Number.isFinite(num)) return '0'
+  return Number.isInteger(num) ? String(num) : num.toFixed(2)
+}
+
+const dedicatedDecayTooltip = (row: Account): string | undefined => {
+  const decay = Number(row.daily_price_decay ?? 0)
+  if (!Number.isFinite(decay) || decay <= 0) return undefined
+  return t('dedicatedAccounts.admin.decayTooltip', {
+    base: formatDedicatedPrice(row.sale_price),
+    decay: formatDedicatedPrice(decay),
+    min: formatDedicatedPrice(row.min_sale_price || 0.01)
+  })
+}
+
 // All available columns
 const allColumns = computed(() => {
   const c = [
@@ -1830,6 +1884,7 @@ const allColumns = computed(() => {
     { key: 'capacity', label: t('admin.accounts.columns.capacity'), sortable: false },
     { key: 'status', label: t('admin.accounts.columns.status'), sortable: true },
     { key: 'schedulable', label: t('admin.accounts.columns.schedulable'), sortable: true },
+    { key: 'dedicated_sale', label: t('dedicatedAccounts.admin.columnLabel'), sortable: false },
     { key: 'today_stats', label: t('admin.accounts.columns.todayStats'), sortable: false }
   ]
   if (!authStore.isSimpleMode) {

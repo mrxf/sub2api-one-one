@@ -419,6 +419,160 @@ func (_c *AccountCreate) SetNillableQuotaDimension(v *account.QuotaDimension) *A
 	return _c
 }
 
+// SetOwnerUserID sets the "owner_user_id" field.
+func (_c *AccountCreate) SetOwnerUserID(v int64) *AccountCreate {
+	_c.mutation.SetOwnerUserID(v)
+	return _c
+}
+
+// SetNillableOwnerUserID sets the "owner_user_id" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableOwnerUserID(v *int64) *AccountCreate {
+	if v != nil {
+		_c.SetOwnerUserID(*v)
+	}
+	return _c
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (_c *AccountCreate) SetDisplayAlias(v string) *AccountCreate {
+	_c.mutation.SetDisplayAlias(v)
+	return _c
+}
+
+// SetNillableDisplayAlias sets the "display_alias" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableDisplayAlias(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetDisplayAlias(*v)
+	}
+	return _c
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (_c *AccountCreate) SetSaleStatus(v string) *AccountCreate {
+	_c.mutation.SetSaleStatus(v)
+	return _c
+}
+
+// SetNillableSaleStatus sets the "sale_status" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableSaleStatus(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetSaleStatus(*v)
+	}
+	return _c
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (_c *AccountCreate) SetSalePrice(v float64) *AccountCreate {
+	_c.mutation.SetSalePrice(v)
+	return _c
+}
+
+// SetNillableSalePrice sets the "sale_price" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableSalePrice(v *float64) *AccountCreate {
+	if v != nil {
+		_c.SetSalePrice(*v)
+	}
+	return _c
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (_c *AccountCreate) SetDailyPriceDecay(v float64) *AccountCreate {
+	_c.mutation.SetDailyPriceDecay(v)
+	return _c
+}
+
+// SetNillableDailyPriceDecay sets the "daily_price_decay" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableDailyPriceDecay(v *float64) *AccountCreate {
+	if v != nil {
+		_c.SetDailyPriceDecay(*v)
+	}
+	return _c
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (_c *AccountCreate) SetMinSalePrice(v float64) *AccountCreate {
+	_c.mutation.SetMinSalePrice(v)
+	return _c
+}
+
+// SetNillableMinSalePrice sets the "min_sale_price" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableMinSalePrice(v *float64) *AccountCreate {
+	if v != nil {
+		_c.SetMinSalePrice(*v)
+	}
+	return _c
+}
+
+// SetListedAt sets the "listed_at" field.
+func (_c *AccountCreate) SetListedAt(v time.Time) *AccountCreate {
+	_c.mutation.SetListedAt(v)
+	return _c
+}
+
+// SetNillableListedAt sets the "listed_at" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableListedAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetListedAt(*v)
+	}
+	return _c
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (_c *AccountCreate) SetSoldAt(v time.Time) *AccountCreate {
+	_c.mutation.SetSoldAt(v)
+	return _c
+}
+
+// SetNillableSoldAt sets the "sold_at" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableSoldAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetSoldAt(*v)
+	}
+	return _c
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (_c *AccountCreate) SetSaleDescription(v string) *AccountCreate {
+	_c.mutation.SetSaleDescription(v)
+	return _c
+}
+
+// SetNillableSaleDescription sets the "sale_description" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableSaleDescription(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetSaleDescription(*v)
+	}
+	return _c
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (_c *AccountCreate) SetLockedByOrderID(v int64) *AccountCreate {
+	_c.mutation.SetLockedByOrderID(v)
+	return _c
+}
+
+// SetNillableLockedByOrderID sets the "locked_by_order_id" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableLockedByOrderID(v *int64) *AccountCreate {
+	if v != nil {
+		_c.SetLockedByOrderID(*v)
+	}
+	return _c
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (_c *AccountCreate) SetLockedUntil(v time.Time) *AccountCreate {
+	_c.mutation.SetLockedUntil(v)
+	return _c
+}
+
+// SetNillableLockedUntil sets the "locked_until" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableLockedUntil(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetLockedUntil(*v)
+	}
+	return _c
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_c *AccountCreate) AddGroupIDs(ids ...int64) *AccountCreate {
 	_c.mutation.AddGroupIDs(ids...)
@@ -581,6 +735,30 @@ func (_c *AccountCreate) defaults() error {
 		v := account.DefaultQuotaDimension
 		_c.mutation.SetQuotaDimension(v)
 	}
+	if _, ok := _c.mutation.DisplayAlias(); !ok {
+		v := account.DefaultDisplayAlias
+		_c.mutation.SetDisplayAlias(v)
+	}
+	if _, ok := _c.mutation.SaleStatus(); !ok {
+		v := account.DefaultSaleStatus
+		_c.mutation.SetSaleStatus(v)
+	}
+	if _, ok := _c.mutation.SalePrice(); !ok {
+		v := account.DefaultSalePrice
+		_c.mutation.SetSalePrice(v)
+	}
+	if _, ok := _c.mutation.DailyPriceDecay(); !ok {
+		v := account.DefaultDailyPriceDecay
+		_c.mutation.SetDailyPriceDecay(v)
+	}
+	if _, ok := _c.mutation.MinSalePrice(); !ok {
+		v := account.DefaultMinSalePrice
+		_c.mutation.SetMinSalePrice(v)
+	}
+	if _, ok := _c.mutation.SaleDescription(); !ok {
+		v := account.DefaultSaleDescription
+		_c.mutation.SetSaleDescription(v)
+	}
 	return nil
 }
 
@@ -657,6 +835,34 @@ func (_c *AccountCreate) check() error {
 		if err := account.QuotaDimensionValidator(v); err != nil {
 			return &ValidationError{Name: "quota_dimension", err: fmt.Errorf(`ent: validator failed for field "Account.quota_dimension": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.DisplayAlias(); !ok {
+		return &ValidationError{Name: "display_alias", err: errors.New(`ent: missing required field "Account.display_alias"`)}
+	}
+	if v, ok := _c.mutation.DisplayAlias(); ok {
+		if err := account.DisplayAliasValidator(v); err != nil {
+			return &ValidationError{Name: "display_alias", err: fmt.Errorf(`ent: validator failed for field "Account.display_alias": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SaleStatus(); !ok {
+		return &ValidationError{Name: "sale_status", err: errors.New(`ent: missing required field "Account.sale_status"`)}
+	}
+	if v, ok := _c.mutation.SaleStatus(); ok {
+		if err := account.SaleStatusValidator(v); err != nil {
+			return &ValidationError{Name: "sale_status", err: fmt.Errorf(`ent: validator failed for field "Account.sale_status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SalePrice(); !ok {
+		return &ValidationError{Name: "sale_price", err: errors.New(`ent: missing required field "Account.sale_price"`)}
+	}
+	if _, ok := _c.mutation.DailyPriceDecay(); !ok {
+		return &ValidationError{Name: "daily_price_decay", err: errors.New(`ent: missing required field "Account.daily_price_decay"`)}
+	}
+	if _, ok := _c.mutation.MinSalePrice(); !ok {
+		return &ValidationError{Name: "min_sale_price", err: errors.New(`ent: missing required field "Account.min_sale_price"`)}
+	}
+	if _, ok := _c.mutation.SaleDescription(); !ok {
+		return &ValidationError{Name: "sale_description", err: errors.New(`ent: missing required field "Account.sale_description"`)}
 	}
 	return nil
 }
@@ -800,6 +1006,50 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.QuotaDimension(); ok {
 		_spec.SetField(account.FieldQuotaDimension, field.TypeEnum, value)
 		_node.QuotaDimension = value
+	}
+	if value, ok := _c.mutation.OwnerUserID(); ok {
+		_spec.SetField(account.FieldOwnerUserID, field.TypeInt64, value)
+		_node.OwnerUserID = &value
+	}
+	if value, ok := _c.mutation.DisplayAlias(); ok {
+		_spec.SetField(account.FieldDisplayAlias, field.TypeString, value)
+		_node.DisplayAlias = value
+	}
+	if value, ok := _c.mutation.SaleStatus(); ok {
+		_spec.SetField(account.FieldSaleStatus, field.TypeString, value)
+		_node.SaleStatus = value
+	}
+	if value, ok := _c.mutation.SalePrice(); ok {
+		_spec.SetField(account.FieldSalePrice, field.TypeFloat64, value)
+		_node.SalePrice = value
+	}
+	if value, ok := _c.mutation.DailyPriceDecay(); ok {
+		_spec.SetField(account.FieldDailyPriceDecay, field.TypeFloat64, value)
+		_node.DailyPriceDecay = value
+	}
+	if value, ok := _c.mutation.MinSalePrice(); ok {
+		_spec.SetField(account.FieldMinSalePrice, field.TypeFloat64, value)
+		_node.MinSalePrice = value
+	}
+	if value, ok := _c.mutation.ListedAt(); ok {
+		_spec.SetField(account.FieldListedAt, field.TypeTime, value)
+		_node.ListedAt = &value
+	}
+	if value, ok := _c.mutation.SoldAt(); ok {
+		_spec.SetField(account.FieldSoldAt, field.TypeTime, value)
+		_node.SoldAt = &value
+	}
+	if value, ok := _c.mutation.SaleDescription(); ok {
+		_spec.SetField(account.FieldSaleDescription, field.TypeString, value)
+		_node.SaleDescription = value
+	}
+	if value, ok := _c.mutation.LockedByOrderID(); ok {
+		_spec.SetField(account.FieldLockedByOrderID, field.TypeInt64, value)
+		_node.LockedByOrderID = &value
+	}
+	if value, ok := _c.mutation.LockedUntil(); ok {
+		_spec.SetField(account.FieldLockedUntil, field.TypeTime, value)
+		_node.LockedUntil = &value
 	}
 	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1431,6 +1681,198 @@ func (u *AccountUpsert) UpdateQuotaDimension() *AccountUpsert {
 	return u
 }
 
+// SetOwnerUserID sets the "owner_user_id" field.
+func (u *AccountUpsert) SetOwnerUserID(v int64) *AccountUpsert {
+	u.Set(account.FieldOwnerUserID, v)
+	return u
+}
+
+// UpdateOwnerUserID sets the "owner_user_id" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateOwnerUserID() *AccountUpsert {
+	u.SetExcluded(account.FieldOwnerUserID)
+	return u
+}
+
+// AddOwnerUserID adds v to the "owner_user_id" field.
+func (u *AccountUpsert) AddOwnerUserID(v int64) *AccountUpsert {
+	u.Add(account.FieldOwnerUserID, v)
+	return u
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (u *AccountUpsert) ClearOwnerUserID() *AccountUpsert {
+	u.SetNull(account.FieldOwnerUserID)
+	return u
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (u *AccountUpsert) SetDisplayAlias(v string) *AccountUpsert {
+	u.Set(account.FieldDisplayAlias, v)
+	return u
+}
+
+// UpdateDisplayAlias sets the "display_alias" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateDisplayAlias() *AccountUpsert {
+	u.SetExcluded(account.FieldDisplayAlias)
+	return u
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (u *AccountUpsert) SetSaleStatus(v string) *AccountUpsert {
+	u.Set(account.FieldSaleStatus, v)
+	return u
+}
+
+// UpdateSaleStatus sets the "sale_status" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateSaleStatus() *AccountUpsert {
+	u.SetExcluded(account.FieldSaleStatus)
+	return u
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (u *AccountUpsert) SetSalePrice(v float64) *AccountUpsert {
+	u.Set(account.FieldSalePrice, v)
+	return u
+}
+
+// UpdateSalePrice sets the "sale_price" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateSalePrice() *AccountUpsert {
+	u.SetExcluded(account.FieldSalePrice)
+	return u
+}
+
+// AddSalePrice adds v to the "sale_price" field.
+func (u *AccountUpsert) AddSalePrice(v float64) *AccountUpsert {
+	u.Add(account.FieldSalePrice, v)
+	return u
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (u *AccountUpsert) SetDailyPriceDecay(v float64) *AccountUpsert {
+	u.Set(account.FieldDailyPriceDecay, v)
+	return u
+}
+
+// UpdateDailyPriceDecay sets the "daily_price_decay" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateDailyPriceDecay() *AccountUpsert {
+	u.SetExcluded(account.FieldDailyPriceDecay)
+	return u
+}
+
+// AddDailyPriceDecay adds v to the "daily_price_decay" field.
+func (u *AccountUpsert) AddDailyPriceDecay(v float64) *AccountUpsert {
+	u.Add(account.FieldDailyPriceDecay, v)
+	return u
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (u *AccountUpsert) SetMinSalePrice(v float64) *AccountUpsert {
+	u.Set(account.FieldMinSalePrice, v)
+	return u
+}
+
+// UpdateMinSalePrice sets the "min_sale_price" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateMinSalePrice() *AccountUpsert {
+	u.SetExcluded(account.FieldMinSalePrice)
+	return u
+}
+
+// AddMinSalePrice adds v to the "min_sale_price" field.
+func (u *AccountUpsert) AddMinSalePrice(v float64) *AccountUpsert {
+	u.Add(account.FieldMinSalePrice, v)
+	return u
+}
+
+// SetListedAt sets the "listed_at" field.
+func (u *AccountUpsert) SetListedAt(v time.Time) *AccountUpsert {
+	u.Set(account.FieldListedAt, v)
+	return u
+}
+
+// UpdateListedAt sets the "listed_at" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateListedAt() *AccountUpsert {
+	u.SetExcluded(account.FieldListedAt)
+	return u
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (u *AccountUpsert) ClearListedAt() *AccountUpsert {
+	u.SetNull(account.FieldListedAt)
+	return u
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (u *AccountUpsert) SetSoldAt(v time.Time) *AccountUpsert {
+	u.Set(account.FieldSoldAt, v)
+	return u
+}
+
+// UpdateSoldAt sets the "sold_at" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateSoldAt() *AccountUpsert {
+	u.SetExcluded(account.FieldSoldAt)
+	return u
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (u *AccountUpsert) ClearSoldAt() *AccountUpsert {
+	u.SetNull(account.FieldSoldAt)
+	return u
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (u *AccountUpsert) SetSaleDescription(v string) *AccountUpsert {
+	u.Set(account.FieldSaleDescription, v)
+	return u
+}
+
+// UpdateSaleDescription sets the "sale_description" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateSaleDescription() *AccountUpsert {
+	u.SetExcluded(account.FieldSaleDescription)
+	return u
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (u *AccountUpsert) SetLockedByOrderID(v int64) *AccountUpsert {
+	u.Set(account.FieldLockedByOrderID, v)
+	return u
+}
+
+// UpdateLockedByOrderID sets the "locked_by_order_id" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateLockedByOrderID() *AccountUpsert {
+	u.SetExcluded(account.FieldLockedByOrderID)
+	return u
+}
+
+// AddLockedByOrderID adds v to the "locked_by_order_id" field.
+func (u *AccountUpsert) AddLockedByOrderID(v int64) *AccountUpsert {
+	u.Add(account.FieldLockedByOrderID, v)
+	return u
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (u *AccountUpsert) ClearLockedByOrderID() *AccountUpsert {
+	u.SetNull(account.FieldLockedByOrderID)
+	return u
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (u *AccountUpsert) SetLockedUntil(v time.Time) *AccountUpsert {
+	u.Set(account.FieldLockedUntil, v)
+	return u
+}
+
+// UpdateLockedUntil sets the "locked_until" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateLockedUntil() *AccountUpsert {
+	u.SetExcluded(account.FieldLockedUntil)
+	return u
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (u *AccountUpsert) ClearLockedUntil() *AccountUpsert {
+	u.SetNull(account.FieldLockedUntil)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -2047,6 +2489,230 @@ func (u *AccountUpsertOne) SetQuotaDimension(v account.QuotaDimension) *AccountU
 func (u *AccountUpsertOne) UpdateQuotaDimension() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateQuotaDimension()
+	})
+}
+
+// SetOwnerUserID sets the "owner_user_id" field.
+func (u *AccountUpsertOne) SetOwnerUserID(v int64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetOwnerUserID(v)
+	})
+}
+
+// AddOwnerUserID adds v to the "owner_user_id" field.
+func (u *AccountUpsertOne) AddOwnerUserID(v int64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddOwnerUserID(v)
+	})
+}
+
+// UpdateOwnerUserID sets the "owner_user_id" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateOwnerUserID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateOwnerUserID()
+	})
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (u *AccountUpsertOne) ClearOwnerUserID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearOwnerUserID()
+	})
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (u *AccountUpsertOne) SetDisplayAlias(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDisplayAlias(v)
+	})
+}
+
+// UpdateDisplayAlias sets the "display_alias" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateDisplayAlias() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDisplayAlias()
+	})
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (u *AccountUpsertOne) SetSaleStatus(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSaleStatus(v)
+	})
+}
+
+// UpdateSaleStatus sets the "sale_status" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateSaleStatus() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSaleStatus()
+	})
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (u *AccountUpsertOne) SetSalePrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSalePrice(v)
+	})
+}
+
+// AddSalePrice adds v to the "sale_price" field.
+func (u *AccountUpsertOne) AddSalePrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddSalePrice(v)
+	})
+}
+
+// UpdateSalePrice sets the "sale_price" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateSalePrice() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSalePrice()
+	})
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (u *AccountUpsertOne) SetDailyPriceDecay(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDailyPriceDecay(v)
+	})
+}
+
+// AddDailyPriceDecay adds v to the "daily_price_decay" field.
+func (u *AccountUpsertOne) AddDailyPriceDecay(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddDailyPriceDecay(v)
+	})
+}
+
+// UpdateDailyPriceDecay sets the "daily_price_decay" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateDailyPriceDecay() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDailyPriceDecay()
+	})
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (u *AccountUpsertOne) SetMinSalePrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetMinSalePrice(v)
+	})
+}
+
+// AddMinSalePrice adds v to the "min_sale_price" field.
+func (u *AccountUpsertOne) AddMinSalePrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddMinSalePrice(v)
+	})
+}
+
+// UpdateMinSalePrice sets the "min_sale_price" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateMinSalePrice() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateMinSalePrice()
+	})
+}
+
+// SetListedAt sets the "listed_at" field.
+func (u *AccountUpsertOne) SetListedAt(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetListedAt(v)
+	})
+}
+
+// UpdateListedAt sets the "listed_at" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateListedAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateListedAt()
+	})
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (u *AccountUpsertOne) ClearListedAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearListedAt()
+	})
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (u *AccountUpsertOne) SetSoldAt(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSoldAt(v)
+	})
+}
+
+// UpdateSoldAt sets the "sold_at" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateSoldAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSoldAt()
+	})
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (u *AccountUpsertOne) ClearSoldAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearSoldAt()
+	})
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (u *AccountUpsertOne) SetSaleDescription(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSaleDescription(v)
+	})
+}
+
+// UpdateSaleDescription sets the "sale_description" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateSaleDescription() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSaleDescription()
+	})
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (u *AccountUpsertOne) SetLockedByOrderID(v int64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetLockedByOrderID(v)
+	})
+}
+
+// AddLockedByOrderID adds v to the "locked_by_order_id" field.
+func (u *AccountUpsertOne) AddLockedByOrderID(v int64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddLockedByOrderID(v)
+	})
+}
+
+// UpdateLockedByOrderID sets the "locked_by_order_id" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateLockedByOrderID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateLockedByOrderID()
+	})
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (u *AccountUpsertOne) ClearLockedByOrderID() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearLockedByOrderID()
+	})
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (u *AccountUpsertOne) SetLockedUntil(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetLockedUntil(v)
+	})
+}
+
+// UpdateLockedUntil sets the "locked_until" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateLockedUntil() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateLockedUntil()
+	})
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (u *AccountUpsertOne) ClearLockedUntil() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearLockedUntil()
 	})
 }
 
@@ -2832,6 +3498,230 @@ func (u *AccountUpsertBulk) SetQuotaDimension(v account.QuotaDimension) *Account
 func (u *AccountUpsertBulk) UpdateQuotaDimension() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
 		s.UpdateQuotaDimension()
+	})
+}
+
+// SetOwnerUserID sets the "owner_user_id" field.
+func (u *AccountUpsertBulk) SetOwnerUserID(v int64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetOwnerUserID(v)
+	})
+}
+
+// AddOwnerUserID adds v to the "owner_user_id" field.
+func (u *AccountUpsertBulk) AddOwnerUserID(v int64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddOwnerUserID(v)
+	})
+}
+
+// UpdateOwnerUserID sets the "owner_user_id" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateOwnerUserID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateOwnerUserID()
+	})
+}
+
+// ClearOwnerUserID clears the value of the "owner_user_id" field.
+func (u *AccountUpsertBulk) ClearOwnerUserID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearOwnerUserID()
+	})
+}
+
+// SetDisplayAlias sets the "display_alias" field.
+func (u *AccountUpsertBulk) SetDisplayAlias(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDisplayAlias(v)
+	})
+}
+
+// UpdateDisplayAlias sets the "display_alias" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateDisplayAlias() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDisplayAlias()
+	})
+}
+
+// SetSaleStatus sets the "sale_status" field.
+func (u *AccountUpsertBulk) SetSaleStatus(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSaleStatus(v)
+	})
+}
+
+// UpdateSaleStatus sets the "sale_status" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateSaleStatus() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSaleStatus()
+	})
+}
+
+// SetSalePrice sets the "sale_price" field.
+func (u *AccountUpsertBulk) SetSalePrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSalePrice(v)
+	})
+}
+
+// AddSalePrice adds v to the "sale_price" field.
+func (u *AccountUpsertBulk) AddSalePrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddSalePrice(v)
+	})
+}
+
+// UpdateSalePrice sets the "sale_price" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateSalePrice() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSalePrice()
+	})
+}
+
+// SetDailyPriceDecay sets the "daily_price_decay" field.
+func (u *AccountUpsertBulk) SetDailyPriceDecay(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetDailyPriceDecay(v)
+	})
+}
+
+// AddDailyPriceDecay adds v to the "daily_price_decay" field.
+func (u *AccountUpsertBulk) AddDailyPriceDecay(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddDailyPriceDecay(v)
+	})
+}
+
+// UpdateDailyPriceDecay sets the "daily_price_decay" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateDailyPriceDecay() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateDailyPriceDecay()
+	})
+}
+
+// SetMinSalePrice sets the "min_sale_price" field.
+func (u *AccountUpsertBulk) SetMinSalePrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetMinSalePrice(v)
+	})
+}
+
+// AddMinSalePrice adds v to the "min_sale_price" field.
+func (u *AccountUpsertBulk) AddMinSalePrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddMinSalePrice(v)
+	})
+}
+
+// UpdateMinSalePrice sets the "min_sale_price" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateMinSalePrice() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateMinSalePrice()
+	})
+}
+
+// SetListedAt sets the "listed_at" field.
+func (u *AccountUpsertBulk) SetListedAt(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetListedAt(v)
+	})
+}
+
+// UpdateListedAt sets the "listed_at" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateListedAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateListedAt()
+	})
+}
+
+// ClearListedAt clears the value of the "listed_at" field.
+func (u *AccountUpsertBulk) ClearListedAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearListedAt()
+	})
+}
+
+// SetSoldAt sets the "sold_at" field.
+func (u *AccountUpsertBulk) SetSoldAt(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSoldAt(v)
+	})
+}
+
+// UpdateSoldAt sets the "sold_at" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateSoldAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSoldAt()
+	})
+}
+
+// ClearSoldAt clears the value of the "sold_at" field.
+func (u *AccountUpsertBulk) ClearSoldAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearSoldAt()
+	})
+}
+
+// SetSaleDescription sets the "sale_description" field.
+func (u *AccountUpsertBulk) SetSaleDescription(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetSaleDescription(v)
+	})
+}
+
+// UpdateSaleDescription sets the "sale_description" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateSaleDescription() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateSaleDescription()
+	})
+}
+
+// SetLockedByOrderID sets the "locked_by_order_id" field.
+func (u *AccountUpsertBulk) SetLockedByOrderID(v int64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetLockedByOrderID(v)
+	})
+}
+
+// AddLockedByOrderID adds v to the "locked_by_order_id" field.
+func (u *AccountUpsertBulk) AddLockedByOrderID(v int64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddLockedByOrderID(v)
+	})
+}
+
+// UpdateLockedByOrderID sets the "locked_by_order_id" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateLockedByOrderID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateLockedByOrderID()
+	})
+}
+
+// ClearLockedByOrderID clears the value of the "locked_by_order_id" field.
+func (u *AccountUpsertBulk) ClearLockedByOrderID() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearLockedByOrderID()
+	})
+}
+
+// SetLockedUntil sets the "locked_until" field.
+func (u *AccountUpsertBulk) SetLockedUntil(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetLockedUntil(v)
+	})
+}
+
+// UpdateLockedUntil sets the "locked_until" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateLockedUntil() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateLockedUntil()
+	})
+}
+
+// ClearLockedUntil clears the value of the "locked_until" field.
+func (u *AccountUpsertBulk) ClearLockedUntil() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearLockedUntil()
 	})
 }
 

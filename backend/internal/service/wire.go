@@ -872,6 +872,7 @@ var ProviderSet = wire.NewSet(
 	NewGroupService,
 	NewCompositeRouteResolver,
 	NewAccountService,
+	ProvideDedicatedAccountService,
 	NewProxyService,
 	NewRedeemService,
 	NewPromoService,
@@ -995,6 +996,37 @@ var ProviderSet = wire.NewSet(
 	ProvideUserPlatformQuotaUsageFlusher,
 )
 
+// ProvideDedicatedAccountService constructs DedicatedAccountService and registers it as APIKeyService's dedicated resolver.
+func ProvideDedicatedAccountService(
+	repo DedicatedAccountRepository,
+	accountRepo AccountRepository,
+	apiKeyRepo APIKeyRepository,
+	apiKeyService *APIKeyService,
+	accountUsageService *AccountUsageService,
+	claudeResetCredits *ClaudeResetCreditService,
+	openAIQuotaService *OpenAIQuotaService,
+	rateLimitService *RateLimitService,
+	billingCacheService *BillingCacheService,
+	paymentConfigService *PaymentConfigService,
+) *DedicatedAccountService {
+	svc := NewDedicatedAccountService(
+		repo,
+		accountRepo,
+		apiKeyRepo,
+		apiKeyService,
+		accountUsageService,
+		claudeResetCredits,
+		openAIQuotaService,
+		rateLimitService,
+		billingCacheService,
+		paymentConfigService,
+	)
+	if apiKeyService != nil {
+		apiKeyService.SetDedicatedAccountResolver(svc)
+	}
+	return svc
+}
+
 // ProvideUserPlatformQuotaUsageFlusher 创建并启动 UserPlatformQuotaUsageFlusher。
 func ProvideUserPlatformQuotaUsageFlusher(cfg *config.Config, cache BillingCache, quotaRepo UserPlatformQuotaRepository, tw *TimingWheelService) *UserPlatformQuotaUsageFlusher {
 	svc := NewUserPlatformQuotaUsageFlusher(cfg, cache, quotaRepo, tw)
@@ -1015,10 +1047,11 @@ func ProvideBalanceNotifyService(emailService *EmailService, settingRepo Setting
 	return svc
 }
 
-// ProvidePaymentService creates PaymentService and attaches notification email delivery.
-func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService, notificationEmailService *NotificationEmailService) *PaymentService {
+// ProvidePaymentService creates PaymentService and attaches notification email delivery & dedicated account fulfillment.
+func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService, notificationEmailService *NotificationEmailService, dedicatedAccountService *DedicatedAccountService) *PaymentService {
 	svc := NewPaymentService(entClient, registry, loadBalancer, redeemService, subscriptionSvc, configService, userRepo, groupRepo, affiliateService)
 	svc.SetNotificationEmailService(notificationEmailService)
+	svc.SetDedicatedAccountService(dedicatedAccountService)
 	return svc
 }
 

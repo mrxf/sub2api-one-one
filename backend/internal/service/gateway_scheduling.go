@@ -1015,6 +1015,7 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 	if s.schedulerSnapshot != nil {
 		accounts, useMixed, err := s.schedulerSnapshot.ListSchedulableAccounts(ctx, groupID, platform, hasForcePlatform)
 		if err == nil {
+			accounts = FilterAccountsForRequestContext(ctx, accounts)
 			accounts = s.filterAccountsBySchedulingThreshold(ctx, accounts)
 			if platform == PlatformGrok || strings.EqualFold(platform, PlatformGrok) {
 				accounts = s.filterGrokFreeQuotaAccountsForGateway(ctx, accounts)
@@ -1062,6 +1063,9 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 			if acc.Platform == PlatformAntigravity && !acc.IsMixedSchedulingEnabled() {
 				continue
 			}
+			if !IsAccountAllowedForRequestContext(ctx, &acc) {
+				continue
+			}
 			filtered = append(filtered, acc)
 		}
 		slog.Debug("account_scheduling_list_mixed",
@@ -1100,6 +1104,7 @@ func (s *GatewayService) listSchedulableAccounts(ctx context.Context, groupID *i
 			"error", err)
 		return nil, useMixed, err
 	}
+	accounts = FilterAccountsForRequestContext(ctx, accounts)
 	slog.Debug("account_scheduling_list_single",
 		"group_id", derefGroupID(groupID),
 		"platform", platform,
@@ -1535,6 +1540,9 @@ func (s *GatewayService) getSchedulableAccount(ctx context.Context, accountID in
 	}
 	if err != nil || account == nil {
 		return account, err
+	}
+	if !IsAccountAllowedForRequestContext(ctx, account) {
+		return nil, nil
 	}
 	if s.isAccountBlockedBySchedulingThreshold(ctx, account) {
 		return nil, nil
