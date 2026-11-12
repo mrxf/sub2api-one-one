@@ -44,6 +44,29 @@ var hopByHopHeaders = map[string]struct{}{
 	"connection":        {},
 }
 
+// neverAllowedIdentityHeaders 严禁向客户端透传的上游账号/组织/邮箱敏感响应头（即使管理员误加进 AdditionalAllowed 也强制拦截）
+var neverAllowedIdentityHeaders = map[string]struct{}{
+	"openai-organization":             {},
+	"openai-project":                  {},
+	"anthropic-organization-id":       {},
+	"chatgpt-account-id":              {},
+	"x-account-email":                 {},
+	"x-user-email":                    {},
+	"x-organization-id":               {},
+	"x-goog-authenticated-user-email": {},
+	"x-goog-authenticated-user-id":    {},
+}
+
+func isNeverAllowedIdentityHeader(lowerKey string) bool {
+	if _, never := neverAllowedIdentityHeaders[lowerKey]; never {
+		return true
+	}
+	return strings.Contains(lowerKey, "email") ||
+		strings.Contains(lowerKey, "organization") ||
+		strings.Contains(lowerKey, "account-id") ||
+		strings.Contains(lowerKey, "project-id")
+}
+
 type CompiledHeaderFilter struct {
 	allowed     map[string]struct{}
 	forceRemove map[string]struct{}
@@ -61,6 +84,9 @@ func CompileHeaderFilter(cfg config.ResponseHeaderConfig) *CompiledHeaderFilter 
 		for _, key := range cfg.AdditionalAllowed {
 			normalized := strings.ToLower(strings.TrimSpace(key))
 			if normalized == "" {
+				continue
+			}
+			if isNeverAllowedIdentityHeader(normalized) {
 				continue
 			}
 			allowed[normalized] = struct{}{}
@@ -93,6 +119,9 @@ func FilterHeaders(src http.Header, filter *CompiledHeaderFilter) http.Header {
 	filtered := make(http.Header, len(src))
 	for key, values := range src {
 		lower := strings.ToLower(key)
+		if isNeverAllowedIdentityHeader(lower) {
+			continue
+		}
 		if _, blocked := filter.forceRemove[lower]; blocked {
 			continue
 		}

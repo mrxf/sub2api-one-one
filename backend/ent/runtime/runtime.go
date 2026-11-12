@@ -288,6 +288,14 @@ func init() {
 	accountDescSaleDescription := accountFields[36].Descriptor()
 	// account.DefaultSaleDescription holds the default value on creation for the sale_description field.
 	account.DefaultSaleDescription = accountDescSaleDescription.Default.(string)
+	// accountDescBuyoutPrice is the schema descriptor for buyout_price field.
+	accountDescBuyoutPrice := accountFields[39].Descriptor()
+	// account.DefaultBuyoutPrice holds the default value on creation for the buyout_price field.
+	account.DefaultBuyoutPrice = accountDescBuyoutPrice.Default.(float64)
+	// accountDescBuyoutInfo is the schema descriptor for buyout_info field.
+	accountDescBuyoutInfo := accountFields[40].Descriptor()
+	// account.DefaultBuyoutInfo holds the default value on creation for the buyout_info field.
+	account.DefaultBuyoutInfo = accountDescBuyoutInfo.Default.(string)
 	accountgroupFields := schema.AccountGroup{}.Fields()
 	_ = accountgroupFields
 	// accountgroupDescPriority is the schema descriptor for priority field.

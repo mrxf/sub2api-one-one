@@ -214,6 +214,7 @@ const orderTypeFilterOptions = computed(() => [
   { value: 'balance', label: t('payment.admin.balanceOrder') },
   { value: 'subscription', label: t('payment.admin.subscriptionOrder') },
   { value: 'dedicated_account', label: t('payment.admin.dedicated_accountOrder') },
+  { value: 'dedicated_buyout', label: t('payment.admin.dedicated_buyoutOrder') },
 ])
 
 async function showOrderDetail(order: PaymentOrder) {

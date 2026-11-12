@@ -326,6 +326,19 @@
                 {{ t('dedicatedAccounts.admin.badges.publicPool') }}
               </span>
               <span
+                v-if="row.bought_out_at"
+                class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                :title="new Date(row.bought_out_at).toLocaleString()"
+              >
+                {{ t('dedicatedAccounts.admin.badges.boughtOut') }}
+              </span>
+              <span
+                v-else-if="(row.buyout_price ?? 0) > 0 && row.sale_status !== 'none'"
+                class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+              >
+                {{ t('dedicatedAccounts.admin.badges.buyoutEnabled', { price: formatDedicatedPrice(row.buyout_price) }) }}
+              </span>
+              <span
                 v-if="row.owner_user_email || row.display_alias"
                 class="max-w-[140px] truncate text-[11px] text-gray-500 dark:text-gray-400"
                 :title="row.owner_user_email || row.display_alias || undefined"

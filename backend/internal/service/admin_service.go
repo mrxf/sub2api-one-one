@@ -432,6 +432,8 @@ type CreateAccountInput struct {
 	DailyPriceDecay *float64
 	MinSalePrice    *float64
 	SaleDescription *string
+	BuyoutPrice     *float64
+	BuyoutInfo      *string
 }
 
 // ShadowOptions is the input for CreateShadow.
@@ -472,6 +474,8 @@ type UpdateAccountInput struct {
 	DailyPriceDecay  *float64
 	MinSalePrice     *float64
 	SaleDescription  *string
+	BuyoutPrice      *float64
+	BuyoutInfo       *string
 }
 
 // BulkUpdateAccountsInput describes the payload for bulk updating accounts.
@@ -502,6 +506,8 @@ type BulkUpdateAccountsInput struct {
 	DailyPriceDecay  *float64
 	MinSalePrice     *float64
 	SaleDescription  *string
+	BuyoutPrice      *float64
+	BuyoutInfo       *string
 }
 
 type BulkUpdateAccountFilters struct {

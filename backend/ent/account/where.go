@@ -250,6 +250,21 @@ func LockedUntil(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldLockedUntil, v))
 }
 
+// BuyoutPrice applies equality check predicate on the "buyout_price" field. It's identical to BuyoutPriceEQ.
+func BuyoutPrice(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBuyoutPrice, v))
+}
+
+// BuyoutInfo applies equality check predicate on the "buyout_info" field. It's identical to BuyoutInfoEQ.
+func BuyoutInfo(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBuyoutInfo, v))
+}
+
+// BoughtOutAt applies equality check predicate on the "bought_out_at" field. It's identical to BoughtOutAtEQ.
+func BoughtOutAt(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBoughtOutAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCreatedAt, v))
@@ -2223,6 +2238,161 @@ func LockedUntilIsNil() predicate.Account {
 // LockedUntilNotNil applies the NotNil predicate on the "locked_until" field.
 func LockedUntilNotNil() predicate.Account {
 	return predicate.Account(sql.FieldNotNull(FieldLockedUntil))
+}
+
+// BuyoutPriceEQ applies the EQ predicate on the "buyout_price" field.
+func BuyoutPriceEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBuyoutPrice, v))
+}
+
+// BuyoutPriceNEQ applies the NEQ predicate on the "buyout_price" field.
+func BuyoutPriceNEQ(v float64) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldBuyoutPrice, v))
+}
+
+// BuyoutPriceIn applies the In predicate on the "buyout_price" field.
+func BuyoutPriceIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldBuyoutPrice, vs...))
+}
+
+// BuyoutPriceNotIn applies the NotIn predicate on the "buyout_price" field.
+func BuyoutPriceNotIn(vs ...float64) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldBuyoutPrice, vs...))
+}
+
+// BuyoutPriceGT applies the GT predicate on the "buyout_price" field.
+func BuyoutPriceGT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldBuyoutPrice, v))
+}
+
+// BuyoutPriceGTE applies the GTE predicate on the "buyout_price" field.
+func BuyoutPriceGTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldBuyoutPrice, v))
+}
+
+// BuyoutPriceLT applies the LT predicate on the "buyout_price" field.
+func BuyoutPriceLT(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldBuyoutPrice, v))
+}
+
+// BuyoutPriceLTE applies the LTE predicate on the "buyout_price" field.
+func BuyoutPriceLTE(v float64) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldBuyoutPrice, v))
+}
+
+// BuyoutInfoEQ applies the EQ predicate on the "buyout_info" field.
+func BuyoutInfoEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoNEQ applies the NEQ predicate on the "buyout_info" field.
+func BuyoutInfoNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoIn applies the In predicate on the "buyout_info" field.
+func BuyoutInfoIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldBuyoutInfo, vs...))
+}
+
+// BuyoutInfoNotIn applies the NotIn predicate on the "buyout_info" field.
+func BuyoutInfoNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldBuyoutInfo, vs...))
+}
+
+// BuyoutInfoGT applies the GT predicate on the "buyout_info" field.
+func BuyoutInfoGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoGTE applies the GTE predicate on the "buyout_info" field.
+func BuyoutInfoGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoLT applies the LT predicate on the "buyout_info" field.
+func BuyoutInfoLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoLTE applies the LTE predicate on the "buyout_info" field.
+func BuyoutInfoLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoContains applies the Contains predicate on the "buyout_info" field.
+func BuyoutInfoContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoHasPrefix applies the HasPrefix predicate on the "buyout_info" field.
+func BuyoutInfoHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoHasSuffix applies the HasSuffix predicate on the "buyout_info" field.
+func BuyoutInfoHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoEqualFold applies the EqualFold predicate on the "buyout_info" field.
+func BuyoutInfoEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldBuyoutInfo, v))
+}
+
+// BuyoutInfoContainsFold applies the ContainsFold predicate on the "buyout_info" field.
+func BuyoutInfoContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldBuyoutInfo, v))
+}
+
+// BoughtOutAtEQ applies the EQ predicate on the "bought_out_at" field.
+func BoughtOutAtEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtNEQ applies the NEQ predicate on the "bought_out_at" field.
+func BoughtOutAtNEQ(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtIn applies the In predicate on the "bought_out_at" field.
+func BoughtOutAtIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldBoughtOutAt, vs...))
+}
+
+// BoughtOutAtNotIn applies the NotIn predicate on the "bought_out_at" field.
+func BoughtOutAtNotIn(vs ...time.Time) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldBoughtOutAt, vs...))
+}
+
+// BoughtOutAtGT applies the GT predicate on the "bought_out_at" field.
+func BoughtOutAtGT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtGTE applies the GTE predicate on the "bought_out_at" field.
+func BoughtOutAtGTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtLT applies the LT predicate on the "bought_out_at" field.
+func BoughtOutAtLT(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtLTE applies the LTE predicate on the "bought_out_at" field.
+func BoughtOutAtLTE(v time.Time) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldBoughtOutAt, v))
+}
+
+// BoughtOutAtIsNil applies the IsNil predicate on the "bought_out_at" field.
+func BoughtOutAtIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldBoughtOutAt))
+}
+
+// BoughtOutAtNotNil applies the NotNil predicate on the "bought_out_at" field.
+func BoughtOutAtNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldBoughtOutAt))
 }
 
 // HasGroups applies the HasEdge predicate on the "groups" edge.

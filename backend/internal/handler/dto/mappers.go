@@ -298,6 +298,9 @@ func AccountFromServiceShallow(a *service.Account) *Account {
 		SoldAt:                  a.SoldAt,
 		SaleDescription:         a.SaleDescription,
 		LockedUntil:             a.LockedUntil,
+		BuyoutPrice:             a.BuyoutPrice,
+		BuyoutInfo:              a.BuyoutInfo,
+		BoughtOutAt:             a.BoughtOutAt,
 	}
 	if a.OwnerUserEmail != nil {
 		out.OwnerUserEmail = *a.OwnerUserEmail
@@ -516,6 +519,7 @@ func AccountListItemFromAccount(a *Account) *AccountListItem {
 		SaleStatus: a.SaleStatus, SalePrice: a.SalePrice, DailyPriceDecay: a.DailyPriceDecay,
 		MinSalePrice: a.MinSalePrice, CurrentSalePrice: a.CurrentSalePrice,
 		ListedAt: a.ListedAt, SoldAt: a.SoldAt, SaleDescription: a.SaleDescription, LockedUntil: a.LockedUntil,
+		BuyoutPrice: a.BuyoutPrice, BoughtOutAt: a.BoughtOutAt,
 		Proxy: a.Proxy, GroupIDs: a.GroupIDs,
 	}
 }

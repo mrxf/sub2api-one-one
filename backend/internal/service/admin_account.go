@@ -513,6 +513,18 @@ func buildAccountForCreate(input *CreateAccountInput, accountExtra map[string]an
 	if input.MinSalePrice != nil {
 		account.MinSalePrice = *input.MinSalePrice
 	}
+	if input.BuyoutPrice != nil {
+		account.BuyoutPrice = *input.BuyoutPrice
+	}
+	if input.BuyoutInfo != nil {
+		if trimmed := strings.TrimSpace(*input.BuyoutInfo); trimmed != "" {
+			raw := *input.BuyoutInfo
+			account.BuyoutInfo = &raw
+		}
+	}
+	if err := ValidateAccountPublicText(account, account.DisplayAlias, account.SaleDescription); err != nil {
+		return nil, err
+	}
 	if err := ValidateAccountSaleConfig(
 		account.SaleStatus,
 		account.OwnerUserID,
@@ -520,6 +532,9 @@ func buildAccountForCreate(input *CreateAccountInput, accountExtra map[string]an
 		account.DailyPriceDecay,
 		account.MinSalePrice,
 	); err != nil {
+		return nil, err
+	}
+	if err := ValidateAccountBuyoutConfig(account.BuyoutPrice, account.BuyoutInfo); err != nil {
 		return nil, err
 	}
 
@@ -918,7 +933,9 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 		input.SalePrice != nil ||
 		input.DailyPriceDecay != nil ||
 		input.MinSalePrice != nil ||
-		input.SaleDescription != nil
+		input.SaleDescription != nil ||
+		input.BuyoutPrice != nil ||
+		input.BuyoutInfo != nil
 	if hasDedicatedUpdate {
 		if account.IsCredentialShadow() {
 			return nil, infraerrors.New(http.StatusBadRequest, "SPARK_SHADOW_DEDICATED_INHERITED",
@@ -948,9 +965,21 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 		if input.MinSalePrice != nil {
 			account.MinSalePrice = *input.MinSalePrice
 		}
+		if input.BuyoutPrice != nil {
+			account.BuyoutPrice = *input.BuyoutPrice
+		}
+		if input.BuyoutInfo != nil {
+			if strings.TrimSpace(*input.BuyoutInfo) != "" {
+				raw := *input.BuyoutInfo
+				account.BuyoutInfo = &raw
+			} else {
+				account.BuyoutInfo = nil
+			}
+		}
 		if input.ClearOwnerUserID || (input.OwnerUserID != nil && *input.OwnerUserID <= 0) {
 			account.OwnerUserID = nil
 			account.SoldAt = nil
+			account.BoughtOutAt = nil
 			if NormalizeAccountSaleStatus(account.SaleStatus) == AccountSaleStatusSold && input.SaleStatus == nil {
 				account.SaleStatus = AccountSaleStatusNone
 			}
@@ -962,6 +991,9 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 			}
 			uid := *input.OwnerUserID
 			account.OwnerUserID = &uid
+			if prevOwnerID != uid {
+				account.BoughtOutAt = nil
+			}
 			if prevOwnerID != uid || account.SoldAt == nil {
 				account.SoldAt = &now
 			}
@@ -984,10 +1016,15 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 				}
 				account.LockedByOrderID = nil
 				account.LockedUntil = nil
+				account.BoughtOutAt = nil
 			} else if normStatus == AccountSaleStatusNone {
 				account.LockedByOrderID = nil
 				account.LockedUntil = nil
+				account.BoughtOutAt = nil
 			}
+		}
+		if err := ValidateAccountPublicText(account, input.DisplayAlias, input.SaleDescription); err != nil {
+			return nil, err
 		}
 		if err := ValidateAccountSaleConfig(
 			account.SaleStatus,
@@ -996,6 +1033,9 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 			account.DailyPriceDecay,
 			account.MinSalePrice,
 		); err != nil {
+			return nil, err
+		}
+		if err := ValidateAccountBuyoutConfig(account.BuyoutPrice, account.BuyoutInfo); err != nil {
 			return nil, err
 		}
 	}
@@ -1193,7 +1233,9 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 		input.SalePrice != nil ||
 		input.DailyPriceDecay != nil ||
 		input.MinSalePrice != nil ||
-		input.SaleDescription != nil
+		input.SaleDescription != nil ||
+		input.BuyoutPrice != nil ||
+		input.BuyoutInfo != nil
 
 	// 预取所有目标账号，供凭据守卫/代理守卫/混合渠道检查/独享配置校验共用，避免多次 DB 查询。
 	var cachedTargets []*Account
@@ -1268,6 +1310,9 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 				return nil, infraerrors.Newf(http.StatusBadRequest, "SPARK_SHADOW_DEDICATED_INHERITED",
 					"spark shadow account %d dedicated ownership and sale settings are inherited from its parent account", acc.ID)
 			}
+			if err := ValidateAccountPublicText(acc, nil, input.SaleDescription); err != nil {
+				return nil, err
+			}
 			effOwner := acc.OwnerUserID
 			effStatus := NormalizeAccountSaleStatus(acc.SaleStatus)
 			if input.ClearOwnerUserID || (input.OwnerUserID != nil && *input.OwnerUserID <= 0) {
@@ -1298,6 +1343,21 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 				effMin = *input.MinSalePrice
 			}
 			if err := ValidateAccountSaleConfig(effStatus, effOwner, effPrice, effDecay, effMin); err != nil {
+				return nil, err
+			}
+			effBuyoutPrice := acc.BuyoutPrice
+			if input.BuyoutPrice != nil {
+				effBuyoutPrice = *input.BuyoutPrice
+			}
+			effBuyoutInfo := acc.BuyoutInfo
+			if input.BuyoutInfo != nil {
+				if strings.TrimSpace(*input.BuyoutInfo) == "" {
+					effBuyoutInfo = nil
+				} else {
+					effBuyoutInfo = input.BuyoutInfo
+				}
+			}
+			if err := ValidateAccountBuyoutConfig(effBuyoutPrice, effBuyoutInfo); err != nil {
 				return nil, err
 			}
 		}
@@ -1373,6 +1433,8 @@ func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUp
 		DailyPriceDecay:            input.DailyPriceDecay,
 		MinSalePrice:               input.MinSalePrice,
 		SaleDescription:            input.SaleDescription,
+		BuyoutPrice:                input.BuyoutPrice,
+		BuyoutInfo:                 input.BuyoutInfo,
 	}
 	if input.OwnerUserID != nil && *input.OwnerUserID <= 0 {
 		repoUpdates.OwnerUserID = nil

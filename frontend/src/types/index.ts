@@ -1427,6 +1427,9 @@ export interface Account {
   sold_at?: string | null
   sale_description?: string | null
   locked_until?: string | null
+  buyout_price?: number
+  buyout_info?: string | null
+  bought_out_at?: string | null
 
   grok_model_diagnostics?: GrokModelDiagnostics
 }
@@ -1686,6 +1689,12 @@ export interface UserDedicatedAccountView {
   quota?: DedicatedQuotaSnapshot | null
   reset_credits: DedicatedResetCreditStatus
   bound_api_keys: DedicatedBoundAPIKeySummary[]
+  bought_out: boolean
+  bought_out_at?: string | null
+  buyout_available: boolean
+  buyout_price_cny?: number
+  buyout_price_balance?: number
+  balance_currency_multiplier?: number
 }
 
 export interface DedicatedMarketItem {
@@ -1710,6 +1719,9 @@ export interface DedicatedMarketItem {
   next_price_decay_at?: string | null
   description?: string
   quota_preview?: DedicatedQuotaSnapshot | null
+  buyout_available: boolean
+  buyout_price_cny?: number
+  buyout_price_balance?: number
 }
 
 export interface DedicatedPurchaseResult {
@@ -1720,6 +1732,25 @@ export interface DedicatedPurchaseResult {
   price_cny: number
   balance_deducted: number
   remaining_balance?: number
+}
+
+export interface DedicatedBuyoutResult {
+  account: UserDedicatedAccountView
+  buyout_info: string
+  api_key_id?: number
+  api_key?: string
+  api_key_name?: string
+  price_cny: number
+  balance_deducted: number
+  remaining_balance?: number
+}
+
+export interface DedicatedBuyoutInfoResponse {
+  account_id: number
+  display_name: string
+  platform: AccountPlatform | string
+  bought_out_at?: string | null
+  buyout_info: string
 }
 
 export interface CreateAccountRequest {
@@ -1746,6 +1777,8 @@ export interface CreateAccountRequest {
   daily_price_decay?: number
   min_sale_price?: number
   sale_description?: string | null
+  buyout_price?: number
+  buyout_info?: string | null
 }
 
 export interface UpdateAccountRequest {
@@ -1775,6 +1808,8 @@ export interface UpdateAccountRequest {
   daily_price_decay?: number
   min_sale_price?: number
   sale_description?: string | null
+  buyout_price?: number
+  buyout_info?: string | null
 }
 
 export type GrokMediaEligibilityMode = 'auto' | 'enabled' | 'disabled'

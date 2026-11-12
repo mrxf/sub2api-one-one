@@ -59,7 +59,7 @@
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.bonusAmount') }}</span>
               <span class="font-medium text-amber-600 dark:text-amber-400">+${{ orderBonusAmount(order).toFixed(2) }}</span>
             </div>
-            <div v-if="hasAmountFields(order) && order.order_type !== 'dedicated_account' && (order.amount !== order.pay_amount || orderBonusAmount(order) > 0)" class="flex justify-between">
+            <div v-if="hasAmountFields(order) && order.order_type !== 'dedicated_account' && order.order_type !== 'dedicated_buyout' && (order.amount !== order.pay_amount || orderBonusAmount(order) > 0)" class="flex justify-between">
               <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.creditedAmount') }}</span>
               <span class="font-medium text-gray-900 dark:text-white">{{ order.order_type === 'balance' ? '$' + order.amount.toFixed(2) : formatGatewayAmount(order.amount) }}</span>
             </div>
@@ -93,7 +93,7 @@
         <!-- Actions -->
         <div v-if="isDedicatedOrder" class="flex gap-3">
           <button class="btn btn-secondary flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</button>
-          <button class="btn btn-primary flex-1" @click="router.push('/dedicated-accounts')">{{ t('payment.result.goToDedicatedAccounts') }}</button>
+          <button class="btn btn-primary flex-1" @click="goToDedicatedAfterPayment">{{ t('payment.result.goToDedicatedAccounts') }}</button>
         </div>
         <div v-else class="flex gap-3">
           <button class="btn btn-secondary flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
@@ -185,12 +185,39 @@ const isPending = computed(() => {
   return isPendingStatus(order.value?.status)
 })
 
-const isDedicatedOrder = computed(() => {
-  return !!order.value && 'order_type' in order.value && order.value.order_type === 'dedicated_account'
+const isDedicatedBuyoutOrder = computed(() => {
+  return !!order.value && 'order_type' in order.value && order.value.order_type === 'dedicated_buyout'
 })
+
+const isDedicatedOrder = computed(() => {
+  return (
+    !!order.value &&
+    'order_type' in order.value &&
+    (order.value.order_type === 'dedicated_account' || order.value.order_type === 'dedicated_buyout')
+  )
+})
+
+function goToDedicatedAfterPayment() {
+  if (
+    isDedicatedBuyoutOrder.value &&
+    order.value &&
+    'dedicated_account_id' in order.value &&
+    order.value.dedicated_account_id
+  ) {
+    void router.push({
+      path: '/dedicated-accounts',
+      query: { tab: 'my', buyoutAccountId: String(order.value.dedicated_account_id) }
+    })
+    return
+  }
+  void router.push('/dedicated-accounts')
+}
 
 const statusTitle = computed(() => {
   if (isSuccess.value) {
+    if (isDedicatedBuyoutOrder.value) {
+      return t('payment.result.dedicatedBuyoutSuccess')
+    }
     if (isDedicatedOrder.value) {
       return t('payment.result.dedicatedSuccess')
     }

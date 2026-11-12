@@ -573,6 +573,48 @@ func (_c *AccountCreate) SetNillableLockedUntil(v *time.Time) *AccountCreate {
 	return _c
 }
 
+// SetBuyoutPrice sets the "buyout_price" field.
+func (_c *AccountCreate) SetBuyoutPrice(v float64) *AccountCreate {
+	_c.mutation.SetBuyoutPrice(v)
+	return _c
+}
+
+// SetNillableBuyoutPrice sets the "buyout_price" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableBuyoutPrice(v *float64) *AccountCreate {
+	if v != nil {
+		_c.SetBuyoutPrice(*v)
+	}
+	return _c
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (_c *AccountCreate) SetBuyoutInfo(v string) *AccountCreate {
+	_c.mutation.SetBuyoutInfo(v)
+	return _c
+}
+
+// SetNillableBuyoutInfo sets the "buyout_info" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableBuyoutInfo(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetBuyoutInfo(*v)
+	}
+	return _c
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (_c *AccountCreate) SetBoughtOutAt(v time.Time) *AccountCreate {
+	_c.mutation.SetBoughtOutAt(v)
+	return _c
+}
+
+// SetNillableBoughtOutAt sets the "bought_out_at" field if the given value is not nil.
+func (_c *AccountCreate) SetNillableBoughtOutAt(v *time.Time) *AccountCreate {
+	if v != nil {
+		_c.SetBoughtOutAt(*v)
+	}
+	return _c
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_c *AccountCreate) AddGroupIDs(ids ...int64) *AccountCreate {
 	_c.mutation.AddGroupIDs(ids...)
@@ -759,6 +801,14 @@ func (_c *AccountCreate) defaults() error {
 		v := account.DefaultSaleDescription
 		_c.mutation.SetSaleDescription(v)
 	}
+	if _, ok := _c.mutation.BuyoutPrice(); !ok {
+		v := account.DefaultBuyoutPrice
+		_c.mutation.SetBuyoutPrice(v)
+	}
+	if _, ok := _c.mutation.BuyoutInfo(); !ok {
+		v := account.DefaultBuyoutInfo
+		_c.mutation.SetBuyoutInfo(v)
+	}
 	return nil
 }
 
@@ -863,6 +913,12 @@ func (_c *AccountCreate) check() error {
 	}
 	if _, ok := _c.mutation.SaleDescription(); !ok {
 		return &ValidationError{Name: "sale_description", err: errors.New(`ent: missing required field "Account.sale_description"`)}
+	}
+	if _, ok := _c.mutation.BuyoutPrice(); !ok {
+		return &ValidationError{Name: "buyout_price", err: errors.New(`ent: missing required field "Account.buyout_price"`)}
+	}
+	if _, ok := _c.mutation.BuyoutInfo(); !ok {
+		return &ValidationError{Name: "buyout_info", err: errors.New(`ent: missing required field "Account.buyout_info"`)}
 	}
 	return nil
 }
@@ -1050,6 +1106,18 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LockedUntil(); ok {
 		_spec.SetField(account.FieldLockedUntil, field.TypeTime, value)
 		_node.LockedUntil = &value
+	}
+	if value, ok := _c.mutation.BuyoutPrice(); ok {
+		_spec.SetField(account.FieldBuyoutPrice, field.TypeFloat64, value)
+		_node.BuyoutPrice = value
+	}
+	if value, ok := _c.mutation.BuyoutInfo(); ok {
+		_spec.SetField(account.FieldBuyoutInfo, field.TypeString, value)
+		_node.BuyoutInfo = value
+	}
+	if value, ok := _c.mutation.BoughtOutAt(); ok {
+		_spec.SetField(account.FieldBoughtOutAt, field.TypeTime, value)
+		_node.BoughtOutAt = &value
 	}
 	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1870,6 +1938,54 @@ func (u *AccountUpsert) UpdateLockedUntil() *AccountUpsert {
 // ClearLockedUntil clears the value of the "locked_until" field.
 func (u *AccountUpsert) ClearLockedUntil() *AccountUpsert {
 	u.SetNull(account.FieldLockedUntil)
+	return u
+}
+
+// SetBuyoutPrice sets the "buyout_price" field.
+func (u *AccountUpsert) SetBuyoutPrice(v float64) *AccountUpsert {
+	u.Set(account.FieldBuyoutPrice, v)
+	return u
+}
+
+// UpdateBuyoutPrice sets the "buyout_price" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateBuyoutPrice() *AccountUpsert {
+	u.SetExcluded(account.FieldBuyoutPrice)
+	return u
+}
+
+// AddBuyoutPrice adds v to the "buyout_price" field.
+func (u *AccountUpsert) AddBuyoutPrice(v float64) *AccountUpsert {
+	u.Add(account.FieldBuyoutPrice, v)
+	return u
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (u *AccountUpsert) SetBuyoutInfo(v string) *AccountUpsert {
+	u.Set(account.FieldBuyoutInfo, v)
+	return u
+}
+
+// UpdateBuyoutInfo sets the "buyout_info" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateBuyoutInfo() *AccountUpsert {
+	u.SetExcluded(account.FieldBuyoutInfo)
+	return u
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (u *AccountUpsert) SetBoughtOutAt(v time.Time) *AccountUpsert {
+	u.Set(account.FieldBoughtOutAt, v)
+	return u
+}
+
+// UpdateBoughtOutAt sets the "bought_out_at" field to the value that was provided on create.
+func (u *AccountUpsert) UpdateBoughtOutAt() *AccountUpsert {
+	u.SetExcluded(account.FieldBoughtOutAt)
+	return u
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (u *AccountUpsert) ClearBoughtOutAt() *AccountUpsert {
+	u.SetNull(account.FieldBoughtOutAt)
 	return u
 }
 
@@ -2713,6 +2829,62 @@ func (u *AccountUpsertOne) UpdateLockedUntil() *AccountUpsertOne {
 func (u *AccountUpsertOne) ClearLockedUntil() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.ClearLockedUntil()
+	})
+}
+
+// SetBuyoutPrice sets the "buyout_price" field.
+func (u *AccountUpsertOne) SetBuyoutPrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBuyoutPrice(v)
+	})
+}
+
+// AddBuyoutPrice adds v to the "buyout_price" field.
+func (u *AccountUpsertOne) AddBuyoutPrice(v float64) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddBuyoutPrice(v)
+	})
+}
+
+// UpdateBuyoutPrice sets the "buyout_price" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateBuyoutPrice() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBuyoutPrice()
+	})
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (u *AccountUpsertOne) SetBuyoutInfo(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBuyoutInfo(v)
+	})
+}
+
+// UpdateBuyoutInfo sets the "buyout_info" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateBuyoutInfo() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBuyoutInfo()
+	})
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (u *AccountUpsertOne) SetBoughtOutAt(v time.Time) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBoughtOutAt(v)
+	})
+}
+
+// UpdateBoughtOutAt sets the "bought_out_at" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdateBoughtOutAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBoughtOutAt()
+	})
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (u *AccountUpsertOne) ClearBoughtOutAt() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearBoughtOutAt()
 	})
 }
 
@@ -3722,6 +3894,62 @@ func (u *AccountUpsertBulk) UpdateLockedUntil() *AccountUpsertBulk {
 func (u *AccountUpsertBulk) ClearLockedUntil() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
 		s.ClearLockedUntil()
+	})
+}
+
+// SetBuyoutPrice sets the "buyout_price" field.
+func (u *AccountUpsertBulk) SetBuyoutPrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBuyoutPrice(v)
+	})
+}
+
+// AddBuyoutPrice adds v to the "buyout_price" field.
+func (u *AccountUpsertBulk) AddBuyoutPrice(v float64) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.AddBuyoutPrice(v)
+	})
+}
+
+// UpdateBuyoutPrice sets the "buyout_price" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateBuyoutPrice() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBuyoutPrice()
+	})
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (u *AccountUpsertBulk) SetBuyoutInfo(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBuyoutInfo(v)
+	})
+}
+
+// UpdateBuyoutInfo sets the "buyout_info" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateBuyoutInfo() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBuyoutInfo()
+	})
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (u *AccountUpsertBulk) SetBoughtOutAt(v time.Time) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetBoughtOutAt(v)
+	})
+}
+
+// UpdateBoughtOutAt sets the "bought_out_at" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdateBoughtOutAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdateBoughtOutAt()
+	})
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (u *AccountUpsertBulk) ClearBoughtOutAt() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearBoughtOutAt()
 	})
 }
 

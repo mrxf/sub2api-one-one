@@ -2496,6 +2496,10 @@ type AccountMutation struct {
 	locked_by_order_id          *int64
 	addlocked_by_order_id       *int64
 	locked_until                *time.Time
+	buyout_price                *float64
+	addbuyout_price             *float64
+	buyout_info                 *string
+	bought_out_at               *time.Time
 	clearedFields               map[string]struct{}
 	groups                      map[int64]struct{}
 	removedgroups               map[int64]struct{}
@@ -4615,6 +4619,147 @@ func (m *AccountMutation) ResetLockedUntil() {
 	delete(m.clearedFields, account.FieldLockedUntil)
 }
 
+// SetBuyoutPrice sets the "buyout_price" field.
+func (m *AccountMutation) SetBuyoutPrice(f float64) {
+	m.buyout_price = &f
+	m.addbuyout_price = nil
+}
+
+// BuyoutPrice returns the value of the "buyout_price" field in the mutation.
+func (m *AccountMutation) BuyoutPrice() (r float64, exists bool) {
+	v := m.buyout_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyoutPrice returns the old "buyout_price" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldBuyoutPrice(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyoutPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyoutPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyoutPrice: %w", err)
+	}
+	return oldValue.BuyoutPrice, nil
+}
+
+// AddBuyoutPrice adds f to the "buyout_price" field.
+func (m *AccountMutation) AddBuyoutPrice(f float64) {
+	if m.addbuyout_price != nil {
+		*m.addbuyout_price += f
+	} else {
+		m.addbuyout_price = &f
+	}
+}
+
+// AddedBuyoutPrice returns the value that was added to the "buyout_price" field in this mutation.
+func (m *AccountMutation) AddedBuyoutPrice() (r float64, exists bool) {
+	v := m.addbuyout_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBuyoutPrice resets all changes to the "buyout_price" field.
+func (m *AccountMutation) ResetBuyoutPrice() {
+	m.buyout_price = nil
+	m.addbuyout_price = nil
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (m *AccountMutation) SetBuyoutInfo(s string) {
+	m.buyout_info = &s
+}
+
+// BuyoutInfo returns the value of the "buyout_info" field in the mutation.
+func (m *AccountMutation) BuyoutInfo() (r string, exists bool) {
+	v := m.buyout_info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyoutInfo returns the old "buyout_info" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldBuyoutInfo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyoutInfo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyoutInfo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyoutInfo: %w", err)
+	}
+	return oldValue.BuyoutInfo, nil
+}
+
+// ResetBuyoutInfo resets all changes to the "buyout_info" field.
+func (m *AccountMutation) ResetBuyoutInfo() {
+	m.buyout_info = nil
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (m *AccountMutation) SetBoughtOutAt(t time.Time) {
+	m.bought_out_at = &t
+}
+
+// BoughtOutAt returns the value of the "bought_out_at" field in the mutation.
+func (m *AccountMutation) BoughtOutAt() (r time.Time, exists bool) {
+	v := m.bought_out_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBoughtOutAt returns the old "bought_out_at" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldBoughtOutAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBoughtOutAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBoughtOutAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBoughtOutAt: %w", err)
+	}
+	return oldValue.BoughtOutAt, nil
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (m *AccountMutation) ClearBoughtOutAt() {
+	m.bought_out_at = nil
+	m.clearedFields[account.FieldBoughtOutAt] = struct{}{}
+}
+
+// BoughtOutAtCleared returns if the "bought_out_at" field was cleared in this mutation.
+func (m *AccountMutation) BoughtOutAtCleared() bool {
+	_, ok := m.clearedFields[account.FieldBoughtOutAt]
+	return ok
+}
+
+// ResetBoughtOutAt resets all changes to the "bought_out_at" field.
+func (m *AccountMutation) ResetBoughtOutAt() {
+	m.bought_out_at = nil
+	delete(m.clearedFields, account.FieldBoughtOutAt)
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
 func (m *AccountMutation) AddGroupIDs(ids ...int64) {
 	if m.groups == nil {
@@ -4878,7 +5023,7 @@ func (m *AccountMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccountMutation) Fields() []string {
-	fields := make([]string, 0, 42)
+	fields := make([]string, 0, 45)
 	if m.created_at != nil {
 		fields = append(fields, account.FieldCreatedAt)
 	}
@@ -5005,6 +5150,15 @@ func (m *AccountMutation) Fields() []string {
 	if m.locked_until != nil {
 		fields = append(fields, account.FieldLockedUntil)
 	}
+	if m.buyout_price != nil {
+		fields = append(fields, account.FieldBuyoutPrice)
+	}
+	if m.buyout_info != nil {
+		fields = append(fields, account.FieldBuyoutInfo)
+	}
+	if m.bought_out_at != nil {
+		fields = append(fields, account.FieldBoughtOutAt)
+	}
 	return fields
 }
 
@@ -5097,6 +5251,12 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.LockedByOrderID()
 	case account.FieldLockedUntil:
 		return m.LockedUntil()
+	case account.FieldBuyoutPrice:
+		return m.BuyoutPrice()
+	case account.FieldBuyoutInfo:
+		return m.BuyoutInfo()
+	case account.FieldBoughtOutAt:
+		return m.BoughtOutAt()
 	}
 	return nil, false
 }
@@ -5190,6 +5350,12 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldLockedByOrderID(ctx)
 	case account.FieldLockedUntil:
 		return m.OldLockedUntil(ctx)
+	case account.FieldBuyoutPrice:
+		return m.OldBuyoutPrice(ctx)
+	case account.FieldBuyoutInfo:
+		return m.OldBuyoutInfo(ctx)
+	case account.FieldBoughtOutAt:
+		return m.OldBoughtOutAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Account field %s", name)
 }
@@ -5493,6 +5659,27 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLockedUntil(v)
 		return nil
+	case account.FieldBuyoutPrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyoutPrice(v)
+		return nil
+	case account.FieldBuyoutInfo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyoutInfo(v)
+		return nil
+	case account.FieldBoughtOutAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBoughtOutAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)
 }
@@ -5531,6 +5718,9 @@ func (m *AccountMutation) AddedFields() []string {
 	if m.addlocked_by_order_id != nil {
 		fields = append(fields, account.FieldLockedByOrderID)
 	}
+	if m.addbuyout_price != nil {
+		fields = append(fields, account.FieldBuyoutPrice)
+	}
 	return fields
 }
 
@@ -5559,6 +5749,8 @@ func (m *AccountMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMinSalePrice()
 	case account.FieldLockedByOrderID:
 		return m.AddedLockedByOrderID()
+	case account.FieldBuyoutPrice:
+		return m.AddedBuyoutPrice()
 	}
 	return nil, false
 }
@@ -5638,6 +5830,13 @@ func (m *AccountMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddLockedByOrderID(v)
 		return nil
+	case account.FieldBuyoutPrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBuyoutPrice(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Account numeric field %s", name)
 }
@@ -5711,6 +5910,9 @@ func (m *AccountMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(account.FieldLockedUntil) {
 		fields = append(fields, account.FieldLockedUntil)
+	}
+	if m.FieldCleared(account.FieldBoughtOutAt) {
+		fields = append(fields, account.FieldBoughtOutAt)
 	}
 	return fields
 }
@@ -5791,6 +5993,9 @@ func (m *AccountMutation) ClearField(name string) error {
 		return nil
 	case account.FieldLockedUntil:
 		m.ClearLockedUntil()
+		return nil
+	case account.FieldBoughtOutAt:
+		m.ClearBoughtOutAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Account nullable field %s", name)
@@ -5925,6 +6130,15 @@ func (m *AccountMutation) ResetField(name string) error {
 		return nil
 	case account.FieldLockedUntil:
 		m.ResetLockedUntil()
+		return nil
+	case account.FieldBuyoutPrice:
+		m.ResetBuyoutPrice()
+		return nil
+	case account.FieldBuyoutInfo:
+		m.ResetBuyoutInfo()
+		return nil
+	case account.FieldBoughtOutAt:
+		m.ResetBoughtOutAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Account field %s", name)

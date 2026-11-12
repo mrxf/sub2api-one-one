@@ -45,6 +45,7 @@ const (
 	OrderTypeBalance          = "balance"
 	OrderTypeSubscription     = "subscription"
 	OrderTypeDedicatedAccount = "dedicated_account"
+	OrderTypeDedicatedBuyout  = "dedicated_buyout"
 )
 
 // Entity statuses shared across users, groups, etc.

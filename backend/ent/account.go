@@ -103,6 +103,12 @@ type Account struct {
 	LockedByOrderID *int64 `json:"locked_by_order_id,omitempty"`
 	// LockedUntil holds the value of the "locked_until" field.
 	LockedUntil *time.Time `json:"locked_until,omitempty"`
+	// Full account buyout price in CNY (0 = buyout disabled).
+	BuyoutPrice float64 `json:"buyout_price,omitempty"`
+	// Plaintext account details revealed only to the owner after buyout.
+	BuyoutInfo string `json:"buyout_info,omitempty"`
+	// Timestamp when the account was bought out (forfeits ban-compensation warranty).
+	BoughtOutAt *time.Time `json:"bought_out_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
 	Edges        AccountEdges `json:"edges"`
@@ -195,13 +201,13 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case account.FieldAutoPauseOnExpired, account.FieldSchedulable:
 			values[i] = new(sql.NullBool)
-		case account.FieldRateMultiplier, account.FieldSalePrice, account.FieldDailyPriceDecay, account.FieldMinSalePrice:
+		case account.FieldRateMultiplier, account.FieldSalePrice, account.FieldDailyPriceDecay, account.FieldMinSalePrice, account.FieldBuyoutPrice:
 			values[i] = new(sql.NullFloat64)
 		case account.FieldID, account.FieldProxyID, account.FieldProxyFallbackOriginID, account.FieldConcurrency, account.FieldLoadFactor, account.FieldPriority, account.FieldParentAccountID, account.FieldOwnerUserID, account.FieldLockedByOrderID:
 			values[i] = new(sql.NullInt64)
-		case account.FieldName, account.FieldNotes, account.FieldPlatform, account.FieldType, account.FieldStatus, account.FieldErrorMessage, account.FieldTempUnschedulableReason, account.FieldSessionWindowStatus, account.FieldQuotaDimension, account.FieldDisplayAlias, account.FieldSaleStatus, account.FieldSaleDescription:
+		case account.FieldName, account.FieldNotes, account.FieldPlatform, account.FieldType, account.FieldStatus, account.FieldErrorMessage, account.FieldTempUnschedulableReason, account.FieldSessionWindowStatus, account.FieldQuotaDimension, account.FieldDisplayAlias, account.FieldSaleStatus, account.FieldSaleDescription, account.FieldBuyoutInfo:
 			values[i] = new(sql.NullString)
-		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt, account.FieldLastUsedAt, account.FieldExpiresAt, account.FieldRateLimitedAt, account.FieldRateLimitResetAt, account.FieldOverloadUntil, account.FieldTempUnschedulableUntil, account.FieldSessionWindowStart, account.FieldSessionWindowEnd, account.FieldListedAt, account.FieldSoldAt, account.FieldLockedUntil:
+		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt, account.FieldLastUsedAt, account.FieldExpiresAt, account.FieldRateLimitedAt, account.FieldRateLimitResetAt, account.FieldOverloadUntil, account.FieldTempUnschedulableUntil, account.FieldSessionWindowStart, account.FieldSessionWindowEnd, account.FieldListedAt, account.FieldSoldAt, account.FieldLockedUntil, account.FieldBoughtOutAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -502,6 +508,25 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 				_m.LockedUntil = new(time.Time)
 				*_m.LockedUntil = value.Time
 			}
+		case account.FieldBuyoutPrice:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field buyout_price", values[i])
+			} else if value.Valid {
+				_m.BuyoutPrice = value.Float64
+			}
+		case account.FieldBuyoutInfo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field buyout_info", values[i])
+			} else if value.Valid {
+				_m.BuyoutInfo = value.String
+			}
+		case account.FieldBoughtOutAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field bought_out_at", values[i])
+			} else if value.Valid {
+				_m.BoughtOutAt = new(time.Time)
+				*_m.BoughtOutAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -735,6 +760,17 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	if v := _m.LockedUntil; v != nil {
 		builder.WriteString("locked_until=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("buyout_price=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BuyoutPrice))
+	builder.WriteString(", ")
+	builder.WriteString("buyout_info=")
+	builder.WriteString(_m.BuyoutInfo)
+	builder.WriteString(", ")
+	if v := _m.BoughtOutAt; v != nil {
+		builder.WriteString("bought_out_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')

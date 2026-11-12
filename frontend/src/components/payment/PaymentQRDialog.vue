@@ -43,7 +43,7 @@
             <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.orderId') }}</span>
             <span class="font-medium text-gray-900 dark:text-white">#{{ paidOrder.id }}</span>
           </div>
-          <div v-if="paidOrder.order_type !== 'dedicated_account'" class="flex justify-between">
+          <div v-if="paidOrder.order_type !== 'dedicated_account' && paidOrder.order_type !== 'dedicated_buyout'" class="flex justify-between">
             <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.amount') }}</span>
             <span class="font-medium text-gray-900 dark:text-white">{{ creditedAmountSymbol }}{{ paidOrder.amount.toFixed(2) }}</span>
           </div>

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math"
@@ -13,11 +14,12 @@ import (
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
+	"github.com/shopspring/decimal"
 )
 
 const dedicatedUsageForceCooldown = 60 * time.Second
 
-// DedicatedAccountRepository 定义独享账号商城、原子锁单、履约分配与只读归属查询所需的持久化能力。
+// DedicatedAccountRepository 定义独享账号商城、原子锁单、履约分配、买断提号与只读归属查询所需的持久化能力。
 type DedicatedAccountRepository interface {
 	ReleaseExpiredLocks(ctx context.Context, now time.Time) (int, error)
 	ListMarketAccounts(ctx context.Context, platform string) ([]Account, error)
@@ -25,18 +27,30 @@ type DedicatedAccountRepository interface {
 	ListUserDedicatedAccounts(ctx context.Context, userID int64) ([]Account, error)
 	EnsureAccountHasGroup(ctx context.Context, accountID int64, platform string) (int64, error)
 	LockAccountForOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, orderID int64, lockUntil time.Time) (*Account, error)
+	LockAccountForBuyoutOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, buyerUserID int64, orderID int64, lockUntil time.Time) (*Account, error)
 	UnlockAccountForOrder(ctx context.Context, accountID int64, orderID int64) error
 	FulfillOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, buyerUserID int64, orderID int64, keyGen func() (string, error)) (*Account, *APIKey, error)
+	FulfillBuyoutOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, buyerUserID int64, orderID int64, keyGen func() (string, error)) (*Account, *APIKey, string, error)
 	PurchaseWithBalance(ctx context.Context, buyerUserID int64, accountID int64, balanceMultiplier float64, keyGen func() (string, error)) (*DedicatedBalancePurchaseOutcome, error)
+	BuyoutWithBalance(ctx context.Context, buyerUserID int64, accountID int64, balanceMultiplier float64, keyGen func() (string, error)) (*DedicatedBalanceBuyoutOutcome, error)
 	RevokeOwnershipOnRefund(ctx context.Context, accountID int64, expectedOwnerUserID int64) ([]string, error)
 }
 
 type DedicatedBalancePurchaseOutcome struct {
-	Account             *Account
-	APIKey              *APIKey
-	PriceCNY            float64
-	BalanceDeducted     float64
-	RemainingBalance    float64
+	Account          *Account
+	APIKey           *APIKey
+	PriceCNY         float64
+	BalanceDeducted  float64
+	RemainingBalance float64
+}
+
+type DedicatedBalanceBuyoutOutcome struct {
+	Account          *Account
+	APIKey           *APIKey
+	BuyoutInfo       string
+	PriceCNY         float64
+	BalanceDeducted  float64
+	RemainingBalance float64
 }
 
 type DedicatedWindowProgress struct {
@@ -84,23 +98,29 @@ type DedicatedBoundAPIKeySummary struct {
 }
 
 type UserDedicatedAccountView struct {
-	ID                int64                         `json:"id"`
-	DisplayName       string                        `json:"display_name"`
-	Platform          string                        `json:"platform"`
-	Type              string                        `json:"type"`
-	HealthStatus      string                        `json:"health_status"`
-	StatusLabel       string                        `json:"status_label"`
-	Concurrency       int                           `json:"concurrency"`
-	GroupID           *int64                        `json:"group_id,omitempty"`
-	GroupName         string                        `json:"group_name,omitempty"`
-	SoldAt            *time.Time                    `json:"sold_at,omitempty"`
-	ExpiresAt         *time.Time                    `json:"expires_at,omitempty"`
-	RemainingDays     *int                          `json:"remaining_days,omitempty"`
-	RateLimitResetAt  *time.Time                    `json:"rate_limit_reset_at,omitempty"`
-	LastUsedAt        *time.Time                    `json:"last_used_at,omitempty"`
-	Quota             *DedicatedQuotaSnapshot       `json:"quota,omitempty"`
-	ResetCredits      *DedicatedResetCreditStatus   `json:"reset_credits"`
-	BoundAPIKeys      []DedicatedBoundAPIKeySummary `json:"bound_api_keys"`
+	ID                        int64                         `json:"id"`
+	DisplayName               string                        `json:"display_name"`
+	Platform                  string                        `json:"platform"`
+	Type                      string                        `json:"type"`
+	HealthStatus              string                        `json:"health_status"`
+	StatusLabel               string                        `json:"status_label"`
+	Concurrency               int                           `json:"concurrency"`
+	GroupID                   *int64                        `json:"group_id,omitempty"`
+	GroupName                 string                        `json:"group_name,omitempty"`
+	SoldAt                    *time.Time                    `json:"sold_at,omitempty"`
+	ExpiresAt                 *time.Time                    `json:"expires_at,omitempty"`
+	RemainingDays             *int                          `json:"remaining_days,omitempty"`
+	RateLimitResetAt          *time.Time                    `json:"rate_limit_reset_at,omitempty"`
+	LastUsedAt                *time.Time                    `json:"last_used_at,omitempty"`
+	Quota                     *DedicatedQuotaSnapshot       `json:"quota,omitempty"`
+	ResetCredits              *DedicatedResetCreditStatus   `json:"reset_credits"`
+	BoundAPIKeys              []DedicatedBoundAPIKeySummary `json:"bound_api_keys"`
+	BoughtOut                 bool                          `json:"bought_out"`
+	BoughtOutAt               *time.Time                    `json:"bought_out_at,omitempty"`
+	BuyoutAvailable           bool                          `json:"buyout_available"`
+	BuyoutPriceCNY            float64                       `json:"buyout_price_cny,omitempty"`
+	BuyoutPriceBalance        float64                       `json:"buyout_price_balance,omitempty"`
+	BalanceCurrencyMultiplier float64                       `json:"balance_currency_multiplier,omitempty"`
 }
 
 type DedicatedMarketItem struct {
@@ -125,6 +145,9 @@ type DedicatedMarketItem struct {
 	NextPriceDecayAt          *time.Time              `json:"next_price_decay_at,omitempty"`
 	Description               string                  `json:"description,omitempty"`
 	QuotaPreview              *DedicatedQuotaSnapshot `json:"quota_preview,omitempty"`
+	BuyoutAvailable           bool                    `json:"buyout_available"`
+	BuyoutPriceCNY            float64                 `json:"buyout_price_cny,omitempty"`
+	BuyoutPriceBalance        float64                 `json:"buyout_price_balance,omitempty"`
 }
 
 type DedicatedPurchaseResult struct {
@@ -135,6 +158,25 @@ type DedicatedPurchaseResult struct {
 	PriceCNY         float64                   `json:"price_cny"`
 	BalanceDeducted  float64                   `json:"balance_deducted"`
 	RemainingBalance *float64                  `json:"remaining_balance,omitempty"`
+}
+
+type DedicatedBuyoutResult struct {
+	Account          *UserDedicatedAccountView `json:"account"`
+	BuyoutInfo       string                    `json:"buyout_info"`
+	APIKeyID         int64                     `json:"api_key_id,omitempty"`
+	APIKey           string                    `json:"api_key,omitempty"`
+	APIKeyName       string                    `json:"api_key_name,omitempty"`
+	PriceCNY         float64                   `json:"price_cny"`
+	BalanceDeducted  float64                   `json:"balance_deducted"`
+	RemainingBalance *float64                  `json:"remaining_balance,omitempty"`
+}
+
+type DedicatedBuyoutInfoResponse struct {
+	AccountID   int64      `json:"account_id"`
+	DisplayName string     `json:"display_name"`
+	Platform    string     `json:"platform"`
+	BoughtOutAt *time.Time `json:"bought_out_at,omitempty"`
+	BuyoutInfo  string     `json:"buyout_info"`
 }
 
 type DedicatedAccountService struct {
@@ -333,6 +375,7 @@ func (s *DedicatedAccountService) currentBalanceMultiplier(ctx context.Context) 
 }
 
 // ListMarketAccounts 获取当前上架中的独享账号商城列表（自动释放已超时锁单）。
+// 注意：严禁在此接口暴露任何账号邮箱、凭据或买断纯文本（buyout_info）。
 func (s *DedicatedAccountService) ListMarketAccounts(ctx context.Context, platform string) ([]DedicatedMarketItem, error) {
 	if s == nil || s.repo == nil {
 		return []DedicatedMarketItem{}, nil
@@ -352,6 +395,12 @@ func (s *DedicatedAccountService) ListMarketAccounts(ctx context.Context, platfo
 		currentCNY := acc.CurrentSalePrice(now)
 		currentBal := calculateCreditedBalance(currentCNY, multiplier)
 		effExpiresAt := effectiveDedicatedExpiresAt(acc)
+		buyoutEnabled := acc.IsBuyoutEnabled()
+		var buyoutCNY, buyoutBal float64
+		if buyoutEnabled {
+			buyoutCNY = decimal.NewFromFloat(acc.BuyoutPrice).Round(2).InexactFloat64()
+			buyoutBal = calculateCreditedBalance(buyoutCNY, multiplier)
+		}
 		item := DedicatedMarketItem{
 			ID:                        acc.ID,
 			DisplayName:               acc.PublicDisplayName(),
@@ -360,7 +409,7 @@ func (s *DedicatedAccountService) ListMarketAccounts(ctx context.Context, platfo
 			SaleStatus:                NormalizeAccountSaleStatus(acc.SaleStatus),
 			LockedUntil:               acc.LockedUntil,
 			Concurrency:               acc.Concurrency,
-			GroupName:                 firstAccountGroupName(acc),
+			GroupName:                 acc.SanitizePublicText(firstAccountGroupName(acc)),
 			ExpiresAt:                 effExpiresAt,
 			RemainingDays:             computeRemainingDays(effExpiresAt, now),
 			ListedAt:                  acc.ListedAt,
@@ -372,8 +421,11 @@ func (s *DedicatedAccountService) ListMarketAccounts(ctx context.Context, platfo
 			CurrentPriceBalance:       currentBal,
 			BalanceCurrencyMultiplier: multiplier,
 			NextPriceDecayAt:          acc.NextPriceDecayAt(now),
-			Description:               derefOptionalString(acc.SaleDescription),
+			Description:               acc.SanitizePublicText(derefOptionalString(acc.SaleDescription)),
 			QuotaPreview:              s.passiveQuotaSnapshot(ctx, acc),
+			BuyoutAvailable:           buyoutEnabled,
+			BuyoutPriceCNY:            buyoutCNY,
+			BuyoutPriceBalance:        buyoutBal,
 		}
 		items = append(items, item)
 	}
@@ -405,11 +457,66 @@ func (s *DedicatedAccountService) QuoteMarketAccountForOrder(ctx context.Context
 	return priceCNY, acc.PublicDisplayName(), nil
 }
 
+// QuoteBuyoutAccountForOrder 在创建在线支付买断订单前校验账号可买断资格（支持商城直接买断与已持有独享账号升级买断）并返回权威 CNY 买断价。
+func (s *DedicatedAccountService) QuoteBuyoutAccountForOrder(ctx context.Context, userID int64, accountID int64) (float64, string, error) {
+	if s == nil || s.repo == nil || accountID <= 0 || userID <= 0 {
+		return 0, "", ErrDedicatedAccountNotFound
+	}
+	now := time.Now()
+	_, _ = s.repo.ReleaseExpiredLocks(ctx, now)
+	acc, err := s.repo.GetByID(ctx, accountID)
+	if err != nil || acc == nil {
+		return 0, "", ErrDedicatedAccountNotFound
+	}
+	if acc.ParentAccountID != nil {
+		return 0, "", ErrDedicatedAccountUnavailable
+	}
+	isOwnedByBuyer := acc.OwnerUserID != nil && *acc.OwnerUserID == userID
+	if acc.OwnerUserID != nil && !isOwnedByBuyer {
+		return 0, "", ErrDedicatedAccountForbidden
+	}
+	if acc.IsBoughtOut() {
+		if isOwnedByBuyer {
+			return 0, "", ErrDedicatedAlreadyBoughtOut
+		}
+		return 0, "", ErrDedicatedAccountUnavailable
+	}
+	if !acc.IsBuyoutEnabled() {
+		return 0, "", ErrDedicatedBuyoutUnavailable
+	}
+	if isOwnedByBuyer {
+		if acc.LockedByOrderID != nil && acc.LockedUntil != nil && acc.LockedUntil.After(now) {
+			return 0, "", infraerrors.Conflict("DEDICATED_BUYOUT_ORDER_PENDING", "该账号存在待支付的买断订单，请先完成支付或在订单记录中取消后再试")
+		}
+	} else {
+		if acc.Status != StatusActive {
+			return 0, "", ErrDedicatedAccountUnavailable
+		}
+		status := NormalizeAccountSaleStatus(acc.SaleStatus)
+		if status != AccountSaleStatusListed && !(status == AccountSaleStatusLocked && acc.LockedUntil != nil && !acc.LockedUntil.After(now)) {
+			return 0, "", ErrDedicatedAccountUnavailable
+		}
+	}
+	priceCNY := decimal.NewFromFloat(acc.BuyoutPrice).Round(2).InexactFloat64()
+	if priceCNY < 0.01 {
+		return 0, "", ErrDedicatedBuyoutUnavailable
+	}
+	return priceCNY, acc.PublicDisplayName(), nil
+}
+
 func (s *DedicatedAccountService) LockAccountForOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, orderID int64, lockUntil time.Time) error {
 	if s == nil || s.repo == nil {
 		return ErrDedicatedAccountUnavailable
 	}
 	_, err := s.repo.LockAccountForOrderInTx(ctx, tx, accountID, orderID, lockUntil)
+	return err
+}
+
+func (s *DedicatedAccountService) LockAccountForBuyoutOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, buyerUserID int64, orderID int64, lockUntil time.Time) error {
+	if s == nil || s.repo == nil {
+		return ErrDedicatedAccountUnavailable
+	}
+	_, err := s.repo.LockAccountForBuyoutOrderInTx(ctx, tx, accountID, buyerUserID, orderID, lockUntil)
 	return err
 }
 
@@ -428,6 +535,14 @@ func (s *DedicatedAccountService) FulfillDedicatedOrderInTx(ctx context.Context,
 		return nil, nil, ErrDedicatedAccountUnavailable
 	}
 	return s.repo.FulfillOrderInTx(ctx, tx, accountID, buyerUserID, orderID, s.generateAPIKeyString)
+}
+
+// FulfillDedicatedBuyoutOrderInTx 在线支付买断订单成功回调时完成买断标记（及商城首次归属分配）。
+func (s *DedicatedAccountService) FulfillDedicatedBuyoutOrderInTx(ctx context.Context, tx *dbent.Tx, accountID int64, buyerUserID int64, orderID int64) (*Account, *APIKey, string, error) {
+	if s == nil || s.repo == nil {
+		return nil, nil, "", ErrDedicatedAccountUnavailable
+	}
+	return s.repo.FulfillBuyoutOrderInTx(ctx, tx, accountID, buyerUserID, orderID, s.generateAPIKeyString)
 }
 
 // NotifyOrderFulfilled 支付事务提交后刷新用户的 API Key 认证缓存。
@@ -455,7 +570,7 @@ func (s *DedicatedAccountService) RevokeOwnershipOnRefund(ctx context.Context, a
 	return nil
 }
 
-// PurchaseWithBalance 使用平台钱包余额原子买断上架中的独享账号。
+// PurchaseWithBalance 使用平台钱包余额原子购买上架中的独享账号（平台托管 API 使用权，不含原始账号信息提取）。
 func (s *DedicatedAccountService) PurchaseWithBalance(ctx context.Context, userID int64, accountID int64) (*DedicatedPurchaseResult, error) {
 	if s == nil || s.repo == nil {
 		return nil, ErrDedicatedAccountUnavailable
@@ -482,27 +597,103 @@ func (s *DedicatedAccountService) PurchaseWithBalance(ctx context.Context, userI
 	if outcome.APIKey != nil {
 		boundKeys = append(boundKeys, DedicatedBoundAPIKeySummary{
 			ID:                outcome.APIKey.ID,
-			Name:              outcome.APIKey.Name,
+			Name:              outcome.Account.SanitizePublicText(outcome.APIKey.Name),
 			Key:               outcome.APIKey.Key,
 			Status:            outcome.APIKey.Status,
 			GroupID:           outcome.APIKey.GroupID,
 			DedicatedPoolMode: outcome.APIKey.DedicatedPoolMode,
 		})
 	}
-	view := s.buildUserAccountView(ctx, outcome.Account, boundKeys, now)
+	view := s.buildUserAccountView(ctx, outcome.Account, boundKeys, multiplier, now)
 	rem := outcome.RemainingBalance
 	return &DedicatedPurchaseResult{
 		Account:          &view,
 		APIKeyID:         outcome.APIKey.ID,
 		APIKey:           outcome.APIKey.Key,
-		APIKeyName:       outcome.APIKey.Name,
+		APIKeyName:       outcome.Account.SanitizePublicText(outcome.APIKey.Name),
 		PriceCNY:         outcome.PriceCNY,
 		BalanceDeducted:  outcome.BalanceDeducted,
 		RemainingBalance: &rem,
 	}, nil
 }
 
-// ListUserDedicatedAccounts 返回用户名下所有独享买断账号的只读安全视图。
+// BuyoutWithBalance 使用平台钱包余额原子买断独享账号（支持商城直接买断或已持有独享账号升级买断），
+// 买断成功后向归属客户交付纯文本账号信息，并永久标记为已买断（不再享受封号补偿等优惠策略）。
+func (s *DedicatedAccountService) BuyoutWithBalance(ctx context.Context, userID int64, accountID int64) (*DedicatedBuyoutResult, error) {
+	if s == nil || s.repo == nil {
+		return nil, ErrDedicatedAccountUnavailable
+	}
+	if userID <= 0 || accountID <= 0 {
+		return nil, infraerrors.BadRequest("INVALID_INPUT", "无效的用户或独享账号 ID")
+	}
+
+	multiplier := s.currentBalanceMultiplier(ctx)
+	outcome, err := s.repo.BuyoutWithBalance(ctx, userID, accountID, multiplier, s.generateAPIKeyString)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.billingCacheService != nil {
+		_ = s.billingCacheService.InvalidateUserBalance(ctx, userID)
+	}
+	if s.apiKeyService != nil {
+		s.apiKeyService.InvalidateAuthCacheByUserID(ctx, userID)
+	}
+
+	now := time.Now()
+	boundKeys := []DedicatedBoundAPIKeySummary{}
+	var apiKeyID int64
+	var apiKeyStr, apiKeyName string
+	if outcome.APIKey != nil {
+		apiKeyID = outcome.APIKey.ID
+		apiKeyStr = outcome.APIKey.Key
+		apiKeyName = outcome.Account.SanitizePublicText(outcome.APIKey.Name)
+		boundKeys = append(boundKeys, DedicatedBoundAPIKeySummary{
+			ID:                outcome.APIKey.ID,
+			Name:              apiKeyName,
+			Key:               outcome.APIKey.Key,
+			Status:            outcome.APIKey.Status,
+			GroupID:           outcome.APIKey.GroupID,
+			DedicatedPoolMode: outcome.APIKey.DedicatedPoolMode,
+		})
+	}
+	view := s.buildUserAccountView(ctx, outcome.Account, boundKeys, multiplier, now)
+	rem := outcome.RemainingBalance
+	return &DedicatedBuyoutResult{
+		Account:          &view,
+		BuyoutInfo:       outcome.BuyoutInfo,
+		APIKeyID:         apiKeyID,
+		APIKey:           apiKeyStr,
+		APIKeyName:       apiKeyName,
+		PriceCNY:         outcome.PriceCNY,
+		BalanceDeducted:  outcome.BalanceDeducted,
+		RemainingBalance: &rem,
+	}, nil
+}
+
+// GetUserBoughtOutAccountInfo 仅在确认当前用户是该独享账号归属人且已完成买断（bought_out_at != nil）时，返回纯文本账号交付信息。
+func (s *DedicatedAccountService) GetUserBoughtOutAccountInfo(
+	ctx context.Context,
+	userID int64,
+	accountID int64,
+) (*DedicatedBuyoutInfoResponse, error) {
+	acc, err := s.loadVerifiedOwnedAccount(ctx, userID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if !acc.IsBoughtOut() {
+		return nil, infraerrors.Forbidden("DEDICATED_NOT_BOUGHT_OUT", "该独享账号尚未完成买断，暂无法查看买断账号信息")
+	}
+	return &DedicatedBuyoutInfoResponse{
+		AccountID:   acc.ID,
+		DisplayName: acc.PublicDisplayName(),
+		Platform:    acc.Platform,
+		BoughtOutAt: acc.BoughtOutAt,
+		BuyoutInfo:  derefRawString(acc.BuyoutInfo),
+	}, nil
+}
+
+// ListUserDedicatedAccounts 返回用户名下所有独享账号的只读安全视图（严格隐藏邮箱、凭据及未买断时的 buyout_info）。
 func (s *DedicatedAccountService) ListUserDedicatedAccounts(ctx context.Context, userID int64) ([]UserDedicatedAccountView, error) {
 	if s == nil || s.repo == nil || userID <= 0 {
 		return []UserDedicatedAccountView{}, nil
@@ -524,7 +715,7 @@ func (s *DedicatedAccountService) ListUserDedicatedAccounts(ctx context.Context,
 				k := &keys[i]
 				summary := DedicatedBoundAPIKeySummary{
 					ID:                k.ID,
-					Name:              k.Name,
+					Name:              RedactUpstreamSensitiveText(k.Name),
 					Key:               k.Key,
 					Status:            k.Status,
 					GroupID:           k.GroupID,
@@ -540,6 +731,7 @@ func (s *DedicatedAccountService) ListUserDedicatedAccounts(ctx context.Context,
 	}
 
 	now := time.Now()
+	multiplier := s.currentBalanceMultiplier(ctx)
 	views := make([]UserDedicatedAccountView, 0, len(accounts))
 	for i := range accounts {
 		acc := &accounts[i]
@@ -547,7 +739,11 @@ func (s *DedicatedAccountService) ListUserDedicatedAccounts(ctx context.Context,
 		for _, gid := range acc.GroupIDs {
 			bound = append(bound, poolKeysByGroup[gid]...)
 		}
-		views = append(views, s.buildUserAccountView(ctx, acc, deduplicateBoundKeys(bound), now))
+		dedup := deduplicateBoundKeys(bound)
+		for j := range dedup {
+			dedup[j].Name = acc.SanitizePublicText(dedup[j].Name)
+		}
+		views = append(views, s.buildUserAccountView(ctx, acc, dedup, multiplier, now))
 	}
 	return views, nil
 }
@@ -656,7 +852,7 @@ func (s *DedicatedAccountService) RedeemUserAccountResetCredit(
 			key = fmt.Sprintf("user-%d-acc-%d-%d", userID, accountID, time.Now().Unix()/10)
 		}
 		if _, err := s.claudeResetCredits.Redeem(ctx, accountID, key); err != nil {
-			return nil, err
+			return nil, sanitizeDedicatedResetErrorForUser(acc, err)
 		}
 		if s.rateLimitService != nil {
 			_ = s.rateLimitService.ClearRateLimit(ctx, accountID)
@@ -682,7 +878,7 @@ func (s *DedicatedAccountService) RedeemUserAccountResetCredit(
 			return nil, infraerrors.ServiceUnavailable("RESET_SERVICE_UNAVAILABLE", "OpenAI 重置卡服务暂不可用")
 		}
 		if _, err := s.openAIQuotaService.ResetCredit(ctx, accountID); err != nil {
-			return nil, err
+			return nil, sanitizeDedicatedResetErrorForUser(acc, err)
 		}
 		postCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 25*time.Second)
 		defer cancel()
@@ -712,6 +908,28 @@ func (s *DedicatedAccountService) RedeemUserAccountResetCredit(
 	}
 
 	return nil, infraerrors.BadRequest("RESET_CREDIT_UNSUPPORTED", "当前账号类型不支持使用重置卡")
+}
+
+// sanitizeDedicatedResetErrorForUser 确保官方重置卡调用失败时绝不向前端暴露上游原始报错中的邮箱、组织 ID 或令牌。
+func sanitizeDedicatedResetErrorForUser(acc *Account, err error) error {
+	if err == nil {
+		return nil
+	}
+	var appErr *infraerrors.ApplicationError
+	if errors.As(err, &appErr) && appErr != nil {
+		safeMsg := RedactUpstreamSensitiveText(appErr.Message)
+		if acc != nil {
+			safeMsg = acc.SanitizePublicText(safeMsg)
+		}
+		return infraerrors.New(int(appErr.Code), appErr.Reason, safeMsg)
+	}
+	slog.Warn("dedicated reset credit upstream error shielded", "account_id", func() int64 {
+		if acc != nil {
+			return acc.ID
+		}
+		return 0
+	}(), "error", err)
+	return infraerrors.New(502, "RESET_CREDIT_UPSTREAM_FAILED", "官方重置卡上游服务调用失败，请稍后重试或联系管理员")
 }
 
 func (s *DedicatedAccountService) redeemSyntheticResetCredit(ctx context.Context, acc *Account) (*DedicatedResetCreditRedeemResult, error) {
@@ -1043,6 +1261,7 @@ func (s *DedicatedAccountService) buildUserAccountView(
 	ctx context.Context,
 	acc *Account,
 	boundKeys []DedicatedBoundAPIKeySummary,
+	multiplier float64,
 	now time.Time,
 ) UserDedicatedAccountView {
 	health, label := deriveUserFacingAccountHealth(acc, now)
@@ -1062,24 +1281,37 @@ func (s *DedicatedAccountService) buildUserAccountView(
 		boundKeys = []DedicatedBoundAPIKeySummary{}
 	}
 	effExpiresAt := effectiveDedicatedExpiresAt(acc)
+	boughtOut := acc.IsBoughtOut()
+	buyoutAvailable := acc.IsBuyoutEnabled()
+	var buyoutCNY, buyoutBal float64
+	if buyoutAvailable {
+		buyoutCNY = decimal.NewFromFloat(acc.BuyoutPrice).Round(2).InexactFloat64()
+		buyoutBal = calculateCreditedBalance(buyoutCNY, multiplier)
+	}
 	return UserDedicatedAccountView{
-		ID:               acc.ID,
-		DisplayName:      acc.PublicDisplayName(),
-		Platform:         acc.Platform,
-		Type:             acc.Type,
-		HealthStatus:     health,
-		StatusLabel:      label,
-		Concurrency:      acc.Concurrency,
-		GroupID:          groupID,
-		GroupName:        firstAccountGroupName(acc),
-		SoldAt:           acc.SoldAt,
-		ExpiresAt:        effExpiresAt,
-		RemainingDays:    computeRemainingDays(effExpiresAt, now),
-		RateLimitResetAt: acc.RateLimitResetAt,
-		LastUsedAt:       acc.LastUsedAt,
-		Quota:            s.passiveQuotaSnapshot(ctx, acc),
-		ResetCredits:     resetStatus,
-		BoundAPIKeys:     boundKeys,
+		ID:                        acc.ID,
+		DisplayName:               acc.PublicDisplayName(),
+		Platform:                  acc.Platform,
+		Type:                      acc.Type,
+		HealthStatus:              health,
+		StatusLabel:               label,
+		Concurrency:               acc.Concurrency,
+		GroupID:                   groupID,
+		GroupName:                 acc.SanitizePublicText(firstAccountGroupName(acc)),
+		SoldAt:                    acc.SoldAt,
+		ExpiresAt:                 effExpiresAt,
+		RemainingDays:             computeRemainingDays(effExpiresAt, now),
+		RateLimitResetAt:          acc.RateLimitResetAt,
+		LastUsedAt:                acc.LastUsedAt,
+		Quota:                     s.passiveQuotaSnapshot(ctx, acc),
+		ResetCredits:              resetStatus,
+		BoundAPIKeys:              boundKeys,
+		BoughtOut:                 boughtOut,
+		BoughtOutAt:               acc.BoughtOutAt,
+		BuyoutAvailable:           buyoutAvailable,
+		BuyoutPriceCNY:            buyoutCNY,
+		BuyoutPriceBalance:        buyoutBal,
+		BalanceCurrencyMultiplier: multiplier,
 	}
 }
 
@@ -1152,6 +1384,13 @@ func derefOptionalString(p *string) string {
 		return ""
 	}
 	return strings.TrimSpace(*p)
+}
+
+func derefRawString(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
 }
 
 func float64FromAny(v any) (float64, bool) {

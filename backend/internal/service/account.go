@@ -75,6 +75,9 @@ type Account struct {
 	SaleDescription  *string    // 商城卡片卖点说明
 	LockedByOrderID  *int64     // 待支付锁定的订单 ID
 	LockedUntil      *time.Time // 订单锁定截止时间
+	BuyoutPrice      float64    // 买断提号价格（CNY 元，0 = 不支持买断）
+	BuyoutInfo       *string    // 买断后向归属客户展示的原始账号信息（纯文本，未买断绝不下发）
+	BoughtOutAt      *time.Time // 买断提号成交时间（非 nil 表示已买断、不再享受封号补偿等优惠策略）
 
 	Proxy         *Proxy
 	AccountGroups []AccountGroup

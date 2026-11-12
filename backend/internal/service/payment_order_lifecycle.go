@@ -132,7 +132,8 @@ func (s *PaymentService) cancelCore(ctx context.Context, o *dbent.PaymentOrder, 
 		return "", fmt.Errorf("update order status: %w", err)
 	}
 	if c > 0 {
-		if o.OrderType == payment.OrderTypeDedicatedAccount && o.DedicatedAccountID != nil && s.dedicatedAccountSvc != nil {
+		if (o.OrderType == payment.OrderTypeDedicatedAccount || o.OrderType == payment.OrderTypeDedicatedBuyout) &&
+			o.DedicatedAccountID != nil && s.dedicatedAccountSvc != nil {
 			s.dedicatedAccountSvc.UnlockAccountForOrder(ctx, *o.DedicatedAccountID, o.ID)
 		}
 		auditAction := "ORDER_CANCELLED"

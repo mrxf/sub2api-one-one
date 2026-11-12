@@ -173,7 +173,10 @@ func createAccountRecord(ctx context.Context, client *dbent.Client, account *ser
 		SetNillableSoldAt(account.SoldAt).
 		SetNillableSaleDescription(account.SaleDescription).
 		SetNillableLockedByOrderID(account.LockedByOrderID).
-		SetNillableLockedUntil(account.LockedUntil)
+		SetNillableLockedUntil(account.LockedUntil).
+		SetBuyoutPrice(account.BuyoutPrice).
+		SetNillableBuyoutInfo(account.BuyoutInfo).
+		SetNillableBoughtOutAt(account.BoughtOutAt)
 
 	if account.RateMultiplier != nil {
 		builder.SetRateMultiplier(*account.RateMultiplier)
@@ -667,6 +670,17 @@ func (r *accountRepository) updateLockedAccount(
 		builder.SetLockedUntil(*account.LockedUntil)
 	} else {
 		builder.ClearLockedUntil()
+	}
+	builder.SetBuyoutPrice(account.BuyoutPrice)
+	if account.BuyoutInfo != nil && strings.TrimSpace(*account.BuyoutInfo) != "" {
+		builder.SetBuyoutInfo(*account.BuyoutInfo)
+	} else {
+		builder.SetBuyoutInfo("")
+	}
+	if account.BoughtOutAt != nil {
+		builder.SetBoughtOutAt(*account.BoughtOutAt)
+	} else {
+		builder.ClearBoughtOutAt()
 	}
 
 	if explicitRateMultiplier != nil {
@@ -3283,10 +3297,24 @@ func (r *accountRepository) BulkUpdate(ctx context.Context, ids []int64, updates
 	if updates.SaleDescription != nil {
 		desc := strings.TrimSpace(*updates.SaleDescription)
 		if desc == "" {
-			setClauses = append(setClauses, "sale_description = NULL")
+			setClauses = append(setClauses, "sale_description = ''")
 		} else {
 			setClauses = append(setClauses, "sale_description = $"+itoa(idx))
 			args = append(args, desc)
+			idx++
+		}
+	}
+	if updates.BuyoutPrice != nil {
+		setClauses = append(setClauses, "buyout_price = $"+itoa(idx))
+		args = append(args, *updates.BuyoutPrice)
+		idx++
+	}
+	if updates.BuyoutInfo != nil {
+		if strings.TrimSpace(*updates.BuyoutInfo) == "" {
+			setClauses = append(setClauses, "buyout_info = ''")
+		} else {
+			setClauses = append(setClauses, "buyout_info = $"+itoa(idx))
+			args = append(args, *updates.BuyoutInfo)
 			idx++
 		}
 	}
@@ -3928,7 +3956,18 @@ func accountEntityToService(m *dbent.Account) *service.Account {
 		SaleDescription:         nonEmptyStringPtr(m.SaleDescription),
 		LockedByOrderID:         m.LockedByOrderID,
 		LockedUntil:             m.LockedUntil,
+		BuyoutPrice:             m.BuyoutPrice,
+		BuyoutInfo:              nonBlankRawStringPtr(m.BuyoutInfo),
+		BoughtOutAt:             m.BoughtOutAt,
 	}
+}
+
+func nonBlankRawStringPtr(s string) *string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	cp := s
+	return &cp
 }
 
 func nonEmptyStringPtr(s string) *string {

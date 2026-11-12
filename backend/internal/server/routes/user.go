@@ -142,13 +142,15 @@ func RegisterUserRoutes(
 			subscriptions.GET("/summary", h.Subscription.GetSummary)
 		}
 
-		// 用户独享买断账号（只读看板 + 上架商城 + 官方重置卡）
+		// 用户独享账号（只读看板 + 上架商城 + 买断提号 + 官方重置卡）
 		if h.DedicatedAccount != nil {
 			dedicated := authenticated.Group("/dedicated-accounts")
 			{
 				dedicated.GET("", h.DedicatedAccount.ListMyAccounts)
 				dedicated.GET("/market", h.DedicatedAccount.ListMarket)
 				dedicated.POST("/market/:id/buy-with-balance", h.DedicatedAccount.BuyWithBalance)
+				dedicated.POST("/:id/buyout-with-balance", h.DedicatedAccount.BuyoutWithBalance)
+				dedicated.GET("/:id/buyout-info", h.DedicatedAccount.GetBuyoutInfo)
 				dedicated.POST("/usage", panelRateLimiter.Heavy(), h.DedicatedAccount.GetMyAccountsUsage)
 				dedicated.GET("/:id/reset-credits", h.DedicatedAccount.GetResetCredits)
 				dedicated.POST("/:id/reset-credits/redeem", h.DedicatedAccount.RedeemResetCredit)

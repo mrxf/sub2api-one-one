@@ -378,7 +378,8 @@ export default {
       orderTypes: {
         balance: 'Balance Top-Up',
         subscription: 'Subscription',
-        dedicated_account: 'Dedicated Buyout'
+        dedicated_account: 'Dedicated Account',
+        dedicated_buyout: 'Credentials Buyout'
       },
       actions: 'Actions',
       requestRefund: 'Request Refund',
@@ -387,7 +388,8 @@ export default {
       success: 'Payment Successful',
       subscriptionSuccess: 'Subscription Successful',
       dedicatedSuccess: 'Dedicated Account Activated',
-      goToDedicatedAccounts: 'View My Dedicated Account & API Key',
+      dedicatedBuyoutSuccess: 'Account Credentials Buyout Complete',
+      goToDedicatedAccounts: 'View My Dedicated Account & Info',
       processing: 'Payment Processing',
       processingHint: 'Payment confirmation is still pending. This page will refresh automatically.',
       failed: 'Payment Failed',
@@ -523,7 +525,8 @@ export default {
       orders: 'Orders',
       balanceOrder: 'Balance Top-Up',
       subscriptionOrder: 'Subscription',
-      dedicated_accountOrder: 'Dedicated Buyout',
+      dedicated_accountOrder: 'Dedicated Account',
+      dedicated_buyoutOrder: 'Credentials Buyout',
       paidAt: 'Paid At',
       completedAt: 'Completed At',
       expiresAt: 'Expires At',

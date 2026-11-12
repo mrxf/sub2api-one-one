@@ -4,6 +4,8 @@
 
 import { apiClient } from './client'
 import type {
+  DedicatedBuyoutInfoResponse,
+  DedicatedBuyoutResult,
   DedicatedMarketItem,
   DedicatedPurchaseResult,
   DedicatedQuotaSnapshot,
@@ -40,6 +42,28 @@ export const dedicatedAccountsAPI = {
           'Idempotency-Key': buildIdempotencyKey('dedicated-buy-balance', accountId)
         }
       }
+    )
+    return data
+  },
+
+  /** Buy out a dedicated account (shelf or owned) using platform wallet balance and reveal plaintext credentials */
+  async buyoutWithBalance(accountId: number): Promise<DedicatedBuyoutResult> {
+    const { data } = await apiClient.post<DedicatedBuyoutResult>(
+      `/dedicated-accounts/${accountId}/buyout-with-balance`,
+      undefined,
+      {
+        headers: {
+          'Idempotency-Key': buildIdempotencyKey('dedicated-buyout-balance', accountId)
+        }
+      }
+    )
+    return data
+  },
+
+  /** Fetch plaintext buyout info for an owned dedicated account that has already been bought out */
+  async getBuyoutInfo(accountId: number): Promise<DedicatedBuyoutInfoResponse> {
+    const { data } = await apiClient.get<DedicatedBuyoutInfoResponse>(
+      `/dedicated-accounts/${accountId}/buyout-info`
     )
     return data
   },
@@ -92,3 +116,4 @@ export const dedicatedAccountsAPI = {
 }
 
 export default dedicatedAccountsAPI
+

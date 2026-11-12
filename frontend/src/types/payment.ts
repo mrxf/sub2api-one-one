@@ -21,7 +21,7 @@ export type OrderStatus =
 
 export type PaymentType = 'alipay' | 'wxpay' | 'alipay_direct' | 'wxpay_direct' | 'stripe' | 'easypay' | 'airwallex'
 
-export type OrderType = 'balance' | 'subscription' | 'dedicated_account'
+export type OrderType = 'balance' | 'subscription' | 'dedicated_account' | 'dedicated_buyout'
 
 // ==================== Configuration ====================
 

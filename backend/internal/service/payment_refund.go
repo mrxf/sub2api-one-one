@@ -256,6 +256,18 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 }
 
 func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) *RefundResult {
+	if o.OrderType == payment.OrderTypeDedicatedBuyout {
+		p.DeductionType = payment.DeductionTypeNone
+		p.BalanceToDeduct = 0
+		if !force {
+			return &RefundResult{
+				Success:      false,
+				Warning:      "该订单为独享账号买断提号订单（原始账号信息已向客户展示且买断后无封号售后），若确需退款请勾选强制退款",
+				RequireForce: true,
+			}
+		}
+		return nil
+	}
 	if o.OrderType == payment.OrderTypeDedicatedAccount {
 		p.DeductionType = payment.DeductionTypeNone
 		p.BalanceToDeduct = 0
@@ -777,7 +789,7 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
-	if p.DeductBalance && p.Order != nil && p.Order.OrderType == payment.OrderTypeDedicatedAccount && p.Order.DedicatedAccountID != nil && s.dedicatedAccountSvc != nil {
+	if p.DeductBalance && p.Order != nil && (p.Order.OrderType == payment.OrderTypeDedicatedAccount || p.Order.OrderType == payment.OrderTypeDedicatedBuyout) && p.Order.DedicatedAccountID != nil && s.dedicatedAccountSvc != nil {
 		if revokeErr := s.dedicatedAccountSvc.RevokeOwnershipOnRefund(ctx, *p.Order.DedicatedAccountID, p.Order.UserID); revokeErr != nil {
 			slog.Error("revoke dedicated account ownership on refund failed", "orderID", p.OrderID, "accountID", *p.Order.DedicatedAccountID, "error", revokeErr)
 		}

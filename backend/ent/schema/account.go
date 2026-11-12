@@ -245,6 +245,19 @@ func (Account) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}),
+		field.Float("buyout_price").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(20,2)"}).
+			Default(0).
+			Comment("Full account buyout price in CNY (0 = buyout disabled)."),
+		field.String("buyout_info").
+			Default("").
+			SchemaType(map[string]string{dialect.Postgres: "text"}).
+			Comment("Plaintext account details revealed only to the owner after buyout."),
+		field.Time("bought_out_at").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{dialect.Postgres: "timestamptz"}).
+			Comment("Timestamp when the account was bought out (forfeits ban-compensation warranty)."),
 	}
 }
 

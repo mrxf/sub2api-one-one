@@ -341,6 +341,9 @@ type Account struct {
 	SoldAt           *time.Time `json:"sold_at,omitempty"`
 	SaleDescription  *string    `json:"sale_description"`
 	LockedUntil      *time.Time `json:"locked_until,omitempty"`
+	BuyoutPrice      float64    `json:"buyout_price"`
+	BuyoutInfo       *string    `json:"buyout_info,omitempty"`
+	BoughtOutAt      *time.Time `json:"bought_out_at,omitempty"`
 
 	Proxy         *Proxy         `json:"proxy,omitempty"`
 	AccountGroups []AccountGroup `json:"account_groups,omitempty"`
@@ -457,6 +460,8 @@ type AccountListItem struct {
 	SoldAt           *time.Time `json:"sold_at,omitempty"`
 	SaleDescription  *string    `json:"sale_description"`
 	LockedUntil      *time.Time `json:"locked_until,omitempty"`
+	BuyoutPrice      float64    `json:"buyout_price"`
+	BoughtOutAt      *time.Time `json:"bought_out_at,omitempty"`
 
 	Proxy    *Proxy  `json:"proxy,omitempty"`
 	GroupIDs []int64 `json:"group_ids,omitempty"`

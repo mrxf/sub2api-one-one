@@ -11,6 +11,27 @@ export interface DedicatedSaleFormState {
   sale_description: string
   owner_user_id: number | null
   owner_user_email: string
+  buyout_price: number | null
+  buyout_info: string
+  bought_out_at: string | null
+}
+
+const PUBLIC_SENSITIVE_PATTERNS: RegExp[] = [
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
+  /[a-zA-Z0-9._%+-]+(?:%40|\\u0040)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i,
+  /\borg-[A-Za-z0-9]{12,}\b/,
+  /\bproj_[A-Za-z0-9]{12,}\b/,
+  /\buser-[A-Za-z0-9]{12,}\b/,
+  /\bauth0\|[A-Za-z0-9_-]{8,}\b/,
+  /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/,
+  /\brt\.[A-Za-z0-9._-]{16,}\b/,
+  /\bsk-[A-Za-z0-9_-]{16,}\b/
+]
+
+export function containsPublicSensitiveText(raw: string): boolean {
+  const trimmed = raw.trim()
+  if (!trimmed) return false
+  return PUBLIC_SENSITIVE_PATTERNS.some((re) => re.test(trimmed))
 }
 
 export function createDefaultDedicatedSaleFormState(): DedicatedSaleFormState {
@@ -22,7 +43,10 @@ export function createDefaultDedicatedSaleFormState(): DedicatedSaleFormState {
     min_sale_price: null,
     sale_description: '',
     owner_user_id: null,
-    owner_user_email: ''
+    owner_user_email: '',
+    buyout_price: null,
+    buyout_info: '',
+    bought_out_at: null
   }
 }
 
@@ -47,7 +71,11 @@ export function initDedicatedSaleFormFromAccount(account?: Account | null): Dedi
       typeof account.min_sale_price === 'number' && account.min_sale_price > 0 ? account.min_sale_price : null,
     sale_description: account.sale_description ?? '',
     owner_user_id: account.owner_user_id && account.owner_user_id > 0 ? account.owner_user_id : null,
-    owner_user_email: account.owner_user_email ?? ''
+    owner_user_email: account.owner_user_email ?? '',
+    buyout_price:
+      typeof account.buyout_price === 'number' && account.buyout_price > 0 ? account.buyout_price : null,
+    buyout_info: account.buyout_info ?? '',
+    bought_out_at: account.bought_out_at ?? null
   }
 }
 
@@ -55,6 +83,15 @@ export function validateDedicatedSaleForm(
   state: DedicatedSaleFormState,
   t: (key: string) => string
 ): string | null {
+  if (state.sale_status !== 'none') {
+    if (
+      containsPublicSensitiveText(state.display_alias) ||
+      containsPublicSensitiveText(state.sale_description)
+    ) {
+      return t('dedicatedAccounts.admin.validation.publicSensitiveForbidden')
+    }
+  }
+
   if (state.sale_status === 'listed') {
     const price = Number(state.sale_price)
     if (!Number.isFinite(price) || price <= 0) {
@@ -76,12 +113,27 @@ export function validateDedicatedSaleForm(
       return t('dedicatedAccounts.admin.validation.ownerRequired')
     }
   }
+
+  if (state.sale_status !== 'none' && state.buyout_price != null) {
+    const buyoutPrice = Number(state.buyout_price)
+    if (!Number.isFinite(buyoutPrice) || buyoutPrice < 0) {
+      return t('dedicatedAccounts.admin.validation.buyoutPriceNegative')
+    }
+    if (buyoutPrice > 0 && !state.buyout_info.trim()) {
+      return t('dedicatedAccounts.admin.validation.buyoutInfoRequired')
+    }
+  }
+
   return null
 }
 
 export function buildDedicatedSaleCreatePatch(
   state: DedicatedSaleFormState
 ): Partial<CreateAccountRequest> {
+  const buyoutPrice =
+    state.buyout_price != null && Number(state.buyout_price) > 0 ? Number(state.buyout_price) : 0
+  const buyoutInfo = buyoutPrice > 0 ? state.buyout_info.trim() : null
+
   if (state.sale_status === 'listed') {
     const price = Number(state.sale_price ?? 0)
     const decay = Math.max(0, Number(state.daily_price_decay ?? 0) || 0)
@@ -95,7 +147,9 @@ export function buildDedicatedSaleCreatePatch(
       sale_price: price,
       daily_price_decay: decay,
       min_sale_price: minPrice,
-      sale_description: state.sale_description.trim() || null
+      sale_description: state.sale_description.trim() || null,
+      buyout_price: buyoutPrice,
+      buyout_info: buyoutInfo
     }
   }
 
@@ -103,7 +157,9 @@ export function buildDedicatedSaleCreatePatch(
     return {
       sale_status: 'sold',
       owner_user_id: Number(state.owner_user_id),
-      display_alias: state.display_alias.trim() || null
+      display_alias: state.display_alias.trim() || null,
+      buyout_price: buyoutPrice,
+      buyout_info: buyoutInfo
     }
   }
 
@@ -115,6 +171,8 @@ export function buildDedicatedSaleUpdatePatch(
   options?: { includeAlias?: boolean }
 ): Partial<UpdateAccountRequest> {
   const includeAlias = options?.includeAlias !== false
+  const buyoutPrice =
+    state.buyout_price != null && Number(state.buyout_price) > 0 ? Number(state.buyout_price) : 0
 
   if (state.sale_status === 'listed') {
     const price = Number(state.sale_price ?? 0)
@@ -133,6 +191,8 @@ export function buildDedicatedSaleUpdatePatch(
     }
     if (includeAlias) {
       patch.display_alias = state.display_alias.trim()
+      patch.buyout_price = buyoutPrice
+      patch.buyout_info = state.buyout_info.trim()
     }
     return patch
   }
@@ -145,6 +205,8 @@ export function buildDedicatedSaleUpdatePatch(
     }
     if (includeAlias) {
       patch.display_alias = state.display_alias.trim()
+      patch.buyout_price = buyoutPrice
+      patch.buyout_info = state.buyout_info.trim()
     }
     return patch
   }
@@ -159,6 +221,7 @@ export function buildDedicatedSaleUpdatePatch(
   }
   if (includeAlias) {
     patch.display_alias = ''
+    patch.buyout_price = 0
   }
   return patch
 }

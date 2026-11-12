@@ -82,7 +82,65 @@ func (h *DedicatedAccountHandler) BuyWithBalance(c *gin.Context) {
 	response.Success(c, res)
 }
 
-// ListMyAccounts 返回用户名下全部已买断/已分配独享账号的只读安全视图（严格隐藏凭据、代理、内部备注等敏感字段）。
+// BuyoutWithBalance 使用平台钱包余额原子买断独享账号（支持商城直接买断或已持有独享账号升级买断），
+// 成功后交付纯文本账号信息并永久标记免封号售后。
+// POST /api/v1/dedicated-accounts/:id/buyout-with-balance
+func (h *DedicatedAccountHandler) BuyoutWithBalance(c *gin.Context) {
+	userID, ok := requireAuthenticatedUserID(c)
+	if !ok {
+		return
+	}
+	accountID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || accountID <= 0 {
+		response.BadRequest(c, "Invalid dedicated account ID")
+		return
+	}
+
+	if strings.TrimSpace(c.GetHeader("Idempotency-Key")) != "" {
+		payload := struct {
+			AccountID int64 `json:"account_id"`
+		}{AccountID: accountID}
+		executeUserIdempotentJSON(
+			c,
+			"user.dedicated_accounts.buyout_with_balance",
+			payload,
+			service.DefaultWriteIdempotencyTTL(),
+			func(ctx context.Context) (any, error) {
+				return h.svc.BuyoutWithBalance(ctx, userID, accountID)
+			},
+		)
+		return
+	}
+
+	res, err := h.svc.BuyoutWithBalance(c.Request.Context(), userID, accountID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, res)
+}
+
+// GetBuyoutInfo 仅在确认当前用户为账号归属人且已完成买断后，返回买断交付信息（纯文本）。
+// GET /api/v1/dedicated-accounts/:id/buyout-info
+func (h *DedicatedAccountHandler) GetBuyoutInfo(c *gin.Context) {
+	userID, ok := requireAuthenticatedUserID(c)
+	if !ok {
+		return
+	}
+	accountID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || accountID <= 0 {
+		response.BadRequest(c, "Invalid dedicated account ID")
+		return
+	}
+	info, err := h.svc.GetUserBoughtOutAccountInfo(c.Request.Context(), userID, accountID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, info)
+}
+
+// ListMyAccounts 返回用户名下全部已购买/已分配独享账号的只读安全视图（严格隐藏邮箱、凭据、代理、内部备注等敏感字段）。
 // GET /api/v1/dedicated-accounts
 func (h *DedicatedAccountHandler) ListMyAccounts(c *gin.Context) {
 	userID, ok := requireAuthenticatedUserID(c)

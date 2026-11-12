@@ -24,6 +24,9 @@ var (
 	ErrDedicatedAccountForbidden   = infraerrors.Forbidden("DEDICATED_ACCOUNT_FORBIDDEN", "无权绑定或访问该独享账号")
 	ErrDedicatedAccountUnavailable = infraerrors.Conflict("DEDICATED_ACCOUNT_UNAVAILABLE", "该独享账号已被锁定或售出，请刷新商城")
 	ErrDedicatedSaleConfigInvalid  = infraerrors.BadRequest("DEDICATED_SALE_CONFIG_INVALID", "独享账号上架参数不合法")
+	ErrDedicatedBuyoutUnavailable  = infraerrors.BadRequest("DEDICATED_BUYOUT_UNAVAILABLE", "该独享账号暂未开启买断功能")
+	ErrDedicatedAlreadyBoughtOut   = infraerrors.Conflict("DEDICATED_ALREADY_BOUGHT_OUT", "该独享账号已完成买断，可直接查看账号信息")
+	ErrDedicatedBuyoutInfoRequired = infraerrors.BadRequest("DEDICATED_BUYOUT_INFO_REQUIRED", "设置买断价格大于 0 时，必须填写买断后获得的账号信息（纯文本）")
 )
 
 // NormalizeAccountSaleStatus 归一化销售状态，空字符串回退为 "none"。
@@ -67,6 +70,23 @@ func ValidateAccountSaleConfig(saleStatus string, ownerUserID *int64, salePrice,
 	return nil
 }
 
+// ValidateAccountBuyoutConfig 校验买断价格与买断纯文本交付信息：
+// 当买断价 > 0 时必须不少于 0.01 元，且买断纯文本交付信息不能为空，防止客户付款后拿到空文本。
+func ValidateAccountBuyoutConfig(buyoutPrice float64, buyoutInfo *string) error {
+	if math.IsNaN(buyoutPrice) || math.IsInf(buyoutPrice, 0) || buyoutPrice < 0 {
+		return fmt.Errorf("%w: 买断价格不能为负数", ErrDedicatedSaleConfigInvalid)
+	}
+	if buyoutPrice > 0 {
+		if buyoutPrice < 0.01 {
+			return fmt.Errorf("%w: 买断价格必须不少于 0.01 元（填 0 表示关闭买断）", ErrDedicatedSaleConfigInvalid)
+		}
+		if buyoutInfo == nil || strings.TrimSpace(*buyoutInfo) == "" {
+			return fmt.Errorf("%w", ErrDedicatedBuyoutInfoRequired)
+		}
+	}
+	return nil
+}
+
 // IsOnSaleShelf 报告账号是否处于商城货架锁定/待售状态（任何网关流量均禁止调度）。
 func (a *Account) IsOnSaleShelf() bool {
 	if a == nil {
@@ -85,13 +105,28 @@ func (a *Account) IsOwnedDedicated() bool {
 	return a != nil && a.OwnerUserID != nil && *a.OwnerUserID > 0
 }
 
-// PublicDisplayName 返回面向普通用户与商城的安全展示名称（隐藏管理员内部账号名）。
+// IsBoughtOut 报告该独享账号是否已被客户买断提号（不再享受封号补偿等优惠策略）。
+func (a *Account) IsBoughtOut() bool {
+	return a != nil && a.BoughtOutAt != nil
+}
+
+// IsBuyoutEnabled 报告该账号是否配置了有效的买断价与纯文本交付信息且尚未被买断。
+func (a *Account) IsBuyoutEnabled() bool {
+	if a == nil || a.BoughtOutAt != nil || a.BuyoutPrice < 0.01 || a.BuyoutInfo == nil {
+		return false
+	}
+	return strings.TrimSpace(*a.BuyoutInfo) != ""
+}
+
+// PublicDisplayName 返回面向普通用户与商城的安全展示名称（隐藏管理员内部账号名，并强制拦截任何含邮箱/令牌/组织 ID 的别名）。
 func (a *Account) PublicDisplayName() string {
 	if a == nil {
 		return ""
 	}
 	if a.DisplayAlias != nil {
-		if alias := strings.TrimSpace(*a.DisplayAlias); alias != "" {
+		if alias := strings.TrimSpace(*a.DisplayAlias); alias != "" &&
+			!ContainsUpstreamAccountSensitiveInfo(alias) &&
+			!a.containsOwnSensitiveIdentifier(alias) {
 			return alias
 		}
 	}

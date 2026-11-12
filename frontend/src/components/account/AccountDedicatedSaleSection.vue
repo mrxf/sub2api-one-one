@@ -4,15 +4,39 @@
     data-testid="account-dedicated-sale-section"
   >
     <div v-if="!hideHeader" class="mb-3">
-      <div class="flex items-center gap-2">
-        <Icon name="shoppingBag" size="sm" class="text-primary-600 dark:text-primary-400" />
-        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
-          {{ t('dedicatedAccounts.admin.sectionTitle') }}
-        </h4>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <Icon name="shoppingBag" size="sm" class="text-primary-600 dark:text-primary-400" />
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+            {{ t('dedicatedAccounts.admin.sectionTitle') }}
+          </h4>
+        </div>
+        <span
+          v-if="modelValue.bought_out_at"
+          class="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+        >
+          <Icon name="shield" size="xs" />
+          {{ t('dedicatedAccounts.admin.badges.boughtOut') }}
+        </span>
       </div>
       <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
         {{ t('dedicatedAccounts.admin.sectionDesc') }}
       </p>
+    </div>
+
+    <!-- Already Bought-Out Permanent Notice -->
+    <div
+      v-if="modelValue.bought_out_at"
+      class="mb-3 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs text-rose-800 dark:border-rose-800/60 dark:bg-rose-900/20 dark:text-rose-300"
+    >
+      <Icon name="exclamationTriangle" size="sm" class="mt-0.5 flex-shrink-0 text-rose-500" />
+      <span>
+        {{
+          t('dedicatedAccounts.admin.boughtOutNotice', {
+            time: new Date(modelValue.bought_out_at).toLocaleString()
+          })
+        }}
+      </span>
     </div>
 
     <!-- 3-Mode Selector -->
@@ -53,11 +77,20 @@
 
     <!-- Group Required Warning -->
     <div
-      v-if="showGroupWarning && !authStore.isSimpleMode && modelValue.sale_status !== 'none' && !hasGroupsSelected"
+      v-if="showGroupWarning && !isSimpleMode && modelValue.sale_status !== 'none' && !hasGroupsSelected"
       class="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-900/20 dark:text-amber-300"
     >
       <Icon name="exclamationTriangle" size="sm" class="mt-0.5 flex-shrink-0 text-amber-500" />
       <span>{{ t('dedicatedAccounts.admin.groupRequiredWarning') }}</span>
+    </div>
+
+    <!-- Live Sensitive-Info Leak Warning on Public Fields -->
+    <div
+      v-if="hasPublicSensitiveLeak"
+      class="mt-3 flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2.5 text-xs font-medium text-red-700 dark:border-red-800/70 dark:bg-red-900/25 dark:text-red-300"
+    >
+      <Icon name="exclamationTriangle" size="sm" class="mt-0.5 flex-shrink-0 text-red-500" />
+      <span>{{ t('dedicatedAccounts.admin.publicSensitiveWarning') }}</span>
     </div>
 
     <!-- Listed Mode Fields -->
@@ -255,17 +288,76 @@
         <span v-if="searchingUsers" class="text-[11px] opacity-75">{{ t('common.loading') }}</span>
       </div>
     </div>
+
+    <!-- Credentials Buyout Config (Available in both Listed & Sold modes for single-account create/edit) -->
+    <div
+      v-if="!hideAlias && modelValue.sale_status !== 'none'"
+      class="mt-4 space-y-3 rounded-xl border border-amber-200/80 bg-white/80 p-3.5 dark:border-amber-800/40 dark:bg-dark-900/40"
+      data-testid="account-buyout-config-section"
+    >
+      <div>
+        <div class="flex items-center gap-1.5">
+          <Icon name="key" size="xs" class="text-amber-600 dark:text-amber-400" />
+          <h5 class="text-xs font-semibold text-gray-900 dark:text-white">
+            {{ t('dedicatedAccounts.admin.buyoutSectionTitle') }}
+          </h5>
+        </div>
+        <p class="mt-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+          {{ t('dedicatedAccounts.admin.buyoutSectionDesc') }}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label class="input-label">
+            {{ t('dedicatedAccounts.admin.buyoutPrice') }}
+          </label>
+          <input
+            :value="modelValue.buyout_price ?? ''"
+            :disabled="disabled"
+            type="number"
+            min="0"
+            step="0.01"
+            data-testid="buyout-price-input"
+            class="input font-mono"
+            :placeholder="t('dedicatedAccounts.admin.buyoutPricePlaceholder')"
+            @input="updateNumberField('buyout_price', ($event.target as HTMLInputElement).value)"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="input-label">
+          {{ t('dedicatedAccounts.admin.buyoutInfo') }}
+          <span v-if="(modelValue.buyout_price ?? 0) > 0" class="text-red-500">*</span>
+        </label>
+        <textarea
+          :value="modelValue.buyout_info"
+          :disabled="disabled"
+          rows="4"
+          data-testid="buyout-info-textarea"
+          class="input font-mono text-xs"
+          :placeholder="t('dedicatedAccounts.admin.buyoutInfoPlaceholder')"
+          @input="updateField('buyout_info', ($event.target as HTMLTextAreaElement).value)"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
+import { getActivePinia } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { adminAPI } from '@/api/admin'
 import { useAuthStore } from '@/stores'
 import type { AdminUser } from '@/types'
-import type { DedicatedSaleFormMode, DedicatedSaleFormState } from './dedicatedSaleForm'
+import {
+  containsPublicSensitiveText,
+  type DedicatedSaleFormMode,
+  type DedicatedSaleFormState
+} from './dedicatedSaleForm'
 
 const props = withDefaults(
   defineProps<{
@@ -290,7 +382,15 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const authStore = useAuthStore()
+const isSimpleMode = computed(() => (getActivePinia() ? useAuthStore().isSimpleMode : false))
+
+const hasPublicSensitiveLeak = computed(() => {
+  if (props.modelValue.sale_status === 'none') return false
+  return (
+    containsPublicSensitiveText(props.modelValue.display_alias) ||
+    containsPublicSensitiveText(props.modelValue.sale_description)
+  )
+})
 
 const modeOptions = computed<
   Array<{
@@ -338,7 +438,7 @@ const updateField = <K extends keyof DedicatedSaleFormState>(
 }
 
 const updateNumberField = (
-  key: 'sale_price' | 'daily_price_decay' | 'min_sale_price',
+  key: 'sale_price' | 'daily_price_decay' | 'min_sale_price' | 'buyout_price',
   raw: string
 ) => {
   const trimmed = raw.trim()

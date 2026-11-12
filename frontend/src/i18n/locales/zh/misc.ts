@@ -402,7 +402,8 @@ export default {
       orderTypes: {
         balance: '余额充值',
         subscription: '订阅套餐',
-        dedicated_account: '独享账号买断'
+        dedicated_account: '独享账号开通',
+        dedicated_buyout: '独享买断提号'
       },
       actions: '操作',
       requestRefund: '申请退款',
@@ -410,8 +411,9 @@ export default {
     result: {
       success: '支付成功',
       subscriptionSuccess: '订阅成功',
-      dedicatedSuccess: '独享账号买断成功',
-      goToDedicatedAccounts: '查看我的独享账号与专属密钥',
+      dedicatedSuccess: '独享账号开通成功',
+      dedicatedBuyoutSuccess: '独享账号买断提号成功',
+      goToDedicatedAccounts: '查看我的独享账号与专属信息',
       processing: '支付处理中',
       processingHint: '支付结果仍在确认中，页面会自动刷新。',
       failed: '支付失败',
@@ -547,7 +549,8 @@ export default {
       orders: '订单',
       balanceOrder: '余额充值',
       subscriptionOrder: '订阅',
-      dedicated_accountOrder: '独享账号买断',
+      dedicated_accountOrder: '独享账号开通',
+      dedicated_buyoutOrder: '独享买断提号',
       paidAt: '支付时间',
       completedAt: '完成时间',
       expiresAt: '过期时间',

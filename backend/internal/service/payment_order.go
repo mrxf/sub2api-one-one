@@ -78,6 +78,17 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 		orderAmount = quotedPriceCNY
 		limitAmount = quotedPriceCNY
 		bonusAmount = 0
+	} else if req.OrderType == payment.OrderTypeDedicatedBuyout {
+		if s.dedicatedAccountSvc == nil {
+			return nil, infraerrors.ServiceUnavailable("DEDICATED_ACCOUNT_SERVICE_UNAVAILABLE", "dedicated account service unavailable")
+		}
+		quotedPriceCNY, _, err := s.dedicatedAccountSvc.QuoteBuyoutAccountForOrder(ctx, req.UserID, req.DedicatedAccountID)
+		if err != nil {
+			return nil, err
+		}
+		orderAmount = quotedPriceCNY
+		limitAmount = quotedPriceCNY
+		bonusAmount = 0
 	} else if req.OrderType == payment.OrderTypeBalance {
 		// 阈值按支付金额命中。赠金模式：到账 = 基数 + 赠送；折扣模式：到账 = 基数，实付基数按折扣减少。
 		quote := quoteRechargeBonus(cfg, req.Amount, methodCurrency)
@@ -125,7 +136,8 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 		_, _ = s.entClient.PaymentOrder.UpdateOneID(order.ID).
 			SetStatus(OrderStatusFailed).
 			Save(ctx)
-		if req.OrderType == payment.OrderTypeDedicatedAccount && req.DedicatedAccountID > 0 && s.dedicatedAccountSvc != nil {
+		if (req.OrderType == payment.OrderTypeDedicatedAccount || req.OrderType == payment.OrderTypeDedicatedBuyout) &&
+			req.DedicatedAccountID > 0 && s.dedicatedAccountSvc != nil {
 			s.dedicatedAccountSvc.UnlockAccountForOrder(ctx, req.DedicatedAccountID, order.ID)
 		}
 		return nil, err
@@ -142,9 +154,9 @@ func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrder
 		}
 	case payment.OrderTypeSubscription:
 		return s.validateSubOrder(ctx, req)
-	case payment.OrderTypeDedicatedAccount:
+	case payment.OrderTypeDedicatedAccount, payment.OrderTypeDedicatedBuyout:
 		if req.DedicatedAccountID <= 0 {
-			return nil, infraerrors.BadRequest("INVALID_INPUT", "dedicated_account order requires dedicated_account_id")
+			return nil, infraerrors.BadRequest("INVALID_INPUT", "dedicated account order requires dedicated_account_id")
 		}
 		if s.dedicatedAccountSvc == nil {
 			return nil, infraerrors.ServiceUnavailable("DEDICATED_ACCOUNT_SERVICE_UNAVAILABLE", "dedicated account service unavailable")
@@ -249,9 +261,16 @@ func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderReq
 	if err != nil {
 		return nil, fmt.Errorf("create order: %w", err)
 	}
-	if req.OrderType == payment.OrderTypeDedicatedAccount && req.DedicatedAccountID > 0 && s.dedicatedAccountSvc != nil {
-		if err := s.dedicatedAccountSvc.LockAccountForOrderInTx(ctx, tx, req.DedicatedAccountID, order.ID, exp); err != nil {
-			return nil, err
+	if req.DedicatedAccountID > 0 && s.dedicatedAccountSvc != nil {
+		switch req.OrderType {
+		case payment.OrderTypeDedicatedAccount:
+			if err := s.dedicatedAccountSvc.LockAccountForOrderInTx(ctx, tx, req.DedicatedAccountID, order.ID, exp); err != nil {
+				return nil, err
+			}
+		case payment.OrderTypeDedicatedBuyout:
+			if err := s.dedicatedAccountSvc.LockAccountForBuyoutOrderInTx(ctx, tx, req.DedicatedAccountID, req.UserID, order.ID, exp); err != nil {
+				return nil, err
+			}
 		}
 	}
 	code := fmt.Sprintf("PAY-%d-%d", order.ID, time.Now().UnixNano()%100000)

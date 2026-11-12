@@ -122,7 +122,7 @@
         </div>
       </div>
 
-      <!-- TAB 1: MY DEDICATED ACCOUNTS (STRICT READ-ONLY EXCEPT RESET CREDITS) -->
+      <!-- TAB 1: MY DEDICATED ACCOUNTS (STRICT READ-ONLY EXCEPT RESET CREDITS & OPTIONAL BUYOUT) -->
       <div v-if="activeTab === 'my'">
         <div v-if="loadingMy" class="grid gap-5 lg:grid-cols-2">
           <div
@@ -183,6 +183,14 @@
                       >
                         {{ t('dedicatedAccounts.my.accountId', { id: acc.id }) }}
                       </span>
+                      <span
+                        v-if="acc.bought_out"
+                        :data-testid="`bought-out-badge-${acc.id}`"
+                        class="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                      >
+                        <Icon name="shield" size="xs" />
+                        {{ t('dedicatedAccounts.my.boughtOutBadge') }}
+                      </span>
                     </div>
                     <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                       <span class="font-medium uppercase tracking-wide">{{ acc.platform }}</span>
@@ -235,9 +243,17 @@
                   </div>
                 </div>
                 <div>
-                  <div class="text-gray-400 dark:text-gray-500">{{ t('dedicatedAccounts.my.soldAt') }}</div>
+                  <div class="text-gray-400 dark:text-gray-500">
+                    {{ acc.bought_out ? t('dedicatedAccounts.my.boughtOutAtLabel') : t('dedicatedAccounts.my.soldAt') }}
+                  </div>
                   <div class="mt-1 font-semibold text-gray-900 dark:text-white">
-                    {{ acc.sold_at ? formatShortDate(acc.sold_at) : '-' }}
+                    {{
+                      acc.bought_out && acc.bought_out_at
+                        ? formatShortDate(acc.bought_out_at)
+                        : acc.sold_at
+                          ? formatShortDate(acc.sold_at)
+                          : '-'
+                    }}
                   </div>
                 </div>
                 <div>
@@ -246,6 +262,55 @@
                     {{ acc.last_used_at ? formatRelativeOrTime(acc.last_used_at) : t('dedicatedAccounts.my.neverUsed') }}
                   </div>
                 </div>
+              </div>
+
+              <!-- Buyout Action Strip: View Bought-Out Info OR Upgrade Buyout -->
+              <div
+                v-if="acc.bought_out"
+                class="flex flex-col gap-2 rounded-xl border border-rose-200/80 bg-rose-50/60 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-rose-800/50 dark:bg-rose-950/25"
+              >
+                <p class="text-xs leading-relaxed text-rose-800 dark:text-rose-300">
+                  {{ t('dedicatedAccounts.buyout.noWarrantyFooter') }}
+                </p>
+                <button
+                  type="button"
+                  :data-testid="`view-buyout-info-${acc.id}`"
+                  :disabled="loadingBuyoutInfoId === acc.id"
+                  @click="handleViewBoughtOutInfo(acc)"
+                  class="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 disabled:opacity-60"
+                >
+                  <Icon name="key" size="xs" />
+                  <span>
+                    {{
+                      loadingBuyoutInfoId === acc.id
+                        ? t('dedicatedAccounts.my.loadingBuyoutInfo')
+                        : t('dedicatedAccounts.my.viewBuyoutInfo')
+                    }}
+                  </span>
+                </button>
+              </div>
+              <div
+                v-else-if="acc.buyout_available && (acc.buyout_price_cny ?? 0) > 0"
+                class="flex flex-col gap-2.5 rounded-xl border border-amber-200/80 bg-gradient-to-r from-amber-50/80 to-orange-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-amber-800/50 dark:from-amber-950/30 dark:to-dark-900/50"
+              >
+                <p class="text-xs leading-relaxed text-amber-900/90 dark:text-amber-300/90">
+                  {{ t('dedicatedAccounts.my.buyoutUpgradeHint') }}
+                </p>
+                <button
+                  type="button"
+                  :data-testid="`owned-buyout-btn-${acc.id}`"
+                  @click="openOwnedBuyoutDialog(acc)"
+                  class="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:from-amber-600 hover:to-orange-700"
+                >
+                  <Icon name="key" size="xs" />
+                  <span>
+                    {{
+                      t('dedicatedAccounts.my.buyoutUpgradeBtn', {
+                        price: Number(acc.buyout_price_cny ?? 0).toFixed(2)
+                      })
+                    }}
+                  </span>
+                </button>
               </div>
 
               <!-- 5H / 7D Remaining Quota Bars (Read-Only) -->
@@ -482,7 +547,7 @@
                 </h3>
               </div>
 
-              <!-- Validity & Group -->
+              <!-- Validity & Group & Buyout Tag -->
               <div class="flex flex-wrap items-center gap-2 text-xs">
                 <span
                   class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 font-medium text-gray-700 dark:bg-dark-700 dark:text-gray-200"
@@ -500,6 +565,17 @@
                   class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                 >
                   {{ item.group_name }}
+                </span>
+                <span
+                  v-if="item.buyout_available && (item.buyout_price_cny ?? 0) > 0"
+                  class="inline-flex items-center gap-1 rounded-lg bg-amber-100/90 px-2.5 py-1 font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                >
+                  <Icon name="key" size="xs" />
+                  {{
+                    t('dedicatedAccounts.buyout.availableTag', {
+                      price: Number(item.buyout_price_cny ?? 0).toFixed(2)
+                    })
+                  }}
                 </span>
               </div>
 
@@ -619,6 +695,22 @@
               >
                 {{ t('dedicatedAccounts.market.buyOnline') }}
               </button>
+              <button
+                v-if="item.buyout_available && (item.buyout_price_cny ?? 0) > 0"
+                type="button"
+                :data-testid="`market-buyout-btn-${item.id}`"
+                @click="openMarketBuyoutDialog(item)"
+                class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:from-amber-600 hover:to-orange-700"
+              >
+                <Icon name="key" size="xs" />
+                <span>
+                  {{
+                    t('dedicatedAccounts.buyout.marketBtn', {
+                      price: Number(item.buyout_price_cny ?? 0).toFixed(2)
+                    })
+                  }}
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -642,7 +734,7 @@
       @cancel="resetConfirmTarget = null"
     />
 
-    <!-- Balance Buyout Confirmation Dialog -->
+    <!-- Balance Activation Confirmation Dialog -->
     <BaseDialog
       :show="!!balanceBuyTarget"
       :title="t('dedicatedAccounts.market.confirmBalanceTitle')"
@@ -721,6 +813,192 @@
       </template>
     </BaseDialog>
 
+    <!-- Full Credentials Buyout Confirmation Dialog (Shelf or Owned Upgrade) -->
+    <BaseDialog
+      :show="!!buyoutTarget"
+      :title="t('dedicatedAccounts.buyout.confirmTitle')"
+      width="normal"
+      @close="closeBuyoutDialog"
+    >
+      <div v-if="buyoutTarget" class="space-y-4">
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          {{
+            buyoutTarget.source === 'owned'
+              ? t('dedicatedAccounts.buyout.confirmDescOwned')
+              : t('dedicatedAccounts.buyout.confirmDescShelf')
+          }}
+        </p>
+
+        <div class="space-y-2.5 rounded-xl bg-gray-50 p-4 text-sm dark:bg-dark-900/60">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">{{ t('dedicatedAccounts.market.confirmItemAlias') }}</span>
+            <span class="font-semibold text-gray-900 dark:text-white">
+              {{ buyoutTarget.displayName }} ({{ buyoutTarget.platform }})
+            </span>
+          </div>
+          <div class="flex justify-between border-t border-gray-200 pt-2.5 dark:border-dark-700">
+            <span class="text-gray-500 dark:text-gray-400">{{ t('dedicatedAccounts.buyout.priceLabel') }}</span>
+            <span class="text-lg font-extrabold text-amber-600 dark:text-amber-400">
+              ¥{{ buyoutTarget.priceCny.toFixed(2) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Explicit Post-Buyout Warranty Waiver Notice -->
+        <div class="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs dark:border-rose-800/60 dark:bg-rose-950/30">
+          <div class="flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300">
+            <Icon name="exclamationTriangle" size="sm" class="shrink-0 text-rose-500" />
+            <span>{{ t('dedicatedAccounts.buyout.noWarrantyTitle') }}</span>
+          </div>
+          <p class="mt-1.5 leading-relaxed text-rose-700/90 dark:text-rose-300/90">
+            {{ t('dedicatedAccounts.buyout.noWarrantyDesc') }}
+          </p>
+        </div>
+
+        <label class="flex cursor-pointer items-start gap-2.5 rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 dark:border-dark-700 dark:bg-dark-800 dark:text-gray-200">
+          <input
+            v-model="buyoutAckChecked"
+            type="checkbox"
+            data-testid="buyout-ack-checkbox"
+            class="mt-0.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+          />
+          <span class="leading-relaxed font-medium">{{ t('dedicatedAccounts.buyout.ackCheckbox') }}</span>
+        </label>
+
+        <div
+          :class="[
+            'rounded-xl px-3.5 py-2.5 text-xs font-medium',
+            userBalance >= buyoutTarget.priceBalance
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/25 dark:text-emerald-300'
+              : 'bg-amber-50 text-amber-800 dark:bg-amber-900/25 dark:text-amber-300'
+          ]"
+        >
+          {{
+            userBalance >= buyoutTarget.priceBalance
+              ? t('dedicatedAccounts.market.currentBalance', { balance: userBalance.toFixed(2) })
+              : t('dedicatedAccounts.market.insufficientBalance', {
+                  balance: userBalance.toFixed(2),
+                  price: buyoutTarget.priceBalance.toFixed(2)
+                })
+          }}
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex flex-wrap justify-end gap-2.5">
+          <button type="button" class="btn btn-secondary" :disabled="processingBuyout" @click="closeBuyoutDialog">
+            {{ t('common.cancel') }}
+          </button>
+          <button
+            v-if="buyoutTarget && paymentEnabled"
+            type="button"
+            data-testid="buyout-online-pay-btn"
+            class="btn btn-secondary"
+            :disabled="processingBuyout || !buyoutAckChecked"
+            @click="switchBuyoutToOnlinePay"
+          >
+            {{
+              t('dedicatedAccounts.buyout.payOnline', {
+                price: buyoutTarget.priceCny.toFixed(2)
+              })
+            }}
+          </button>
+          <button
+            v-if="buyoutTarget"
+            type="button"
+            data-testid="confirm-buyout-balance-btn"
+            class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:from-amber-600 hover:to-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="processingBuyout || !buyoutAckChecked || userBalance < buyoutTarget.priceBalance"
+            @click="confirmFullBuyoutWithBalance"
+          >
+            {{
+              processingBuyout
+                ? t('dedicatedAccounts.buyout.processing')
+                : t('dedicatedAccounts.buyout.payWithBalance', {
+                    price: buyoutTarget.priceCny.toFixed(2)
+                  })
+            }}
+          </button>
+        </div>
+      </template>
+    </BaseDialog>
+
+    <!-- Bought-Out Plaintext Account Info Modal -->
+    <BaseDialog
+      :show="!!buyoutInfoModal"
+      :title="t('dedicatedAccounts.buyout.infoModalTitle')"
+      width="normal"
+      @close="closeBuyoutInfoModal"
+    >
+      <div v-if="buyoutInfoModal" class="space-y-4">
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          {{ t('dedicatedAccounts.buyout.infoModalSubtitle', { alias: buyoutInfoModal.displayName }) }}
+        </p>
+
+        <!-- Plaintext Buyout Info Box -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              {{ t('dedicatedAccounts.buyout.infoLabel') }}
+            </label>
+            <button
+              type="button"
+              data-testid="copy-buyout-info-btn"
+              @click="copyBuyoutPlaintext(buyoutInfoModal.buyoutInfo)"
+              class="btn btn-primary btn-sm"
+            >
+              {{
+                copiedBuyoutInfo
+                  ? t('dedicatedAccounts.buyout.copiedInfo')
+                  : t('dedicatedAccounts.buyout.copyInfo')
+              }}
+            </button>
+          </div>
+          <pre
+            data-testid="revealed-buyout-info"
+            class="max-h-64 overflow-y-auto whitespace-pre-wrap break-all rounded-xl border border-amber-200 bg-amber-50/50 p-4 font-mono text-xs leading-relaxed text-gray-900 dark:border-amber-800/50 dark:bg-dark-900 dark:text-gray-100"
+          >{{ buyoutInfoModal.buyoutInfo }}</pre>
+        </div>
+
+        <!-- Also show newly generated 1:1 API Key if bought directly from Marketplace -->
+        <div v-if="buyoutInfoModal.apiKey" class="space-y-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            {{ t('dedicatedAccounts.market.purchaseResultModal.keyLabel') }}
+          </label>
+          <div class="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-800/50 dark:bg-emerald-950/30">
+            <code
+              class="flex-1 break-all font-mono text-xs font-semibold text-emerald-950 dark:text-emerald-200"
+            >
+              {{ buyoutInfoModal.apiKey }}
+            </code>
+            <button
+              type="button"
+              @click="copyFullApiKey(buyoutInfoModal.apiKey)"
+              class="btn btn-secondary btn-sm shrink-0"
+            >
+              {{
+                copiedNewKey
+                  ? t('dedicatedAccounts.market.purchaseResultModal.copied')
+                  : t('dedicatedAccounts.market.purchaseResultModal.copyKey')
+              }}
+            </button>
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-800 dark:bg-rose-900/25 dark:text-rose-300">
+          {{ t('dedicatedAccounts.buyout.noWarrantyFooter') }}
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <button type="button" class="btn btn-primary" @click="closeBuyoutInfoModal">
+            {{ t('common.confirm') }}
+          </button>
+        </div>
+      </template>
+    </BaseDialog>
+
     <!-- Post-Purchase Newly Generated 1:1 API Key Modal -->
     <BaseDialog
       :show="!!purchaseResult"
@@ -772,22 +1050,30 @@
       </template>
     </BaseDialog>
 
-    <!-- Online Payment Method Dialog -->
+    <!-- Online Payment Method Dialog (Supports both Activation and Full Buyout) -->
     <BaseDialog
       :show="!!onlinePayTarget"
-      :title="t('dedicatedAccounts.market.onlinePayTitle')"
+      :title="
+        onlinePayTarget?.orderType === 'dedicated_buyout'
+          ? t('dedicatedAccounts.buyout.onlinePayTitle')
+          : t('dedicatedAccounts.market.onlinePayTitle')
+      "
       width="normal"
       @close="onlinePayTarget = null"
     >
       <div v-if="onlinePayTarget" class="space-y-4">
         <p class="text-sm text-gray-600 dark:text-gray-300">
-          {{ t('dedicatedAccounts.market.onlinePayDesc') }}
+          {{
+            onlinePayTarget.orderType === 'dedicated_buyout'
+              ? t('dedicatedAccounts.buyout.onlinePayDesc')
+              : t('dedicatedAccounts.market.onlinePayDesc')
+          }}
         </p>
 
         <div class="flex items-center justify-between rounded-xl bg-gray-50 p-3.5 text-sm dark:bg-dark-900/60">
-          <span class="font-medium text-gray-700 dark:text-gray-200">{{ onlinePayTarget.display_name }}</span>
+          <span class="font-medium text-gray-700 dark:text-gray-200">{{ onlinePayTarget.displayName }}</span>
           <span class="text-lg font-extrabold text-primary-600 dark:text-primary-400">
-            ¥{{ onlinePayTarget.current_price_cny.toFixed(2) }}
+            ¥{{ onlinePayTarget.priceCny.toFixed(2) }}
           </span>
         </div>
 
@@ -820,14 +1106,14 @@
             {{
               creatingOnlineOrder
                 ? t('dedicatedAccounts.market.creatingOrder')
-                : t('dedicatedAccounts.market.payNow', { price: onlinePayTarget.current_price_cny.toFixed(2) })
+                : t('dedicatedAccounts.market.payNow', { price: onlinePayTarget.priceCny.toFixed(2) })
             }}
           </button>
         </div>
       </template>
     </BaseDialog>
 
-    <!-- QR / Popup Waiting Dialog for Online Buyout -->
+    <!-- QR / Popup Waiting Dialog for Online Activation or Buyout -->
     <PaymentQRDialog
       :show="qrDialog.show"
       :order-id="qrDialog.orderId"
@@ -867,6 +1153,29 @@ import type {
 } from '@/types'
 import type { CheckoutInfoResponse } from '@/types/payment'
 
+interface BuyoutDialogState {
+  accountId: number
+  displayName: string
+  platform: string
+  priceCny: number
+  priceBalance: number
+  source: 'owned' | 'shelf'
+}
+
+interface BuyoutInfoModalState {
+  accountId: number
+  displayName: string
+  buyoutInfo: string
+  apiKey?: string
+}
+
+interface OnlineOrderTargetState {
+  accountId: number
+  displayName: string
+  priceCny: number
+  orderType: 'dedicated_account' | 'dedicated_buyout'
+}
+
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -891,14 +1200,22 @@ let tickTimer: ReturnType<typeof setInterval> | null = null
 const resetConfirmTarget = ref<UserDedicatedAccountView | null>(null)
 const redeemingId = ref<number | null>(null)
 
-// Balance buyout state
+// Standard dedicated activation state
 const balanceBuyTarget = ref<DedicatedMarketItem | null>(null)
 const purchasingBalance = ref(false)
 const purchaseResult = ref<DedicatedPurchaseResult | null>(null)
 const copiedNewKey = ref(false)
 
-// Online payment buyout state
-const onlinePayTarget = ref<DedicatedMarketItem | null>(null)
+// Full credentials buyout state
+const buyoutTarget = ref<BuyoutDialogState | null>(null)
+const buyoutAckChecked = ref(false)
+const processingBuyout = ref(false)
+const loadingBuyoutInfoId = ref<number | null>(null)
+const buyoutInfoModal = ref<BuyoutInfoModalState | null>(null)
+const copiedBuyoutInfo = ref(false)
+
+// Online payment state
+const onlinePayTarget = ref<OnlineOrderTargetState | null>(null)
 const checkoutInfo = ref<CheckoutInfoResponse | null>(null)
 const loadingCheckout = ref(false)
 const selectedPaymentMethod = ref('')
@@ -909,7 +1226,9 @@ const qrDialog = reactive({
   qrCode: '',
   expiresAt: '',
   paymentType: '',
-  payUrl: ''
+  payUrl: '',
+  orderType: 'dedicated_account' as 'dedicated_account' | 'dedicated_buyout',
+  accountId: 0
 })
 
 const userBalance = computed(() => Number(authStore.user?.balance ?? 0))
@@ -931,7 +1250,7 @@ const platformFilters = computed(() => [
 const onlinePaymentMethods = computed<PaymentMethodOption[]>(() => {
   if (!checkoutInfo.value || !onlinePayTarget.value) return []
   const visibleMap = getVisibleMethods(checkoutInfo.value.methods || {})
-  const price = onlinePayTarget.value.current_price_cny
+  const price = onlinePayTarget.value.priceCny
   return Object.entries(visibleMap).map(([mType, limits]) => {
     const feeRate = limits?.fee_rate ?? 0
     const minOk = !limits?.single_min || price >= limits.single_min
@@ -948,7 +1267,12 @@ const onlinePaymentMethods = computed<PaymentMethodOption[]>(() => {
 
 function switchTab(tab: 'my' | 'market') {
   activeTab.value = tab
-  router.replace({ query: { ...route.query, tab } }).catch(() => {})
+  const nextQuery: Record<string, string | null | (string | null)[] | undefined> = {
+    ...route.query,
+    tab
+  }
+  delete nextQuery.buyoutAccountId
+  router.replace({ query: nextQuery }).catch(() => {})
   if (tab === 'market') {
     void loadMarketplace()
   } else {
@@ -1060,6 +1384,126 @@ async function confirmBalanceBuyout() {
   }
 }
 
+// ==================== Full Credentials Buyout Actions ====================
+
+function openOwnedBuyoutDialog(acc: UserDedicatedAccountView) {
+  const priceCny = Number(acc.buyout_price_cny ?? 0)
+  if (!acc.buyout_available || priceCny <= 0) return
+  const priceBalance =
+    typeof acc.buyout_price_balance === 'number' && acc.buyout_price_balance > 0
+      ? acc.buyout_price_balance
+      : priceCny
+  buyoutAckChecked.value = false
+  buyoutTarget.value = {
+    accountId: acc.id,
+    displayName: acc.display_name,
+    platform: String(acc.platform),
+    priceCny,
+    priceBalance,
+    source: 'owned'
+  }
+  void authStore.refreshUser().catch(() => {})
+}
+
+function openMarketBuyoutDialog(item: DedicatedMarketItem) {
+  const priceCny = Number(item.buyout_price_cny ?? 0)
+  if (!item.buyout_available || priceCny <= 0) return
+  const priceBalance =
+    typeof item.buyout_price_balance === 'number' && item.buyout_price_balance > 0
+      ? item.buyout_price_balance
+      : priceCny
+  buyoutAckChecked.value = false
+  buyoutTarget.value = {
+    accountId: item.id,
+    displayName: item.display_name,
+    platform: String(item.platform),
+    priceCny,
+    priceBalance,
+    source: 'shelf'
+  }
+  void authStore.refreshUser().catch(() => {})
+}
+
+function closeBuyoutDialog() {
+  if (processingBuyout.value) return
+  buyoutTarget.value = null
+  buyoutAckChecked.value = false
+}
+
+async function confirmFullBuyoutWithBalance() {
+  const target = buyoutTarget.value
+  if (!target || !buyoutAckChecked.value) return
+  processingBuyout.value = true
+  try {
+    const res = await dedicatedAccountsAPI.buyoutWithBalance(target.accountId)
+    buyoutTarget.value = null
+    buyoutAckChecked.value = false
+    copiedBuyoutInfo.value = false
+    copiedNewKey.value = false
+    buyoutInfoModal.value = {
+      accountId: res.account.id,
+      displayName: res.account.display_name,
+      buyoutInfo: res.buyout_info,
+      apiKey: res.api_key || undefined
+    }
+    appStore.showSuccess(t('dedicatedAccounts.buyout.successToast'))
+    await Promise.all([
+      authStore.refreshUser().catch(() => {}),
+      loadMyAccounts(),
+      loadMarketplace()
+    ])
+  } catch (err) {
+    appStore.showError(extractApiErrorMessage(err, t('common.error')))
+  } finally {
+    processingBuyout.value = false
+  }
+}
+
+async function switchBuyoutToOnlinePay() {
+  const target = buyoutTarget.value
+  if (!target || !buyoutAckChecked.value) return
+  buyoutTarget.value = null
+  buyoutAckChecked.value = false
+  await openOnlineCheckoutTarget({
+    accountId: target.accountId,
+    displayName: target.displayName,
+    priceCny: target.priceCny,
+    orderType: 'dedicated_buyout'
+  })
+}
+
+async function handleViewBoughtOutInfo(acc: UserDedicatedAccountView) {
+  loadingBuyoutInfoId.value = acc.id
+  try {
+    const info = await dedicatedAccountsAPI.getBuyoutInfo(acc.id)
+    copiedBuyoutInfo.value = false
+    copiedNewKey.value = false
+    buyoutInfoModal.value = {
+      accountId: info.account_id,
+      displayName: info.display_name,
+      buyoutInfo: info.buyout_info
+    }
+  } catch (err) {
+    appStore.showError(extractApiErrorMessage(err, t('common.error')))
+  } finally {
+    loadingBuyoutInfoId.value = null
+  }
+}
+
+async function copyBuyoutPlaintext(text: string) {
+  const ok = await copyToClipboard(text)
+  if (ok) {
+    copiedBuyoutInfo.value = true
+  }
+}
+
+function closeBuyoutInfoModal() {
+  buyoutInfoModal.value = null
+  if (activeTab.value !== 'my') {
+    switchTab('my')
+  }
+}
+
 async function copyFullApiKey(keyText: string) {
   const ok = await copyToClipboard(keyText)
   if (ok) {
@@ -1073,7 +1517,16 @@ function closePurchaseResultModal() {
 }
 
 async function openOnlinePayDialog(item: DedicatedMarketItem) {
-  onlinePayTarget.value = item
+  await openOnlineCheckoutTarget({
+    accountId: item.id,
+    displayName: item.display_name,
+    priceCny: item.current_price_cny,
+    orderType: 'dedicated_account'
+  })
+}
+
+async function openOnlineCheckoutTarget(target: OnlineOrderTargetState) {
+  onlinePayTarget.value = target
   selectedPaymentMethod.value = ''
   loadingCheckout.value = true
   try {
@@ -1094,13 +1547,13 @@ async function submitOnlineOrder() {
   if (!onlinePayTarget.value || !selectedPaymentMethod.value) return
   creatingOnlineOrder.value = true
   try {
-    const item = onlinePayTarget.value
+    const target = onlinePayTarget.value
     const method = normalizeVisibleMethod(selectedPaymentMethod.value) || selectedPaymentMethod.value
     const payload = buildCreateOrderPayload({
-      amount: item.current_price_cny,
+      amount: target.priceCny,
       paymentType: method,
-      orderType: 'dedicated_account',
-      dedicatedAccountId: item.id,
+      orderType: target.orderType,
+      dedicatedAccountId: target.accountId,
       origin: typeof window !== 'undefined' ? window.location.origin : '',
       isMobile: false,
       isWechatBrowser: false,
@@ -1116,6 +1569,8 @@ async function submitOnlineOrder() {
       qrDialog.expiresAt = created.expires_at || ''
       qrDialog.paymentType = method
       qrDialog.payUrl = ''
+      qrDialog.orderType = target.orderType
+      qrDialog.accountId = target.accountId
       qrDialog.show = true
       return
     }
@@ -1130,6 +1585,8 @@ async function submitOnlineOrder() {
       qrDialog.expiresAt = created.expires_at || ''
       qrDialog.paymentType = method
       qrDialog.payUrl = created.pay_url
+      qrDialog.orderType = target.orderType
+      qrDialog.accountId = target.accountId
       qrDialog.show = true
     }
   } catch (err) {
@@ -1140,10 +1597,29 @@ async function submitOnlineOrder() {
 }
 
 async function handleOnlinePaySuccess() {
+  const wasBuyout = qrDialog.orderType === 'dedicated_buyout'
+  const targetAccountId = qrDialog.accountId
   qrDialog.show = false
-  appStore.showSuccess(t('dedicatedAccounts.market.purchaseSuccess'))
+  appStore.showSuccess(
+    wasBuyout
+      ? t('dedicatedAccounts.buyout.successToast')
+      : t('dedicatedAccounts.market.purchaseSuccess')
+  )
   await Promise.all([loadMyAccounts(), loadMarketplace()])
   switchTab('my')
+  if (wasBuyout && targetAccountId > 0) {
+    try {
+      const info = await dedicatedAccountsAPI.getBuyoutInfo(targetAccountId)
+      copiedBuyoutInfo.value = false
+      buyoutInfoModal.value = {
+        accountId: info.account_id,
+        displayName: info.display_name,
+        buyoutInfo: info.buyout_info
+      }
+    } catch {
+      // Owner can still click "View Account Info" on the card at any time
+    }
+  }
 }
 
 // Health & Quota Presentation Helpers
@@ -1271,6 +1747,14 @@ onMounted(async () => {
   await Promise.all([loadMyAccounts(), loadMarketplace()])
   if (!route.query.tab && myAccounts.value.length === 0 && marketItems.value.length > 0) {
     activeTab.value = 'market'
+  }
+  const redirectBuyoutId = Number(route.query.buyoutAccountId || 0)
+  if (Number.isInteger(redirectBuyoutId) && redirectBuyoutId > 0) {
+    activeTab.value = 'my'
+    const matched = myAccounts.value.find((a) => a.id === redirectBuyoutId && a.bought_out)
+    if (matched) {
+      await handleViewBoughtOutInfo(matched)
+    }
   }
 })
 

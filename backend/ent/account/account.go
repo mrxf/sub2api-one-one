@@ -100,6 +100,12 @@ const (
 	FieldLockedByOrderID = "locked_by_order_id"
 	// FieldLockedUntil holds the string denoting the locked_until field in the database.
 	FieldLockedUntil = "locked_until"
+	// FieldBuyoutPrice holds the string denoting the buyout_price field in the database.
+	FieldBuyoutPrice = "buyout_price"
+	// FieldBuyoutInfo holds the string denoting the buyout_info field in the database.
+	FieldBuyoutInfo = "buyout_info"
+	// FieldBoughtOutAt holds the string denoting the bought_out_at field in the database.
+	FieldBoughtOutAt = "bought_out_at"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// EdgeProxy holds the string denoting the proxy edge name in mutations.
@@ -195,6 +201,9 @@ var Columns = []string{
 	FieldSaleDescription,
 	FieldLockedByOrderID,
 	FieldLockedUntil,
+	FieldBuyoutPrice,
+	FieldBuyoutInfo,
+	FieldBoughtOutAt,
 }
 
 var (
@@ -269,6 +278,10 @@ var (
 	DefaultMinSalePrice float64
 	// DefaultSaleDescription holds the default value on creation for the "sale_description" field.
 	DefaultSaleDescription string
+	// DefaultBuyoutPrice holds the default value on creation for the "buyout_price" field.
+	DefaultBuyoutPrice float64
+	// DefaultBuyoutInfo holds the default value on creation for the "buyout_info" field.
+	DefaultBuyoutInfo string
 )
 
 // QuotaDimension defines the type for the "quota_dimension" enum field.
@@ -503,6 +516,21 @@ func ByLockedByOrderID(opts ...sql.OrderTermOption) OrderOption {
 // ByLockedUntil orders the results by the locked_until field.
 func ByLockedUntil(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLockedUntil, opts...).ToFunc()
+}
+
+// ByBuyoutPrice orders the results by the buyout_price field.
+func ByBuyoutPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuyoutPrice, opts...).ToFunc()
+}
+
+// ByBuyoutInfo orders the results by the buyout_info field.
+func ByBuyoutInfo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuyoutInfo, opts...).ToFunc()
+}
+
+// ByBoughtOutAt orders the results by the bought_out_at field.
+func ByBoughtOutAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBoughtOutAt, opts...).ToFunc()
 }
 
 // ByGroupsCount orders the results by groups count.

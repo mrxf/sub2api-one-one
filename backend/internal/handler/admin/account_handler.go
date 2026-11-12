@@ -146,6 +146,8 @@ type CreateAccountRequest struct {
 	DailyPriceDecay *float64 `json:"daily_price_decay"`
 	MinSalePrice    *float64 `json:"min_sale_price"`
 	SaleDescription *string  `json:"sale_description"`
+	BuyoutPrice     *float64 `json:"buyout_price"`
+	BuyoutInfo      *string  `json:"buyout_info"`
 }
 
 // UpdateAccountRequest represents update account request
@@ -178,6 +180,8 @@ type UpdateAccountRequest struct {
 	DailyPriceDecay  *float64 `json:"daily_price_decay"`
 	MinSalePrice     *float64 `json:"min_sale_price"`
 	SaleDescription  *string  `json:"sale_description"`
+	BuyoutPrice      *float64 `json:"buyout_price"`
+	BuyoutInfo       *string  `json:"buyout_info"`
 }
 
 // BulkUpdateAccountsRequest represents the payload for bulk editing accounts
@@ -206,6 +210,8 @@ type BulkUpdateAccountsRequest struct {
 	DailyPriceDecay  *float64 `json:"daily_price_decay"`
 	MinSalePrice     *float64 `json:"min_sale_price"`
 	SaleDescription  *string  `json:"sale_description"`
+	BuyoutPrice      *float64 `json:"buyout_price"`
+	BuyoutInfo       *string  `json:"buyout_info"`
 }
 
 type BulkUpdateAccountFilters struct {
@@ -1099,6 +1105,8 @@ func (h *AccountHandler) Create(c *gin.Context) {
 			DailyPriceDecay:       req.DailyPriceDecay,
 			MinSalePrice:          req.MinSalePrice,
 			SaleDescription:       req.SaleDescription,
+			BuyoutPrice:           req.BuyoutPrice,
+			BuyoutInfo:            req.BuyoutInfo,
 		})
 		if execErr != nil {
 			return nil, execErr
@@ -1240,6 +1248,8 @@ func (h *AccountHandler) Update(c *gin.Context) {
 		DailyPriceDecay:       req.DailyPriceDecay,
 		MinSalePrice:          req.MinSalePrice,
 		SaleDescription:       req.SaleDescription,
+		BuyoutPrice:           req.BuyoutPrice,
+		BuyoutInfo:            req.BuyoutInfo,
 	})
 	if err != nil {
 		// 检查是否为混合渠道错误
@@ -2398,7 +2408,9 @@ func (h *AccountHandler) BulkUpdate(c *gin.Context) {
 		req.SalePrice != nil ||
 		req.DailyPriceDecay != nil ||
 		req.MinSalePrice != nil ||
-		req.SaleDescription != nil
+		req.SaleDescription != nil ||
+		req.BuyoutPrice != nil ||
+		req.BuyoutInfo != nil
 
 	if !hasUpdates {
 		response.BadRequest(c, "No updates provided")
@@ -2428,6 +2440,8 @@ func (h *AccountHandler) BulkUpdate(c *gin.Context) {
 		DailyPriceDecay:       req.DailyPriceDecay,
 		MinSalePrice:          req.MinSalePrice,
 		SaleDescription:       req.SaleDescription,
+		BuyoutPrice:           req.BuyoutPrice,
+		BuyoutInfo:            req.BuyoutInfo,
 	})
 	if err != nil {
 		var mixedErr *service.MixedChannelError

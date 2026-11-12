@@ -783,6 +783,61 @@ func (_u *AccountUpdate) ClearLockedUntil() *AccountUpdate {
 	return _u
 }
 
+// SetBuyoutPrice sets the "buyout_price" field.
+func (_u *AccountUpdate) SetBuyoutPrice(v float64) *AccountUpdate {
+	_u.mutation.ResetBuyoutPrice()
+	_u.mutation.SetBuyoutPrice(v)
+	return _u
+}
+
+// SetNillableBuyoutPrice sets the "buyout_price" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableBuyoutPrice(v *float64) *AccountUpdate {
+	if v != nil {
+		_u.SetBuyoutPrice(*v)
+	}
+	return _u
+}
+
+// AddBuyoutPrice adds value to the "buyout_price" field.
+func (_u *AccountUpdate) AddBuyoutPrice(v float64) *AccountUpdate {
+	_u.mutation.AddBuyoutPrice(v)
+	return _u
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (_u *AccountUpdate) SetBuyoutInfo(v string) *AccountUpdate {
+	_u.mutation.SetBuyoutInfo(v)
+	return _u
+}
+
+// SetNillableBuyoutInfo sets the "buyout_info" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableBuyoutInfo(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetBuyoutInfo(*v)
+	}
+	return _u
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (_u *AccountUpdate) SetBoughtOutAt(v time.Time) *AccountUpdate {
+	_u.mutation.SetBoughtOutAt(v)
+	return _u
+}
+
+// SetNillableBoughtOutAt sets the "bought_out_at" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillableBoughtOutAt(v *time.Time) *AccountUpdate {
+	if v != nil {
+		_u.SetBoughtOutAt(*v)
+	}
+	return _u
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (_u *AccountUpdate) ClearBoughtOutAt() *AccountUpdate {
+	_u.mutation.ClearBoughtOutAt()
+	return _u
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_u *AccountUpdate) AddGroupIDs(ids ...int64) *AccountUpdate {
 	_u.mutation.AddGroupIDs(ids...)
@@ -1237,6 +1292,21 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(account.FieldLockedUntil, field.TypeTime)
+	}
+	if value, ok := _u.mutation.BuyoutPrice(); ok {
+		_spec.SetField(account.FieldBuyoutPrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBuyoutPrice(); ok {
+		_spec.AddField(account.FieldBuyoutPrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.BuyoutInfo(); ok {
+		_spec.SetField(account.FieldBuyoutInfo, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BoughtOutAt(); ok {
+		_spec.SetField(account.FieldBoughtOutAt, field.TypeTime, value)
+	}
+	if _u.mutation.BoughtOutAtCleared() {
+		_spec.ClearField(account.FieldBoughtOutAt, field.TypeTime)
 	}
 	if _u.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2215,6 +2285,61 @@ func (_u *AccountUpdateOne) ClearLockedUntil() *AccountUpdateOne {
 	return _u
 }
 
+// SetBuyoutPrice sets the "buyout_price" field.
+func (_u *AccountUpdateOne) SetBuyoutPrice(v float64) *AccountUpdateOne {
+	_u.mutation.ResetBuyoutPrice()
+	_u.mutation.SetBuyoutPrice(v)
+	return _u
+}
+
+// SetNillableBuyoutPrice sets the "buyout_price" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableBuyoutPrice(v *float64) *AccountUpdateOne {
+	if v != nil {
+		_u.SetBuyoutPrice(*v)
+	}
+	return _u
+}
+
+// AddBuyoutPrice adds value to the "buyout_price" field.
+func (_u *AccountUpdateOne) AddBuyoutPrice(v float64) *AccountUpdateOne {
+	_u.mutation.AddBuyoutPrice(v)
+	return _u
+}
+
+// SetBuyoutInfo sets the "buyout_info" field.
+func (_u *AccountUpdateOne) SetBuyoutInfo(v string) *AccountUpdateOne {
+	_u.mutation.SetBuyoutInfo(v)
+	return _u
+}
+
+// SetNillableBuyoutInfo sets the "buyout_info" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableBuyoutInfo(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetBuyoutInfo(*v)
+	}
+	return _u
+}
+
+// SetBoughtOutAt sets the "bought_out_at" field.
+func (_u *AccountUpdateOne) SetBoughtOutAt(v time.Time) *AccountUpdateOne {
+	_u.mutation.SetBoughtOutAt(v)
+	return _u
+}
+
+// SetNillableBoughtOutAt sets the "bought_out_at" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillableBoughtOutAt(v *time.Time) *AccountUpdateOne {
+	if v != nil {
+		_u.SetBoughtOutAt(*v)
+	}
+	return _u
+}
+
+// ClearBoughtOutAt clears the value of the "bought_out_at" field.
+func (_u *AccountUpdateOne) ClearBoughtOutAt() *AccountUpdateOne {
+	_u.mutation.ClearBoughtOutAt()
+	return _u
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (_u *AccountUpdateOne) AddGroupIDs(ids ...int64) *AccountUpdateOne {
 	_u.mutation.AddGroupIDs(ids...)
@@ -2699,6 +2824,21 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	}
 	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(account.FieldLockedUntil, field.TypeTime)
+	}
+	if value, ok := _u.mutation.BuyoutPrice(); ok {
+		_spec.SetField(account.FieldBuyoutPrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBuyoutPrice(); ok {
+		_spec.AddField(account.FieldBuyoutPrice, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.BuyoutInfo(); ok {
+		_spec.SetField(account.FieldBuyoutInfo, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BoughtOutAt(); ok {
+		_spec.SetField(account.FieldBoughtOutAt, field.TypeTime, value)
+	}
+	if _u.mutation.BoughtOutAtCleared() {
+		_spec.ClearField(account.FieldBoughtOutAt, field.TypeTime)
 	}
 	if _u.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{

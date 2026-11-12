@@ -16,11 +16,13 @@
       <span
         :class="[
           'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
-          value === 'dedicated_account'
-            ? 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-500/30'
-            : value === 'subscription'
-              ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-500/30'
-              : 'bg-gray-100 text-gray-700 dark:bg-dark-700 dark:text-gray-300'
+          value === 'dedicated_buyout'
+            ? 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30'
+            : value === 'dedicated_account'
+              ? 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-500/30'
+              : value === 'subscription'
+                ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-500/30'
+                : 'bg-gray-100 text-gray-700 dark:bg-dark-700 dark:text-gray-300'
         ]"
       >
         {{ t('payment.orders.orderTypes.' + (value || 'balance'), value || 'balance') }}

@@ -180,6 +180,8 @@ type AccountBulkUpdate struct {
 	DailyPriceDecay    *float64
 	MinSalePrice       *float64
 	SaleDescription    *string
+	BuyoutPrice        *float64
+	BuyoutInfo         *string
 }
 
 // CreateAccountRequest 创建账号请求

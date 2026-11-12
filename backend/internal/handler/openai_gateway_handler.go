@@ -3705,9 +3705,9 @@ func (h *OpenAIGatewayHandler) applyOpenAIFailoverPassthroughRule(
 		respCode = *rule.ResponseCode
 	}
 
-	msg := service.ExtractUpstreamErrorMessage(responseBody)
+	msg := service.SanitizeUpstreamErrorMessage(service.ExtractUpstreamErrorMessage(responseBody))
 	if !rule.PassthroughBody && rule.CustomMessage != nil {
-		msg = *rule.CustomMessage
+		msg = service.SanitizeUpstreamErrorMessage(*rule.CustomMessage)
 	}
 
 	if rule.SkipMonitoring {
