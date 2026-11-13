@@ -1,0 +1,936 @@
+/**
+ * Sub2API Skin: Professional ("pro") — Default System Skin
+ * Style Direction: Stripe / GitHub Enterprise Slate-Blue
+ *
+ * Activation: Active by default via `html:not([data-skin='default'])` and `<html data-skin="pro">`
+ *             (supports both Light and `.dark` modes; set `data-skin="default"` to restore legacy Teal skin)
+ * Design Principles:
+ *   1. Authoritative cobalt-slate primary palette + cool architectural gray/charcoal surfaces
+ *   2. Crisp 1px structural borders instead of frosted glass, mesh gradients, or neon glows
+ *   3. Taut enterprise geometry (6px controls, 8px containers) & tabular numeric alignment
+ *   4. 100% pure CSS — zero Vue template / DOM element modifications required
+ */
+
+/* ==========================================================================
+   1. Design Tokens (Light & Dark Palettes)
+   ========================================================================== */
+
+html:not([data-skin='default']) {
+  /* Primary — Executive Cobalt / Slate-Blue (Stripe & GitHub Primer inspired) */
+  --color-primary-50: 243 246 252;
+  --color-primary-100: 229 237 250;
+  --color-primary-200: 202 218 245;
+  --color-primary-300: 154 186 237;
+  --color-primary-400: 96 144 224;
+  --color-primary-500: 47 102 201;
+  --color-primary-600: 31 81 176;
+  --color-primary-700: 24 65 145;
+  --color-primary-800: 21 53 117;
+  --color-primary-900: 19 43 92;
+  --color-primary-950: 12 26 56;
+
+  /* Accent — Cool Architectural Slate */
+  --color-accent-50: 246 248 250;
+  --color-accent-100: 238 241 245;
+  --color-accent-200: 216 222 228;
+  --color-accent-300: 191 199 208;
+  --color-accent-400: 140 149 159;
+  --color-accent-500: 89 99 110;
+  --color-accent-600: 66 74 83;
+  --color-accent-700: 47 54 61;
+  --color-accent-800: 31 35 40;
+  --color-accent-900: 20 25 31;
+  --color-accent-950: 13 17 23;
+
+  /* Neutral Gray — GitHub Primer / Stripe Cool Neutral */
+  --color-gray-50: 246 248 250;
+  --color-gray-100: 238 241 245;
+  --color-gray-200: 216 222 228;
+  --color-gray-300: 191 199 208;
+  --color-gray-400: 140 149 159;
+  --color-gray-500: 89 99 110;
+  --color-gray-600: 66 74 83;
+  --color-gray-700: 47 54 61;
+  --color-gray-800: 31 35 40;
+  --color-gray-900: 20 25 31;
+  --color-gray-950: 11 15 20;
+
+  /* Dark Scale — Low-glare Charcoal-Slate (GitHub Dark / Stripe Dark) */
+  --color-dark-50: 240 246 252;
+  --color-dark-100: 230 237 243;
+  --color-dark-200: 201 209 217;
+  --color-dark-300: 175 184 193;
+  --color-dark-400: 139 148 158;
+  --color-dark-500: 110 118 129;
+  --color-dark-600: 61 68 77;
+  --color-dark-700: 48 54 61;
+  --color-dark-800: 28 33 40;
+  --color-dark-900: 22 27 34;
+  --color-dark-950: 13 17 23;
+
+  /* Surface, Radius & Elevation Tokens */
+  --surface-card: 255 255 255;
+  --radius-control: 6px;
+  --radius-container: 8px;
+
+  --shadow-card: 0 1px 2px rgba(20, 25, 31, 0.04);
+  --shadow-card-hover: 0 2px 6px rgba(20, 25, 31, 0.07);
+  --shadow-glass: 0 1px 3px rgba(20, 25, 31, 0.06), 0 1px 2px rgba(20, 25, 31, 0.04);
+  --shadow-glass-sm: 0 1px 2px rgba(20, 25, 31, 0.05);
+  --shadow-glow: 0 1px 2px rgba(20, 25, 31, 0.08);
+  --shadow-glow-lg: 0 4px 12px rgba(20, 25, 31, 0.1);
+
+  --bg-gradient-primary: linear-gradient(180deg, rgb(47 102 201) 0%, rgb(31 81 176) 100%);
+  --bg-mesh-gradient: none;
+  --settings-tab-indicator: rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']).dark {
+  --surface-card: 22 27 34;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 3px 10px rgba(0, 0, 0, 0.36);
+  --shadow-glass: 0 2px 8px rgba(0, 0, 0, 0.36);
+  --shadow-glass-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --shadow-glow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-glow-lg: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --settings-tab-indicator: rgb(var(--color-primary-400));
+}
+
+/* ==========================================================================
+   2. Base Typography, Surfaces & Decorative Noise Removal
+   ========================================================================== */
+
+html:not([data-skin='default']) body {
+  background-color: rgb(var(--color-gray-50));
+  color: rgb(var(--color-gray-900));
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  letter-spacing: -0.006em;
+}
+
+html:not([data-skin='default']).dark body {
+  background-color: rgb(var(--color-dark-950));
+  color: rgb(var(--color-dark-100));
+}
+
+/* Strip decorative ambient orbs, grid meshes, and gradient headline fills */
+html:not([data-skin='default']) .bg-mesh-gradient {
+  background-image: none !important;
+}
+
+html:not([data-skin='default']) .pointer-events-none > .blur-3xl,
+html:not([data-skin='default']) .pointer-events-none > [class*='linear-gradient'] {
+  display: none !important;
+}
+
+html:not([data-skin='default']) .text-gradient {
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: rgb(var(--color-gray-900)) !important;
+}
+
+html:not([data-skin='default']).dark .text-gradient {
+  color: rgb(var(--color-dark-50)) !important;
+}
+
+/* Enterprise typography hierarchy & numeric alignment */
+html:not([data-skin='default']) .page-title,
+html:not([data-skin='default']) h1 {
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+html:not([data-skin='default']) h2,
+html:not([data-skin='default']) .modal-title {
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+html:not([data-skin='default']) .stat-value,
+html:not([data-skin='default']) .table td,
+html:not([data-skin='default']) .table-wrapper td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Converge oversized utility radii to crisp architectural proportions */
+html:not([data-skin='default']) .rounded-3xl,
+html:not([data-skin='default']) .rounded-2xl {
+  border-radius: var(--radius-container);
+}
+
+html:not([data-skin='default']) .rounded-xl {
+  border-radius: var(--radius-control);
+}
+
+/* ==========================================================================
+   3. Glass Replacement -> Crisp Opaque Architectural Surfaces
+   ========================================================================== */
+
+html:not([data-skin='default']) .glass {
+  background-color: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: rgb(var(--color-gray-200));
+}
+
+html:not([data-skin='default']).dark .glass {
+  background-color: rgb(var(--color-dark-900));
+  border-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .glass-card,
+html:not([data-skin='default']) .card-glass {
+  background-color: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: var(--radius-container);
+  border: 1px solid rgb(var(--color-gray-200));
+  box-shadow: var(--shadow-glass);
+}
+
+html:not([data-skin='default']).dark .glass-card,
+html:not([data-skin='default']).dark .card-glass {
+  background-color: rgb(var(--color-dark-900));
+  border-color: rgb(var(--color-dark-700));
+}
+
+/* ==========================================================================
+   4. Buttons (Stripe / GitHub Primer Tactile Precision)
+   ========================================================================== */
+
+html:not([data-skin='default']) .btn {
+  border-radius: var(--radius-control);
+  padding: 0.5rem 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+html:not([data-skin='default']) .btn:active:not(:disabled) {
+  transform: none;
+}
+
+html:not([data-skin='default']) .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-500) / 0.22);
+}
+
+html:not([data-skin='default']) .btn-primary {
+  background-image: none;
+  background-color: rgb(var(--color-primary-600));
+  color: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 1px 2px rgba(20, 25, 31, 0.08);
+}
+
+html:not([data-skin='default']) .btn-primary:hover:not(:disabled) {
+  background-image: none;
+  background-color: rgb(var(--color-primary-700));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 3px rgba(20, 25, 31, 0.12);
+}
+
+html:not([data-skin='default']).dark .btn-primary {
+  background-color: rgb(var(--color-primary-500));
+  border-color: rgba(240, 246, 252, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html:not([data-skin='default']).dark .btn-primary:hover:not(:disabled) {
+  background-color: rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']) .btn-secondary {
+  background-color: #ffffff;
+  color: rgb(var(--color-gray-800));
+  border: 1px solid rgb(var(--color-gray-200));
+  box-shadow: 0 1px 1px rgba(20, 25, 31, 0.04);
+}
+
+html:not([data-skin='default']) .btn-secondary:hover:not(:disabled) {
+  background-color: rgb(var(--color-gray-50));
+  border-color: rgb(var(--color-gray-300));
+}
+
+html:not([data-skin='default']).dark .btn-secondary {
+  background-color: rgb(33 38 45);
+  color: rgb(var(--color-dark-100));
+  border-color: rgb(var(--color-dark-600));
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+html:not([data-skin='default']).dark .btn-secondary:hover:not(:disabled) {
+  background-color: rgb(41 47 56);
+  border-color: rgb(84 93 104);
+}
+
+html:not([data-skin='default']) .btn-ghost {
+  color: rgb(var(--color-gray-600));
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+html:not([data-skin='default']) .btn-ghost:hover:not(:disabled) {
+  background-color: rgb(var(--color-gray-100));
+  color: rgb(var(--color-gray-900));
+}
+
+html:not([data-skin='default']).dark .btn-ghost {
+  color: rgb(var(--color-dark-300));
+}
+
+html:not([data-skin='default']).dark .btn-ghost:hover:not(:disabled) {
+  background-color: rgb(var(--color-dark-800));
+  color: rgb(var(--color-dark-50));
+}
+
+html:not([data-skin='default']) .btn-danger {
+  background-image: none;
+  background-color: #cf222e;
+  border: 1px solid rgba(20, 25, 31, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(20, 25, 31, 0.08);
+}
+
+html:not([data-skin='default']) .btn-danger:hover:not(:disabled) {
+  background-image: none;
+  background-color: #a40e26;
+  box-shadow: 0 1px 3px rgba(20, 25, 31, 0.12);
+}
+
+html:not([data-skin='default']).dark .btn-danger {
+  background-color: #da3633;
+  border-color: rgba(240, 246, 252, 0.12);
+}
+
+html:not([data-skin='default']).dark .btn-danger:hover:not(:disabled) {
+  background-color: #b62324;
+}
+
+html:not([data-skin='default']) .btn-success {
+  background-image: none;
+  background-color: #1a7f37;
+  border: 1px solid rgba(20, 25, 31, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(20, 25, 31, 0.08);
+}
+
+html:not([data-skin='default']) .btn-success:hover:not(:disabled) {
+  background-image: none;
+  background-color: #116329;
+  box-shadow: 0 1px 3px rgba(20, 25, 31, 0.12);
+}
+
+html:not([data-skin='default']).dark .btn-success {
+  background-color: #238636;
+  border-color: rgba(240, 246, 252, 0.12);
+}
+
+html:not([data-skin='default']).dark .btn-success:hover:not(:disabled) {
+  background-color: #2ea043;
+}
+
+html:not([data-skin='default']) .btn-warning {
+  background-image: none;
+  background-color: #bf8700;
+  border: 1px solid rgba(20, 25, 31, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 2px rgba(20, 25, 31, 0.08);
+}
+
+html:not([data-skin='default']) .btn-warning:hover:not(:disabled) {
+  background-image: none;
+  background-color: #9a6700;
+  box-shadow: 0 1px 3px rgba(20, 25, 31, 0.12);
+}
+
+/* Remove colored neon shadows on payment brand buttons */
+html:not([data-skin='default']) .btn-stripe,
+html:not([data-skin='default']) .btn-airwallex,
+html:not([data-skin='default']) .btn-alipay,
+html:not([data-skin='default']) .btn-wxpay {
+  box-shadow: 0 1px 2px rgba(20, 25, 31, 0.1);
+}
+
+/* Button size modifiers (must follow .btn to preserve cascade priority) */
+html:not([data-skin='default']) .btn-sm {
+  border-radius: 5px;
+  padding: 0.3125rem 0.6875rem;
+  font-size: 0.75rem;
+}
+
+html:not([data-skin='default']) .btn-md {
+  border-radius: var(--radius-control);
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+html:not([data-skin='default']) .btn-lg {
+  border-radius: var(--radius-container);
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+html:not([data-skin='default']) .btn-icon {
+  border-radius: var(--radius-control);
+  padding: 0.5rem;
+}
+
+/* ==========================================================================
+   5. Form Inputs, Selects & Pickers
+   ========================================================================== */
+
+html:not([data-skin='default']) .input,
+html:not([data-skin='default']) .select-trigger,
+html:not([data-skin='default']) .date-picker-trigger {
+  border-radius: var(--radius-control);
+  padding: 0.5rem 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid rgb(var(--color-gray-200));
+  color: rgb(var(--color-gray-900));
+  box-shadow: inset 0 1px 1px rgba(20, 25, 31, 0.03);
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+html:not([data-skin='default']) .input:hover:not(:disabled):not(:focus),
+html:not([data-skin='default']) .select-trigger:hover:not(.select-trigger-disabled):not(.select-trigger-open),
+html:not([data-skin='default']) .date-picker-trigger:hover {
+  border-color: rgb(var(--color-gray-300));
+}
+
+html:not([data-skin='default']) .input:focus,
+html:not([data-skin='default']) .select-trigger:focus,
+html:not([data-skin='default']) .select-trigger-open,
+html:not([data-skin='default']) .date-picker-trigger:focus,
+html:not([data-skin='default']) .date-picker-trigger-open {
+  border-color: rgb(var(--color-primary-500));
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-500) / 0.16);
+  outline: none;
+}
+
+html:not([data-skin='default']).dark .input,
+html:not([data-skin='default']).dark .select-trigger,
+html:not([data-skin='default']).dark .date-picker-trigger {
+  background-color: rgb(var(--color-dark-950));
+  border-color: rgb(var(--color-dark-600));
+  color: rgb(var(--color-dark-100));
+  box-shadow: none;
+}
+
+html:not([data-skin='default']).dark .input:hover:not(:disabled):not(:focus),
+html:not([data-skin='default']).dark .select-trigger:hover:not(.select-trigger-disabled):not(.select-trigger-open),
+html:not([data-skin='default']).dark .date-picker-trigger:hover {
+  border-color: rgb(84 93 104);
+}
+
+html:not([data-skin='default']).dark .input:focus,
+html:not([data-skin='default']).dark .select-trigger:focus,
+html:not([data-skin='default']).dark .select-trigger-open,
+html:not([data-skin='default']).dark .date-picker-trigger:focus,
+html:not([data-skin='default']).dark .date-picker-trigger-open {
+  border-color: rgb(var(--color-primary-400));
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-400) / 0.2);
+}
+
+html:not([data-skin='default']) .input-error,
+html:not([data-skin='default']) .select-trigger-error {
+  border-color: #cf222e !important;
+}
+
+html:not([data-skin='default']) .input-error:focus,
+html:not([data-skin='default']) .select-trigger-error:focus {
+  box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.16) !important;
+}
+
+/* ==========================================================================
+   6. Cards, Stat Metrics & Dashboard Restraint
+   ========================================================================== */
+
+html:not([data-skin='default']) .card {
+  background-color: #ffffff;
+  border-radius: var(--radius-container);
+  border: 1px solid rgb(var(--color-gray-200));
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+html:not([data-skin='default']).dark .card {
+  background-color: rgb(var(--color-dark-900));
+  border-color: rgb(var(--color-dark-700));
+  box-shadow: var(--shadow-card);
+}
+
+html:not([data-skin='default']) .card-hover:hover {
+  transform: none;
+  border-color: rgb(var(--color-gray-300));
+  box-shadow: var(--shadow-card-hover);
+}
+
+html:not([data-skin='default']).dark .card-hover:hover {
+  border-color: rgb(var(--color-dark-600));
+}
+
+html:not([data-skin='default']) .card-header {
+  border-bottom: 1px solid rgb(var(--color-gray-200));
+  padding: 0.875rem 1.25rem;
+}
+
+html:not([data-skin='default']).dark .card-header {
+  border-bottom-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .card-footer {
+  border-top: 1px solid rgb(var(--color-gray-200));
+  padding: 0.875rem 1.25rem;
+}
+
+html:not([data-skin='default']).dark .card-footer {
+  border-top-color: rgb(var(--color-dark-700));
+}
+
+/* Stat card & rainbow dashboard icon tiles -> unified executive slate tiles */
+html:not([data-skin='default']) .stat-icon {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: var(--radius-control);
+  border: 1px solid rgb(var(--color-gray-200));
+}
+
+html:not([data-skin='default']).dark .stat-icon {
+  border-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .stat-icon-primary {
+  background-color: rgb(var(--color-primary-50));
+  color: rgb(var(--color-primary-600));
+  border-color: rgb(var(--color-primary-200) / 0.7);
+}
+
+html:not([data-skin='default']).dark .stat-icon-primary {
+  background-color: rgb(var(--color-primary-500) / 0.14);
+  color: rgb(var(--color-primary-400));
+  border-color: rgb(var(--color-primary-400) / 0.25);
+}
+
+html:not([data-skin='default']) .card .flex > .rounded-lg.p-2[class*='bg-'] {
+  background-color: rgb(var(--color-gray-50));
+  border: 1px solid rgb(var(--color-gray-200));
+  border-radius: var(--radius-control);
+}
+
+html:not([data-skin='default']) .card .flex > .rounded-lg.p-2[class*='bg-'],
+html:not([data-skin='default']) .card .flex > .rounded-lg.p-2[class*='bg-'] > svg {
+  color: rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']).dark .card .flex > .rounded-lg.p-2[class*='bg-'] {
+  background-color: rgb(var(--color-dark-800));
+  border-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']).dark .card .flex > .rounded-lg.p-2[class*='bg-'],
+html:not([data-skin='default']).dark .card .flex > .rounded-lg.p-2[class*='bg-'] > svg {
+  color: rgb(var(--color-primary-400));
+}
+
+/* Replace purple/violet metric accents in cards with business slate-blue (no purple on dark) */
+html:not([data-skin='default']) .card .text-purple-600,
+html:not([data-skin='default']) .card .text-violet-600 {
+  color: rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']).dark .card .dark\:text-purple-400,
+html:not([data-skin='default']).dark .card .dark\:text-violet-400 {
+  color: rgb(var(--color-primary-400));
+}
+
+/* ==========================================================================
+   7. Sidebar & Header Navigation
+   ========================================================================== */
+
+html:not([data-skin='default']) .sidebar {
+  background-color: #ffffff;
+  border-right: 1px solid rgb(var(--color-gray-200));
+}
+
+html:not([data-skin='default']).dark .sidebar {
+  background-color: rgb(var(--color-dark-900));
+  border-right-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .sidebar-header {
+  border-bottom: 1px solid rgb(var(--color-gray-200));
+}
+
+html:not([data-skin='default']).dark .sidebar-header {
+  border-bottom-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .sidebar-logo {
+  border-radius: var(--radius-control);
+  box-shadow: none;
+}
+
+html:not([data-skin='default']) .sidebar-link {
+  border-radius: var(--radius-control);
+  padding-top: 0.46875rem;
+  padding-bottom: 0.46875rem;
+  font-size: 0.84375rem;
+  font-weight: 500;
+  color: rgb(var(--color-gray-600));
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+html:not([data-skin='default']) .sidebar-link:not(.sidebar-link-collapsed) {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+html:not([data-skin='default']) .sidebar-link.sidebar-link-collapsed {
+  gap: 0;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+
+html:not([data-skin='default']).dark .sidebar-link {
+  color: rgb(var(--color-dark-300));
+}
+
+html:not([data-skin='default']) .sidebar-link:hover {
+  background-color: rgb(var(--color-gray-100));
+  color: rgb(var(--color-gray-900));
+}
+
+html:not([data-skin='default']).dark .sidebar-link:hover {
+  background-color: rgb(var(--color-dark-800));
+  color: rgb(var(--color-dark-50));
+}
+
+html:not([data-skin='default']) .sidebar-link-active {
+  background-color: rgb(var(--color-primary-50));
+  color: rgb(var(--color-primary-700));
+  font-weight: 600;
+}
+
+html:not([data-skin='default']) .sidebar-link-active:not(.sidebar-link-collapsed) {
+  box-shadow: inset 3px 0 0 rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']) .sidebar-link-active:hover {
+  background-color: rgb(var(--color-primary-100) / 0.75);
+  color: rgb(var(--color-primary-700));
+}
+
+html:not([data-skin='default']).dark .sidebar-link-active {
+  background-color: rgb(var(--color-primary-500) / 0.15);
+  color: rgb(var(--color-primary-300));
+}
+
+html:not([data-skin='default']).dark .sidebar-link-active:not(.sidebar-link-collapsed) {
+  box-shadow: inset 3px 0 0 rgb(var(--color-primary-400));
+}
+
+html:not([data-skin='default']).dark .sidebar-link-active:hover {
+  background-color: rgb(var(--color-primary-500) / 0.22);
+  color: rgb(var(--color-primary-200));
+}
+
+html:not([data-skin='default']) .sidebar-section-title {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: rgb(var(--color-gray-500));
+}
+
+html:not([data-skin='default']).dark .sidebar-section-title {
+  color: rgb(var(--color-dark-400));
+}
+
+/* Header balance chip & avatar refinement */
+html:not([data-skin='default']) header.glass {
+  border-bottom-color: rgb(var(--color-gray-200));
+}
+
+html:not([data-skin='default']).dark header.glass {
+  border-bottom-color: rgb(var(--color-dark-700));
+}
+
+/* ==========================================================================
+   8. Enterprise Data Tables
+   ========================================================================== */
+
+html:not([data-skin='default']) .table-container,
+html:not([data-skin='default']) .table-scroll-container {
+  border-radius: var(--radius-container);
+  border: 1px solid rgb(var(--color-gray-200));
+  background-color: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+html:not([data-skin='default']).dark .table-container,
+html:not([data-skin='default']).dark .table-scroll-container {
+  border-color: rgb(var(--color-dark-700));
+  background-color: rgb(var(--color-dark-900));
+}
+
+html:not([data-skin='default']) .table-scroll-container thead,
+html:not([data-skin='default']) .table th,
+html:not([data-skin='default']) .table-wrapper .table-header,
+html:not([data-skin='default']) .table-wrapper .sticky-header-cell {
+  background-color: rgb(var(--color-gray-50));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html:not([data-skin='default']).dark .table-scroll-container thead,
+html:not([data-skin='default']).dark .table th,
+html:not([data-skin='default']).dark .table-wrapper .table-header,
+html:not([data-skin='default']).dark .table-wrapper .sticky-header-cell {
+  background-color: rgb(var(--color-dark-800));
+}
+
+html:not([data-skin='default']) .table th,
+html:not([data-skin='default']) .table-scroll-container th,
+html:not([data-skin='default']) .table-wrapper .sticky-header-cell {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgb(var(--color-gray-600));
+  border-bottom: 1px solid rgb(var(--color-gray-200));
+  padding-top: 0.6875rem;
+  padding-bottom: 0.6875rem;
+}
+
+html:not([data-skin='default']).dark .table th,
+html:not([data-skin='default']).dark .table-scroll-container th,
+html:not([data-skin='default']).dark .table-wrapper .sticky-header-cell {
+  color: rgb(var(--color-dark-400));
+  border-bottom-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .table td,
+html:not([data-skin='default']) .table-scroll-container td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom-color: rgb(var(--color-gray-100));
+}
+
+html:not([data-skin='default']).dark .table td,
+html:not([data-skin='default']).dark .table-scroll-container td {
+  border-bottom-color: rgb(var(--color-dark-700) / 0.75);
+}
+
+/* ==========================================================================
+   9. Badges, Dropdowns, Modals, Tabs & Settings Shell
+   ========================================================================== */
+
+html:not([data-skin='default']) .badge {
+  border-radius: 5px;
+  padding: 0.125rem 0.5rem;
+  font-weight: 500;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 20%, transparent);
+}
+
+html:not([data-skin='default']) .badge-purple {
+  background-color: rgb(var(--color-primary-50));
+  color: rgb(var(--color-primary-700));
+}
+
+html:not([data-skin='default']).dark .badge-purple {
+  background-color: rgb(var(--color-primary-500) / 0.16);
+  color: rgb(var(--color-primary-300));
+}
+
+html:not([data-skin='default']) .dropdown,
+html:not([data-skin='default']) .select-dropdown-portal {
+  border-radius: var(--radius-container);
+  background-color: #ffffff;
+  border: 1px solid rgb(var(--color-gray-200));
+  box-shadow:
+    0 8px 24px rgba(20, 25, 31, 0.12),
+    0 1px 3px rgba(20, 25, 31, 0.06);
+}
+
+html:not([data-skin='default']).dark .dropdown,
+html:not([data-skin='default']).dark .select-dropdown-portal {
+  background-color: rgb(var(--color-dark-800));
+  border-color: rgb(var(--color-dark-700));
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.48),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+html:not([data-skin='default']) .dropdown-item {
+  border-radius: 5px;
+  margin: 0 0.25rem;
+  padding: 0.4375rem 0.6875rem;
+}
+
+/* Modals & Dialogs */
+html:not([data-skin='default']) .modal-overlay,
+html:not([data-skin='default']) .dialog-overlay {
+  background-color: rgba(15, 23, 42, 0.45);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html:not([data-skin='default']).dark .modal-overlay,
+html:not([data-skin='default']).dark .dialog-overlay {
+  background-color: rgba(1, 4, 9, 0.68);
+}
+
+html:not([data-skin='default']) .modal-content,
+html:not([data-skin='default']) .dialog-container {
+  border-radius: var(--radius-container);
+  background-color: #ffffff;
+  border: 1px solid rgb(var(--color-gray-200));
+  box-shadow:
+    0 16px 36px rgba(20, 25, 31, 0.16),
+    0 2px 6px rgba(20, 25, 31, 0.08);
+}
+
+html:not([data-skin='default']).dark .modal-content,
+html:not([data-skin='default']).dark .dialog-container {
+  background-color: rgb(var(--color-dark-900));
+  border-color: rgb(var(--color-dark-700));
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(240, 246, 252, 0.04);
+}
+
+/* Segmented Tabs & Admin Settings Tab Bar */
+html:not([data-skin='default']) .tabs {
+  border-radius: var(--radius-container);
+  background-color: rgb(var(--color-gray-100));
+  border: 1px solid rgb(var(--color-gray-200));
+  padding: 0.1875rem;
+}
+
+html:not([data-skin='default']).dark .tabs {
+  background-color: rgb(var(--color-dark-950));
+  border-color: rgb(var(--color-dark-700));
+}
+
+html:not([data-skin='default']) .tab {
+  border-radius: 5px;
+  padding: 0.375rem 0.875rem;
+}
+
+html:not([data-skin='default']) .tab-active {
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 25, 31, 0.06);
+}
+
+html:not([data-skin='default']).dark .tab-active {
+  background-color: rgb(var(--color-dark-800));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html:not([data-skin='default']) .settings-tabs-shell {
+  border-radius: var(--radius-container);
+  border: 1px solid rgb(var(--color-gray-200));
+  background: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 1px 3px rgba(20, 25, 31, 0.06);
+}
+
+html:not([data-skin='default']).dark .settings-tabs-shell {
+  border-color: rgb(var(--color-dark-700));
+  background: rgb(var(--color-dark-900));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+html:not([data-skin='default']) .settings-tab {
+  border-radius: var(--radius-control);
+}
+
+html:not([data-skin='default']) .settings-tab::before {
+  border-radius: var(--radius-control);
+  background: rgb(var(--color-gray-100));
+}
+
+html:not([data-skin='default']).dark .settings-tab::before {
+  background: rgb(var(--color-dark-800));
+}
+
+html:not([data-skin='default']) .settings-tab-active {
+  background-color: rgb(var(--color-primary-50));
+  border-color: rgb(var(--color-primary-200));
+  color: rgb(var(--color-primary-700));
+  box-shadow: none;
+}
+
+html:not([data-skin='default']).dark .settings-tab-active {
+  background-color: rgb(var(--color-primary-500) / 0.15);
+  border-color: rgb(var(--color-primary-400) / 0.3);
+  color: rgb(var(--color-primary-300));
+  box-shadow: none;
+}
+
+html:not([data-skin='default']) .settings-save-dock {
+  border-radius: var(--radius-container);
+  border: 1px solid rgb(var(--color-gray-200));
+  background: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 4px 12px rgba(20, 25, 31, 0.1);
+}
+
+html:not([data-skin='default']).dark .settings-save-dock {
+  border-color: rgb(var(--color-dark-700));
+  background: rgb(var(--color-dark-800));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Progress Bar & Toast */
+html:not([data-skin='default']) .progress-bar {
+  background-image: none;
+  background-color: rgb(var(--color-primary-600));
+}
+
+html:not([data-skin='default']).dark .progress-bar {
+  background-color: rgb(var(--color-primary-400));
+}
+
+html:not([data-skin='default']) .toast {
+  border-radius: var(--radius-container);
+  border-top: 1px solid rgb(var(--color-gray-200));
+  border-right: 1px solid rgb(var(--color-gray-200));
+  border-bottom: 1px solid rgb(var(--color-gray-200));
+  box-shadow: 0 8px 24px rgba(20, 25, 31, 0.12);
+}
+
+html:not([data-skin='default']).dark .toast {
+  border-top-color: rgb(var(--color-dark-700));
+  border-right-color: rgb(var(--color-dark-700));
+  border-bottom-color: rgb(var(--color-dark-700));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.48);
+}
+
+/* Landing terminal card flatten perspective tilt for serious enterprise feel */
+html:not([data-skin='default']) .terminal-window {
+  border-radius: var(--radius-container);
+  transform: none;
+}
+
+html:not([data-skin='default']) .terminal-window:hover {
+  transform: none;
+}

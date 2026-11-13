@@ -13431,7 +13431,10 @@ watch(
   height: 2px;
   border-radius: 9999px;
   content: "";
-  background: linear-gradient(90deg, #14b8a6, #0ea5e9);
+  background: var(
+    --settings-tab-indicator,
+    linear-gradient(90deg, rgb(var(--color-primary-500)), #0ea5e9)
+  );
 }
 
 .settings-tab-icon {
