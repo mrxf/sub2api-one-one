@@ -148,6 +148,7 @@ docs/*
 !docs/channel-monitor-v2-safe-defaults.md
 !docs/codex-credits.md
 !docs/claude-code-configuration-guide.md
+!docs/docker-image-build-guide.md
 !docs/legal/
 !docs/legal/*.md
 !docs/screenshots/
