@@ -205,8 +205,8 @@ export default {
     buyoutPrice: '买断价格 (CNY ¥)',
     buyoutPricePlaceholder: '0 表示不支持买断，例如填 580',
     buyoutInfo: '买断时获得的账号信息（纯文本）',
-    buyoutInfoPlaceholder: '例如：\n登录邮箱：xxx@example.com\n登录密码：xxxx\n2FA 密钥 / 恢复码：xxxx\n（仅当客户支付买断价后向其本人展示，未买断前用户端 API 绝对物理隔离不可见）',
-    publicSensitiveWarning: '安全拦截：公开展示别名和商城卖点说明中严禁包含邮箱(@)、组织 ID 或密钥 Token，防止泄露导致恶意封号！请将敏感登录信息填写在下方「买断时获得的账号信息」中。',
+    buyoutInfoPlaceholder: "例如：\n登录邮箱：xxx{'@'}example.com\n登录密码：xxxx\n2FA 密钥 / 恢复码：xxxx\n（仅当客户支付买断价后向其本人展示，未买断前用户端 API 绝对物理隔离不可见）",
+    publicSensitiveWarning: "安全拦截：公开展示别名和商城卖点说明中严禁包含邮箱({'@'})、组织 ID 或密钥 Token，防止泄露导致恶意封号！请将敏感登录信息填写在下方「买断时获得的账号信息」中。",
     validation: {
       salePriceRequired: '上架待售时，独享价格必须大于 0',
       decayNegative: '每日降价金额不能为负数',
@@ -214,7 +214,7 @@ export default {
       ownerRequired: '设为指定用户独享时，必须填写有效的归属用户 ID',
       buyoutPriceNegative: '买断价格不能为负数',
       buyoutInfoRequired: '当买断价格大于 0 时，必须填写买断时获得的账号信息（纯文本）',
-      publicSensitiveForbidden: '公开展示别名或卖点说明中严禁包含邮箱(@)或敏感 Token，请将其移至买断信息中'
+      publicSensitiveForbidden: "公开展示别名或卖点说明中严禁包含邮箱({'@'})或敏感 Token，请将其移至买断信息中"
     },
     bulk: {
       enableDedicatedSale: '批量修改售卖 / 归属与买断模式',

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
 
 import en from '../locales/en'
 import zh from '../locales/zh'
@@ -80,6 +81,30 @@ describe('locale key completeness', () => {
         return typeof current !== 'string' || current.trim() === ''
       })
       expect(emptyKeys, `${locale} has empty or non-string messages`).toEqual([])
+    }
+  })
+
+  it('compiles every locale leaf cleanly under vue-i18n without linked-format or syntax errors', () => {
+    for (const [locale, messages] of Object.entries({ en, zh }) as Array<
+      ['en' | 'zh', Record<string, any>]
+    >) {
+      const compileErrors: string[] = []
+      const i18n = createI18n({
+        legacy: false,
+        locale,
+        messages: { [locale]: messages },
+        warnHtmlMessage: false,
+        missingWarn: false,
+        fallbackWarn: false
+      })
+      for (const key of flattenLeafKeys(messages)) {
+        try {
+          i18n.global.t(key)
+        } catch (err) {
+          compileErrors.push(`${locale}.${key}: ${(err as Error).message}`)
+        }
+      }
+      expect(compileErrors, `${locale} has vue-i18n message compilation errors`).toEqual([])
     }
   })
 

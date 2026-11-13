@@ -205,8 +205,8 @@ export default {
     buyoutPrice: 'Buyout Price (CNY ¥)',
     buyoutPricePlaceholder: '0 disables buyout, e.g. 580',
     buyoutInfo: 'Plaintext Info Delivered Upon Buyout',
-    buyoutInfoPlaceholder: 'e.g.\nEmail: xxx@example.com\nPassword: xxxx\n2FA / Recovery: xxxx\n(Strictly isolated from all user APIs until paid buyout by the verified owner)',
-    publicSensitiveWarning: 'Security Guard: Public alias and marketplace description must NEVER contain email addresses (@), org IDs, or tokens! Place sensitive login info inside Plaintext Buyout Info below.',
+    buyoutInfoPlaceholder: "e.g.\nEmail: xxx{'@'}example.com\nPassword: xxxx\n2FA / Recovery: xxxx\n(Strictly isolated from all user APIs until paid buyout by the verified owner)",
+    publicSensitiveWarning: "Security Guard: Public alias and marketplace description must NEVER contain email addresses ({'@'}), org IDs, or tokens! Place sensitive login info inside Plaintext Buyout Info below.",
     validation: {
       salePriceRequired: 'Dedicated price must be greater than 0 when listing on marketplace',
       decayNegative: 'Daily price decay cannot be negative',
@@ -214,7 +214,7 @@ export default {
       ownerRequired: 'A valid Owner User ID is required when assigning a dedicated user',
       buyoutPriceNegative: 'Buyout price cannot be negative',
       buyoutInfoRequired: 'Plaintext buyout info is required when buyout price is greater than 0',
-      publicSensitiveForbidden: 'Public alias or description cannot contain email addresses (@) or sensitive tokens'
+      publicSensitiveForbidden: "Public alias or description cannot contain email addresses ({'@'}) or sensitive tokens"
     },
     bulk: {
       enableDedicatedSale: 'Batch Update Sale / Ownership & Buyout Mode',
