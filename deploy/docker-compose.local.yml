@@ -19,13 +19,15 @@
 #   4. docker-compose -f docker-compose.local.yml up -d
 # =============================================================================
 
+name: ${COMPOSE_PROJECT_NAME:-sub2api-one-one}
+
 services:
   # ===========================================================================
   # Sub2API Application
   # ===========================================================================
   sub2api:
-    image: weishaw/sub2api:latest
-    container_name: sub2api
+    image: ${SUB2API_IMAGE:-ghcr.io/mrxf/sub2api-one-one:latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-sub2api-one-one}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -34,7 +36,7 @@ services:
         soft: 100000
         hard: 100000
     ports:
-      - "${BIND_HOST:-0.0.0.0}:${SERVER_PORT:-8080}:8080"
+      - "${BIND_HOST:-0.0.0.0}:${SERVER_PORT:-8081}:8080"
     volumes:
       # Local directory mapping for easy migration
       - ./data:/app/data:Z
@@ -226,7 +228,7 @@ services:
   # ===========================================================================
   postgres:
     image: postgres:18-alpine
-    container_name: sub2api-postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-sub2api-one-one}-postgres
     restart: unless-stopped
     ulimits:
       nofile:
@@ -257,7 +259,7 @@ services:
   # ===========================================================================
   redis:
     image: redis:8-alpine
-    container_name: sub2api-redis
+    container_name: ${COMPOSE_PROJECT_NAME:-sub2api-one-one}-redis
     restart: unless-stopped
     ulimits:
       nofile:

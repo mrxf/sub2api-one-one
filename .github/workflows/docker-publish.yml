@@ -12,6 +12,8 @@ on:
       - 'CLA.md'
       - 'docs/**'
       - '!docs/legal/**'
+      - 'deploy/**'
+      - '!deploy/docker-entrypoint.sh'
   workflow_dispatch:
     inputs:
       platforms:
